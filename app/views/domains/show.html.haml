@@ -106,6 +106,9 @@
 
 #domain-records.padded
   %h2.underline= t :title_domian_rrs
+  - form_tag( { :controller => :domains, :action => :show }, { :method => :get } ) do
+    = text_field_tag :record
+    = submit_tag t(:generic_search)
   %table.gridwide#record-table
     %tr
       %td.small= t :label_domain_record_host

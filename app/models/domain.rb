@@ -81,8 +81,15 @@ class Domain < ActiveRecord::Base
   end
 
   # return the records, excluding the SOA record
-  def records_without_soa
-    records.all( :include => :domain ).select { |r| !r.is_a?( SOA ) }
+  def records_without_soa(query = nil)
+    # records.all( :include => :domain ).select { |r| !r.is_a?( SOA ) }
+    if query.nil? || query.blank? then
+      records.find(:all, :include => :domain ).select { |r| !r.is_a?( SOA ) }
+    elsif query == '@' then
+      records.find(:all, :conditions => ["records.name = ?", self.name], :include => :domain ).select { |r| !r.is_a?( SOA ) }
+    else
+      records.find(:all, :conditions => ["records.name LIKE ?", "%#{query}%"], :include => :domain ).select { |r| !r.is_a?( SOA ) }
+    end
   end
 
   # Expand our validations to include SOA details

@@ -34,7 +34,9 @@ class DomainsController < InheritedResources::Base
     if current_user && current_user.admin?
       @users = User.active_owners
     end
-    @records_without_soa = resource.records_without_soa.paginate :page => params[:page], :per_page => 20
+
+    query                = params[:record].blank? ? nil : params[:record]
+    @records_without_soa = resource.records_without_soa(query).paginate(:page => params[:page], :per_page => 20)
 
     show!
   end
