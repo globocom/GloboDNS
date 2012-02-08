@@ -114,7 +114,9 @@
       %td.small= t :label_domain_record_priority
       %td.small= t :label_domain_record_data
       %td &nbsp;
-    = render :partial => 'record', :collection => @domain.records_without_soa
+    //= render :partial => 'record', :collection => @domain.records_without_soa
+    = render :partial => 'record', :collection => @records_without_soa
+  = will_paginate @records_without_soa
 
 - unless @domain.slave?
   - if current_user || current_token.allow_new_records?
