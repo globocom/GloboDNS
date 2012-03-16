@@ -1,5 +1,4 @@
 require 'resolv'
-require 'globo_dns/config'
 
 module GloboDns
 module Util

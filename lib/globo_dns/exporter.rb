@@ -1,8 +1,5 @@
 require File.expand_path('../../../config/environment', __FILE__)
 
-require 'globo_dns/config'
-require 'globo_dns/util'
-
 module GloboDns
 class Exporter
     include GloboDns::Config
