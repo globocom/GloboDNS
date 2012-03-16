@@ -12,7 +12,7 @@
 
 %p=t :label_create_new_domain_note
 
-= form_for( Domain.new ) do |f|
+= form_for( @domain || Domain.new ) do |f|
   = error_messages_for :domain
   %p &nbsp;
   %table.grid
