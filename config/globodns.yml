@@ -1,0 +1,45 @@
+development:
+    bind_user:         'bind'
+    # bind_host:       'localhost'
+    # bind_port:       53
+    bind_config_file:  '/etc/named.conf'
+    bind_config_dir:   '/etc/named/'
+    bind_chroot_dir:   '/var/named/chroot/'
+    bind_error_log:    '/var/named/chroot/var/log/globodns.error.log'
+
+    rndc_config_file:  '/var/named/chroot/etc/rndc.conf'
+    rndc_key:          'rndc-key'
+
+    zones_dir:         'zones'
+    zones_file:        'zones.conf'
+    reverse_dir:       'reverse'
+    reverse_file:      'reverse.conf'
+    slaves_file:       'slaves.conf'
+
+    nameserver_host:   'localhost'
+    record_order:
+        - SOA
+        - NS
+        - MX
+        - A
+        - AAAA
+        - CNAME
+        - LOC
+        - SPF
+        - SRV
+        - PTR
+        - TXT
+
+    binaries:
+        bind:          '/usr/sbin/named'
+        rndc:          '/usr/sbin/rndc'
+        git:           '/usr/bin/git'
+        zone2sql:      '/usr/bin/zone2sql'
+        rsync:         '/usr/bin/rsync'
+        sudo:          '/usr/bin/sudo'
+        chroot:        '/usr/sbin/chroot'
+
+test:
+
+production:
+

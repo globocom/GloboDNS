@@ -12,10 +12,9 @@ class Record < ActiveRecord::Base
 
   belongs_to :domain
 
-  validates_presence_of :domain_id, :name
-  validates_numericality_of :ttl,
-    :greater_than_or_equal_to => 0,
-    :only_integer => true
+  validates_presence_of     :domain_id, :if => Proc.new {|record| !record.is_a?(SOA)}
+  validates_presence_of     :name, :allow_nil => true
+  validates_numericality_of :ttl, :greater_than_or_equal_to => 0, :only_integer => true, :allow_nil => true
 
   class_inheritable_accessor :batch_soa_updates
 
@@ -24,8 +23,10 @@ class Record < ActiveRecord::Base
   attr_accessor :primary_ns, :contact, :refresh, :retry, :expire, :minimum
 
   before_validation :inherit_attributes_from_domain
-  before_save :update_change_date
-  after_save  :update_soa_serial
+  before_save       :update_change_date
+  after_save        :update_soa_serial
+
+  scope :sorted, order('name ASC')
 
   # Known record types
   @@record_types = ['A', 'AAAA', 'CNAME', 'LOC', 'MX', 'NS', 'PTR', 'SOA', 'SPF', 'SRV', 'TXT']
@@ -63,6 +64,10 @@ class Record < ActiveRecord::Base
     self[:name] = value
   end
 
+  def export_name
+    (name == self.domain.name) ? '@' : (shortname.presence || (name + '.'))
+  end
+
   # Nicer representation of the domain as XML
   def to_xml_with_cleanup(options = {}, &block)
     to_xml_without_cleanup(options, &block)
@@ -72,7 +77,7 @@ class Record < ActiveRecord::Base
   # Pull in the name & TTL from the domain if missing
   def inherit_attributes_from_domain #:nodoc:
     unless self.domain_id.nil?
-      append_domain_name!
+      # append_domain_name!
       self.ttl ||= self.domain.ttl
     end
   end
@@ -95,12 +100,69 @@ class Record < ActiveRecord::Base
     false
   end
 
+  # return the Resolv::DNS resource instance, based on the 'type' column
+  def self.resolv_resource_class(type)
+    case type
+    when 'A';     Resolv::DNS::Resource::IN::A
+    when 'AAAA';  Resolv::DNS::Resource::IN::AAAA
+    when 'CNAME'; Resolv::DNS::Resource::IN::CNAME
+    when 'LOC';   Resolv::DNS::Resource::IN::TXT   # define a LOC class?
+    when 'MX';    Resolv::DNS::Resource::IN::MX
+    when 'NS';    Resolv::DNS::Resource::IN::NS
+    when 'PTR';   Resolv::DNS::Resource::IN::PTR
+    when 'SOA';   Resolv::DNS::Resource::IN::SOA
+    when 'SPF';   Resolv::DNS::Resource::IN::TXT   # define a SPF class?
+    when 'SRV';   Resolv::DNS::Resource::IN::SRV
+    when 'TXT';   Resolv::DNS::Resource::IN::TXT
+    end
+  end
+
+  def resolve_resource_class
+    self.class.resolv_resource_class(self.type)
+  end
+
+  def self.fqdn(record_name, domain_name)
+    domain_name += '.' unless domain_name[-1] == '.'
+    if record_name == '@' || record_name.nil? || record_name.blank?
+      domain_name
+    elsif record_name[-1] == '.'
+      record_name
+    # elsif record_name.end_with?(domain_name)
+      # record_name
+    else
+      record_name + '.' + domain_name
+    end
+  end
+
+  def fqdn
+    self.class.fqdn(self.name, self.domain.name)
+  end
+
+  def to_zonefile(format)
+    # FIXME: fix ending '.' of content on the importer
+    content  = self.content
+    content += '.' if self.content =~ /\.(?:com|net|org|br|in-addr\.arpa)$/
+    # content += '.' unless self.content[-1] == '.'                                 ||
+    #                       self.type        == 'A'                                 ||
+    #                       self.type        == 'AAAA'                              ||
+    #                       self.content     =~ /\s\d{,3}\.\d{,3}\.\d{,3}\.\d{,3}$/ || # ipv4
+    #                       self.content     =~ /\s[a-fA-F0-9:]+$/                     # ipv6
+
+    # FIXME: zone2sql sets prio = 0 for all records
+    prio = (self.type == 'MX' || (self.prio && (self.prio > 0)) ? self.prio : '')
+
+    # output.printf(format, record.name, record.ttl, record.type, prio, content)
+    sprintf(format, self.name, self.ttl, self.type, prio || '', content)
+  end
+
   private
 
   # Append the domain name to the +name+ field if missing
   def append_domain_name!
     self[:name] = self.domain.name if self[:name].blank?
-
-    self[:name] << ".#{self.domain.name}" unless self[:name].index( self.domain.name )
+    unless self[:name].index( self.domain.name )
+      puts "[append_domain_name] appending domain name (#{self[:name]} / #{self.domain.name})"
+      self[:name] << ".#{self.domain.name}"
+    end
   end
 end

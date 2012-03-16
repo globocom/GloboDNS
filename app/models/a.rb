@@ -15,4 +15,11 @@ class A < Record
   # Only accept valid IPv4 addresses
   validates :content, :presence => true, :ip_address => true
 
+  def resolv_resource_class
+    Resolv::DNS::Resource::IN::A
+  end
+
+  def match_resolv_resource(resource)
+    resource.address.to_s == self.content
+  end
 end

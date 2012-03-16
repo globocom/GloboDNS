@@ -25,5 +25,6 @@ PowerdnsOnRails::Application.configure do
 
   # Localhost default for devise
   config.action_mailer.default_url_options = { :host => 'localhost' }
-end
 
+  config.autoload_paths += %W(#{config.root}/lib)
+end

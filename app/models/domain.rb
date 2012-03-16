@@ -30,26 +30,28 @@ class Domain < ActiveRecord::Base
   has_many :srv_records,   :class_name => 'SRV'
   has_many :ptr_records,   :class_name => 'PTR'
 
-  validates_presence_of :name
+  validates_presence_of   :name
   validates_uniqueness_of :name
-  validates_inclusion_of :type, :in => %w(NATIVE MASTER SLAVE), :message => "must be one of NATIVE, MASTER, or SLAVE"
-
-  validates_presence_of :master, :if => :slave?
-  validates_format_of :master, :if => :slave?,
-    :allow_blank => true,
-    :with => /\A(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\z/
+  validates_inclusion_of  :type, :in => %w(NATIVE MASTER SLAVE), :message => "must be one of NATIVE, MASTER, or SLAVE"
+  validates_presence_of   :master, :if => :slave?
+  validates_format_of     :master, :if => :slave?, :allow_blank => true, :with => /\A(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\z/
+  validate                :validate_soa_record, :on => :create
 
   # Disable single table inheritence (STI)
   set_inheritance_column 'not_used_here'
 
-  after_create :create_soa_record
+  after_create  :create_soa_record
+  before_update :set_soa_attributes
+  after_update  :update_soa_record
 
   # Virtual attributes that ease new zone creation. If present, they'll be
   # used to create an SOA for the domain
-  SOA_FIELDS = [ :primary_ns, :contact, :refresh, :retry, :expire, :minimum ]
+  SOA_FIELDS = [ :name, :primary_ns, :contact, :refresh, :retry, :expire, :minimum, :ttl ]
   SOA_FIELDS.each do |f|
-    attr_accessor f
-    validates_presence_of f, :on => :create, :unless => :slave?
+    unless self.column_names.include?(f.to_s)
+      attr_accessor f
+      validates_presence_of f, :on => :create, :unless => :slave?
+    end
   end
 
   # Serial is optional, but will be passed to the SOA too
@@ -62,22 +64,25 @@ class Domain < ActiveRecord::Base
   #attr_accessible :type
 
   # Scopes
-  scope :user, lambda { |user| user.admin? ? nil : where(:user_id => user.id) }
-  default_scope order('name')
+  scope :user,     lambda { |user| user.admin? ? nil : where(:user_id => user.id) }
+  scope :reverse,  where('type != ?', 'SLAVE').where('name LIKE ?',     '%in-addr.arpa')
+  scope :standard, where('type != ?', 'SLAVE').where('name NOT LIKE ?', '%in-addr.arpa')
+  scope :slave,    where('type  = ?', 'SLAVE')
+  default_scope    order('name')
 
-  class << self
-
-    def search( string, page, user = nil )
-      query = self.scoped
-      query = query.user( user ) unless user.nil?
-      query.where('name LIKE ?', "%#{string}%").paginate( :page => page )
-    end
-
+  def self.search( string, page, user = nil )
+    query = self.scoped
+    query = query.user( user ) unless user.nil?
+    query.where('name LIKE ?', "%#{string}%").paginate( :page => page )
   end
 
   # Are we a slave domain
   def slave?
     self.type == 'SLAVE'
+  end
+
+  def reverse?
+    self.name.end_with?('.in-addr.arpa')
   end
 
   # return the records, excluding the SOA record
@@ -110,18 +115,69 @@ class Domain < ActiveRecord::Base
   # Setup an SOA if we have the requirements
   def create_soa_record #:nodoc:
     return if self.slave?
+    soa_record.save or raise "[ERROR] unable to save SOA record (#{soa_record.errors.full_messages})"
+  end
 
-    soa = SOA.new( :domain => self )
-    SOA_FIELDS.each do |f|
-      soa.send( "#{f}=", send( f ) )
-    end
-    soa.serial = serial unless serial.nil? # Optional
-    soa.save
+  def set_soa_attributes
+    soa_record.name = Record::fqdn(self.name, self.name) if self.name_changed?
+    soa_record.ttl  = self.ttl  if self.ttl_changed?
+  end
+
+  def update_soa_record
+    soa_record.save(false) if soa_record.changed?
   end
 
   def attach_errors(e)
     e.message.split(":")[1].split(",").uniq.each do |m|
       self.errors.add(m , '')
     end
+  end
+
+  # create & validate soa record
+  def validate_soa_record
+    return if self.slave?
+
+    self.soa_record = SOA.new(:domain => self)
+    SOA_FIELDS.each do |f|
+      self.soa_record.send("#{f}=", send(f))
+    end
+
+    # override name with '@'
+    self.soa_record.name = '@'
+
+    self.soa_record.serial = serial unless serial.nil? # Optional
+    if self.soa_record.valid?
+      true
+    else
+      self.soa_record.errors.each do |field, message|
+        errors.add(field, message)
+      end
+      false
+    end
+  end
+
+  def zonefile_path
+    dir = if self.slave?
+            GloboDns::Config::SLAVES_DIR
+          elsif self.reverse?
+            GloboDns::Config::REVERSE_DIR
+          else
+            GloboDns::Config::ZONES_DIR
+          end
+
+    File.join(dir, 'db.' + self.name)
+  end
+
+  def zonefile_absolute_path
+    File.join(GloboDns::Config::BIND_CONFIG_DIR, zonefile_path)
+  end
+
+  def to_bind9_conf
+    <<-EOS
+zone "#{self.name}" {
+    type #{self.slave? ? 'slave' : 'master'};
+    file "#{zonefile_absolute_path}";
+};
+    EOS
   end
 end

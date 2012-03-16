@@ -18,4 +18,14 @@ class MX < Record
   def supports_prio?
     true
   end
+
+  def resolv_resource_class
+    Resolv::DNS::Resource::IN::MX
+  end
+
+  def match_resolv_resource(resource)
+    resource.preference == self.prio &&
+    (resource.exchange.to_s == self.content.chomp('.') ||
+     resource.exchange.to_s == (self.content + '.' + self.domain.name))
+  end
 end

@@ -9,7 +9,13 @@
 # 
 # Obtained from http://www.zytrax.com/books/dns/ch8/txt.html
 class TXT < Record
-  
   validates_presence_of :content
-  
+
+  def resolv_resource_class
+    Resolv::DNS::Resource::IN::TXT
+  end
+
+  def match_resolv_resource(resource)
+    resource.strings.join(' ') == self.content.chomp('.')
+  end
 end

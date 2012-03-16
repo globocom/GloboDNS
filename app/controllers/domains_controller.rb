@@ -42,10 +42,10 @@ class DomainsController < InheritedResources::Base
   end
 
   def create
-    @domain = Domain.new( params[:domain] )
+    @domain = Domain.new(params[:domain])
 
     unless @domain.slave?
-      @zone_template = ZoneTemplate.find(params[:domain][:zone_template_id]) unless params[:domain][:zone_template_id].blank?
+      @zone_template   = ZoneTemplate.find(params[:domain][:zone_template_id])           unless params[:domain][:zone_template_id].blank?
       @zone_template ||= ZoneTemplate.find_by_name(params[:domain][:zone_template_name]) unless params[:domain][:zone_template_name].blank?
 
       unless @zone_template.nil?
@@ -61,7 +61,6 @@ class DomainsController < InheritedResources::Base
     end
 
     @domain.user = current_user unless current_user.admin?
-
     create!
   end
 

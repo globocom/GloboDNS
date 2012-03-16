@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require File.expand_path('../../config/environment',  __FILE__)
+require 'globo_dns/exporter'
+
+GloboDns::Exporter.new.export_all(:logger       => Logger.new(File.join(Rails.root, 'log', 'globodns.exporter.log')),
+                                  :test_changes => false)

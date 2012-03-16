@@ -8,25 +8,16 @@
 #
 class SOA < Record
 
-  validates_presence_of :primary_ns, :content, :serial, :refresh, :retry,
-    :expire, :minimum
-
-  validates_numericality_of :serial, :refresh, :retry, :expire,
-    :allow_blank => true,
-    :greater_than_or_equal_to => 0
-
-  validates_numericality_of :minimum, # RFC2308
-    :allow_blank => true,
-    :greater_than_or_equal_to => 0,
-    :less_than_or_equal_to => 10800
-
-  validates_uniqueness_of :domain_id
-  validates_format_of :contact, :with => /\A[a-zA-Z0-9\-\.]+@[a-zA-Z0-9-]+\.[a-zA-Z.]{2,6}\z/
-  validates :name, :presence => true, :hostname => true
+  validates_presence_of     :primary_ns, :content, :serial, :refresh, :retry, :expire, :minimum
+  validates_numericality_of :serial, :refresh, :retry, :expire, :allow_blank => true, :greater_than_or_equal_to => 0
+  validates_numericality_of :minimum, :allow_blank => true, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 10800
+  validates_uniqueness_of   :domain_id, :on => :update
+  validates                 :contact, :presence => true, :hostname => true
+  validates                 :name,    :presence => true, :hostname => true
 
   before_validation :set_content
-  before_update :update_serial
-  after_initialize :update_convenience_accessors
+  before_update     :update_serial
+  after_initialize  :update_convenience_accessors
 
   # The portions of the +content+ column that make up our SOA fields
   SOA_FIELDS = %w{ primary_ns contact serial refresh retry expire minimum }
@@ -42,13 +33,13 @@ class SOA < Record
 
   # Treat contact specially, replacing the first period with an @ if
   # no @'s are present
-  def contact=( email )
-    if !email.nil? && email.index('@').nil?
-      email.sub!('.', '@')
-    end
+  # def contact=( email )
+  #   if !email.nil? && email.index('@').nil?
+  #     email.sub!('.', '@')
+  #   end
 
-    @contact = email
-  end
+  #   @contact = email
+  # end
 
   # Hook into #reload
   def reload_with_content
@@ -103,6 +94,24 @@ class SOA < Record
 
   def set_content
     self.content = SOA_FIELDS.map { |f| instance_variable_get("@#{f}").to_s  }.join(' ')
+  end
+
+  def export_name
+    '@'
+  end
+
+  def resolv_resource_class
+    Resolv::DNS::Resource::IN::SOA
+  end
+
+  def match_resolv_resource(resource)
+    resource.mname.to_s == self.primary_ns.chomp('.') &&
+    resource.rname.to_s == self.contact.chomp('.')    &&
+    resource.serial     == self.serial                &&
+    resource.refresh    == self.refresh               &&
+    resource.retry      == self.retry                 &&
+    resource.expire     == self.expire                &&
+    resource.minimum    == self.minimum
   end
 
   private

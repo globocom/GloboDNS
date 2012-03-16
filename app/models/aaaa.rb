@@ -15,4 +15,11 @@ class AAAA < Record
   # Only accept valid IPv6 addresses
   validates :content, :presence => true, :ip_address => { :ipv6 => true }
 
+  def resolv_resource_class
+    Resolv::DNS::Resource::IN::AAAA
+  end
+
+  def match_resolv_resource(resource)
+    resource.address.to_s == self.content
+  end
 end

@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require File.expand_path('../../config/environment',  __FILE__)
+require 'globo_dns/tester'
+
+# MiniTest::Unit.autorun
+GloboDns::Tester.new.run_all

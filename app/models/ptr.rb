@@ -8,7 +8,14 @@
 # Obtained from http://www.zytrax.com/books/dns/ch8/ptr.html
 #
 class PTR < Record
-
   validates :content, :presence => true, :hostname => true
 
+  def resolv_resource_class
+    Resolv::DNS::Resource::IN::PTR
+  end
+
+  def match_resolv_resource(resource)
+    resource.name.to_s == self.content.chomp('.') ||
+    resource.name.to_s == (self.content + '.' + self.domain.name)
+  end
 end
