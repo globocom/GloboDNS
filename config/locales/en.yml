@@ -110,7 +110,7 @@ en:
 ### Views
 
 # Layout
-  layout_main_title: "PowerDNS on Rails"
+  layout_main_title: "GloboDNS"
 
   layout_menu_home: "Home"
   layout_menu_domains: "Domains"
