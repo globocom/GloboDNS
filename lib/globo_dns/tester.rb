@@ -9,6 +9,8 @@ class Tester < ActiveSupport::TestCase
     include GloboDns::Util
 
     def initialize(*args)
+        options = args.first.is_a?(Hash) ? args.shift : Hash.new
+        @logger = options.delete(:logger) || Rails.logger
         super(args)
     end
 
@@ -63,27 +65,27 @@ class Tester < ActiveSupport::TestCase
 
     def test_added_domains
         @added_domains.each do |domain, records|
-            puts "[GloboDns::Tester::added] \"#{domain}\""
+            @logger.info "[GloboDns::Tester::added] \"#{domain}\""
             test_added_domain(domain, records)
-            puts "[GloboDns::Tester::added] \"#{domain}\": ok"
+            @logger.info "[GloboDns::Tester::added] \"#{domain}\": ok"
         end
         true
     end
 
     def test_removed_domains
         @removed_domains.each do |domain, records|
-            puts "[GloboDns::Tester::removed] \"#{domain}\""
+            @logger.info "[GloboDns::Tester::removed] \"#{domain}\""
             test_removed_domain(domain, records)
-            puts "[GloboDns::Tester::removed] \"#{domain}\": ok"
+            @logger.info "[GloboDns::Tester::removed] \"#{domain}\": ok"
         end
         true
     end
 
     def test_modified_domains
         @modified_domains.each do |domain, records|
-            puts "[GloboDns::Tester::modified] \"#{domain}\""
+            @logger.info "[GloboDns::Tester::modified] \"#{domain}\""
             test_modified_domain(domain, records)
-            puts "[GloboDns::Tester::modified] \"#{domain}\": ok"
+            @logger.info "[GloboDns::Tester::modified] \"#{domain}\": ok"
         end
         true
     end
@@ -132,7 +134,7 @@ class Tester < ActiveSupport::TestCase
     end
 
     def test_record(record, domain, category_label = '')
-        log_test category_label, "record: #{record[:name]}/#{record[:type]}:" do
+        log_test category_label, "record: #{record[:name]}/#{record[:type]}" do
             db_records = Record.joins(:domain).
                                 where("#{Domain.table_name}.name" => domain).
                                 where("#{Record.table_name}.name" => possible_record_names(record[:name], domain)).
@@ -144,7 +146,7 @@ class Tester < ActiveSupport::TestCase
     end
 
     def test_added_record(record, domain, category_label = '')
-        log_test category_label, "record: #{record[:name]}/#{record[:type]}:" do
+        log_test category_label, "record: #{record[:name]}/#{record[:type]}" do
             db_records = Record.joins(:domain).
                                 where("#{Domain.table_name}.name" => domain).
                                 where("#{Record.table_name}.name" => possible_record_names(record[:name], domain)).
@@ -159,7 +161,7 @@ class Tester < ActiveSupport::TestCase
     end
 
     def test_removed_record(record, domain, category_label = '')
-        log_test category_label, "record: #{record[:name]}/#{record[:type]}:" do
+        log_test category_label, "record: #{record[:name]}/#{record[:type]}" do
             db_records = Record.joins(:domain).
                                 where("#{Domain.table_name}.name" => domain).
                                 where("#{Record.table_name}.name" => possible_record_names(record[:name], domain)).
@@ -172,9 +174,13 @@ class Tester < ActiveSupport::TestCase
     end
 
     def log_test(category, name)
-        print "[GloboDns::Tester#{category ? '::' + category : ''}]     #{name}:"
+        string = "[GloboDns::Tester#{category ? '::' + category : ''}]     #{name}:"
         yield
-        print " ok\n"
+        string += " ok"
+    rescue
+        string += " failed"
+    ensure
+        @logger.info string
     end
 
     def possible_record_names(name, domain)
