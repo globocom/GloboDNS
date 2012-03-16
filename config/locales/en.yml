@@ -119,6 +119,8 @@ en:
   layout_menu_logs: "Logs"
   layout_menu_users: "Users"
   layout_menu_reports: "Reports"
+  layout_menu_export: "Export"
+  layout_menu_test: "Test"
   layout_menu_logout: "Logout"
 
 # Audits _domain_audit
@@ -499,6 +501,10 @@ en:
   label_user_create: "New user"
   confirm_user_remove: "Are you sure you want to remove this user?"
   label_user_detail: "More Detail"
+
+# Bind9 export
+  title_export: Exporting to Bind9 configuration
+  title_test:   Testing the latest exported changes
 
 
 ### Controllers

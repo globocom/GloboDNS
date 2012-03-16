@@ -28,6 +28,9 @@ PowerdnsOnRails::Application.routes.draw do
   match '/audits(/:action(/:id))' => 'audits#index', :as => :audits
   match '/reports(/:action)' => 'reports#index', :as => :reports
 
+  match '/export' => 'bind9#export', :as => :export
+  match '/test'   => 'bind9#test',   :as => :test
+
   resource :auth_token
   post '/token/:token' => 'sessions#token', :as => :token
 
