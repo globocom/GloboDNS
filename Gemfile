@@ -13,6 +13,7 @@ gem 'acts_as_audited', '2.0.0.rc7'
 gem 'inherited_resources'
 gem 'devise'
 gem 'rabl'
+gem 'awesome_print'
 
 group :development, :test do
   gem "rspec-rails", "~> 2.6.0"
@@ -20,11 +21,11 @@ group :development, :test do
 end
 
 group :test do
-  if RUBY_VERSION < "1.9"
-    gem 'ruby-debug'
-  else
-    gem 'ruby-debug19'
-  end
+  # if RUBY_VERSION < "1.9"
+  #   gem 'ruby-debug'
+  # else
+  #   gem 'ruby-debug19'
+  # end
   gem 'factory_girl_rails'
   gem "cucumber-rails"
   gem 'mocha'
