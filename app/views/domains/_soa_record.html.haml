@@ -22,7 +22,12 @@
   - if current_user
     #soa-form{ :style => "display: none;" }
       = form_for( @domain.soa_record, :url => update_soa_domain_record_path( @domain.soa_record, :domain_id => @domain.id ), :remote => true ) do |f|
-        = error_messages_for @domain.soa_record
+
+        - if @domain && @domain.soa_record && @domain.soa_record.errors.any?
+          %ul 
+          - @domain.soa_record.errors.full_messages.each do |msg|
+            %li= msg
+
         %table.grid
           %tr
             %td= t :label_domain_primary_name_server

@@ -34,8 +34,7 @@
     = t :confirm_delete_this_domain
     = link_to_function info_icon('cancel.png', 'delete-reset'), "deleteDomain();"
 
-%h1.underline
-  = @domain.name
+%h1= @domain.name
 
 #domain-name.padded
   %table.gridwide
@@ -93,9 +92,8 @@
               = submit_tag(t(:generic_update))
 
 #domain-soa.padded
-  %h2.underline
+  %h1
     = t :title_soa_record
-    &nbsp;
     - if current_user
       = link_to_function info_icon('database_edit.png', 'soa-record-edit'), "showSOAEdit()"
   - if @domain.soa_record.nil?
@@ -105,7 +103,7 @@
     = render :partial => '/domains/soa_record', :object => @domain.soa_record
 
 #domain-records.padded
-  %h2.underline= t :title_domian_rrs
+  %h1= t :title_domian_rrs
   - form_tag( { :controller => :domains, :action => :show }, { :method => :get } ) do
     = text_field_tag :record
     = submit_tag t(:generic_search)

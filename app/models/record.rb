@@ -16,7 +16,7 @@ class Record < ActiveRecord::Base
   validates_presence_of     :name, :allow_nil => true
   validates_numericality_of :ttl, :greater_than_or_equal_to => 0, :only_integer => true, :allow_nil => true
 
-  class_inheritable_accessor :batch_soa_updates
+  class_attribute :batch_soa_updates
 
   # This is needed here for generic form support, actual functionality
   # implemented in #SOA

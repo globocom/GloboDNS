@@ -13,7 +13,11 @@
 %p=t :label_create_new_domain_note
 
 = form_for( @domain || Domain.new ) do |f|
-  = error_messages_for :domain
+  - if @domain && @domain.errors.any?
+    %ul 
+    - @domain.errors.full_messages.each do |msg|
+      %li= msg
+
   %p &nbsp;
   %table.grid
     %tr

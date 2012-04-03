@@ -1,10 +1,15 @@
 require 'digest/sha1'
+
 class User < ActiveRecord::Base
   # Include default devise modules. Others available are:
   # :token_authenticatable, :confirmable, :lockable and :timeoutable
   devise :database_authenticatable,
-         :recoverable, :rememberable, :confirmable, :validatable,
-         :encryptable, :encryptor => :restful_authentication_sha1
+         :rememberable,
+         :validatable,
+         :encryptable,
+         :encryptor => :restful_authentication_sha1
+         # :recoverable,
+         # :confirmable,
 
   # Setup accessible (or protected) attributes for your model
   attr_accessible :email, :password, :password_confirmation, :remember_me
@@ -35,21 +40,23 @@ class User < ActiveRecord::Base
   # Named scopes
   scope :active_owners, where(:state => :active, :admin => false)
 
-  acts_as_state_machine :initial => :active
-  state :active #, :enter => :do_activate
-  state :suspended
-  state :deleted #, :enter => :do_delete
-
-  event :suspend do
-    transitions :from => :active, :to => :suspended
+  ROLES = [:ADMIN, :MANAGER, :VIEWER].inject(Hash.new) do |hash, role|
+      role_str = role.to_s.sub(/^ROLE_/, '')[0]
+      const_set(('ROLE_' + role.to_s).to_sym, role_str)
+      hash[role] = role_str
+      hash
   end
 
-  event :unsuspend do
-    transitions :from => :suspended, :to => :active
+  def admin?
+      role == ROLE_ADMIN
   end
 
-  event :delete do
-    transitions :from => [:suspended, :active], :to => :deleted
+  def manager?
+      role == ROLE_MANAGER
+  end
+
+  def viewer?
+      role == ROLE_VIEWER
   end
 
   class << self

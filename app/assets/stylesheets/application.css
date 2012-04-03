@@ -1,65 +1,74 @@
+/*
+ * *= require_self
+ * *= require_tree .
+ * */
+
 body {
     margin: 0;
     padding: 0;
-    font-family: Verdana, Helvetica, Arial, sans-serif;
+    font-family: Arial, Helvetica, Lucida Grande, Sans, sans-serif;
     font-size: 12px;
     color: #000;
-    background-color: #F0F0F0;
+    background-color: #eee;
 }
-#Container {
-    width: 800px;
-    margin: 0 auto;
+#container {
+    width: 960px;
+    margin: 2em auto;
+	box-shadow: 0px 0px 16px #888;
+	background-color: white;
 }
-#Header {
-    height: 80px;
-    background-image: url(../images/top-background.png);
-    background-repeat: repeat-x;
-    padding-left: 20px;
+#header {
+    height: 72px;
+    padding: 2em 2em 1em 2em;
+    /* background-image: url(top-background.png); */
+    /* background-repeat: repeat-x; */
 }
-#Header h1 {
+#header h1 {
     padding: 0;
     margin: 0;
-    line-height: 80px;
-    vertical-align: middle;
-    color: #FFF;
 }
-#Nav {
-    border-bottom: 1px solid #333;
-    padding: 5px 20px
+#nav {
+    padding: 1em 2em;
 }
-#Nav ul {
+#nav ul {
     list-style-type: none;
     padding: 0;
     margin: 0;
 }
-#Nav ul li {
+#nav ul li {
     display: inline;
-    padding-right: 5px;
+    padding-right: 1em;
+	font-size: 16px;
+	text-shadow: 1px 1px 1px #ccc;
 }
-#Nav a:link, #Nav a:active, #Nav a:visited {
-    color: #003;
+#nav a:link, #nav a:active, #nav a:visited {
+    color: #0f2f98;
     font-weight: bold;
     text-decoration: none;
 }
-#Nav a:hover {
-    text-decoration: underline;
+#nav a:hover {
+	color: #4a65be;
 }
-#Body {
-    padding: 20px;
-    background-color: #FFF;
+#body {
+    padding: 2em;
+    background-color: white;
 }
-#Footer {
-    padding: 10px 20px 40px 20px;
-    text-align: center;
+#footer {
+    /* padding: 10px 20px 40px 20px; */
+    /* text-align: center; */
+	margin: 0 auto;
+	padding: 2em;
+	width: 20em;
     font-size: 80%;
 }
 
-#Body h1 {
+#body h1 {
     margin: 0;
     padding: 3px 0;
     font-size: 16px;
+	text-shadow: 1px 1px 1px #ccc;
 }
-#Body h2 {
+#body h2 {
     margin: 0;
     padding: 2px 0;
     font-size: 14px;
@@ -78,6 +87,19 @@ table.grid {
 }
 table.gridwide {
     width: 100%;
+}
+a {
+	text-decoration: none;
+    color: #0f2f98;
+}
+a:hover {
+	color: #4a65be;
+}
+hr {
+	border: 0;
+	height: 1px;
+	background: -moz-linear-gradient(left center, rgba(255, 255, 255, 0), #CCC, #CCC, rgba(255, 255, 255, 0));
+	background: -webkit-gradient(linear, left center, right center, color-stop(0, transparent), color-stop(0.5, #CCC), color-stop(0.5, #CCC), color-stop(1, transparent));
 }
 .small {
     font-size: 90%;

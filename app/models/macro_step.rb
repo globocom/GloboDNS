@@ -11,7 +11,7 @@ class MacroStep < ActiveRecord::Base
 
   belongs_to :macro
 
-  acts_as_list :scope => :macro
+  # acts_as_list :scope => :macro
 
   # Convert this step into a valid #Record
   def build( domain = nil )

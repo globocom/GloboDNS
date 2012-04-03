@@ -1,50 +1,50 @@
-PowerdnsOnRails::Application.routes.draw do
-  devise_for :users, :controllers => { :sessions => "sessions" }, :path => "sessions"
+GloboDns::Application.routes.draw do
+    devise_for :users, :controllers => { :sessions => "sessions" }, :path => "sessions"
 
-  root :to => 'dashboard#index'
+    root :to => 'dashboard#index'
 
-  resources :domains do
-    member do
-      put :change_owner
-      get :apply_macro
-      post :apply_macro
-      put :update_note
+    resources :domains do
+        member do
+            put :change_owner
+            get :apply_macro
+            post :apply_macro
+            put :update_note
+        end
+
+        resources :records do
+            member do
+                put :update_soa
+            end
+        end
     end
 
-    resources :records do
-      member do
-        put :update_soa
-      end
+    resources :zone_templates, :controller => 'templates'
+    resources :record_templates
+
+    resources :macros do
+        resources :macro_steps
     end
-  end
 
-  resources :zone_templates, :controller => 'templates'
-  resources :record_templates
+    match '/audits(/:action(/:id))' => 'audits#index', :as => :audits
+    match '/reports(/:action)' => 'reports#index', :as => :reports
 
-  resources :macros do
-    resources :macro_steps
-  end
+    match '/export' => 'bind9#export', :as => :export
+    match '/test'   => 'bind9#test',   :as => :test
 
-  match '/audits(/:action(/:id))' => 'audits#index', :as => :audits
-  match '/reports(/:action)' => 'reports#index', :as => :reports
+    resource :auth_token
+    post '/token/:token' => 'sessions#token', :as => :token
 
-  match '/export' => 'bind9#export', :as => :export
-  match '/test'   => 'bind9#test',   :as => :test
-
-  resource :auth_token
-  post '/token/:token' => 'sessions#token', :as => :token
-
-  resources :users do
-    member do
-      put :suspend
-      put :unsuspend
-      delete :purge
+    resources :users do
+        member do
+            put :suspend
+            put :unsuspend
+            delete :purge
+        end
     end
-  end
 
-  get '/search(/:action)' => 'search#results', :as => :search
+    get '/search(/:action)' => 'search#results', :as => :search
 
-  #resource :session
-  #match '/logout' => 'sessions#destroy', :as => :logout
-  #match '/:controller(/:action(/:id))'
+    #resource :session
+    #match '/logout' => 'sessions#destroy', :as => :logout
+    #match '/:controller(/:action(/:id))'
 end

@@ -11,9 +11,9 @@ user = User.find_by_email('admin@example.com') || User.new(:email => 'admin@exam
 user.login = 'admin' # Not used anymore
 user.password = 'secret'
 user.password_confirmation = 'secret'
-user.admin = true
+user.role = User::ROLE_ADMIN
 user.save!
-user.confirm!
+#user.confirm!
 
 # Create an example zone template
 zone_template = ZoneTemplate.find_by_name('Example Template') || ZoneTemplate.new(:name => 'Example Template')
@@ -80,13 +80,14 @@ RecordTemplate.create!({
 
 # And add our example.com records
 domain = Domain.find_by_name('example.com') || Domain.new(:name => 'example.com')
-domain.ttl = 84600
+domain.ttl        = 84600
+domain.type       = 'MASTER'
 domain.primary_ns = 'ns1.example.com'
-domain.contact = 'admin@example.com'
-domain.refresh = 10800
-domain.retry = 7200
-domain.expire = 604800
-domain.minimum = 10800
+domain.contact    = 'admin@example.com'
+domain.refresh    = 10800
+domain.retry      = 7200
+domain.expire     = 604800
+domain.minimum    = 10800
 domain.save!
 
 # Clear the records and start fresh
@@ -94,48 +95,48 @@ domain.records_without_soa.each(&:destroy)
 
 # NS records
 NS.create!({
-  :domain => domain,
+  :domain  => domain,
+  :name    => '@',
   :content => 'ns1.%ZONE%'
 })
 NS.create!({
-  :domain => domain,
+  :domain  => domain,
+  :name    => '@',
   :content => 'ns2.%ZONE%'
 })
 
 # Assorted A records
 A.create!({
-  :domain => domain,
-  :name => 'ns1',
+  :domain  => domain,
+  :name    => 'ns1',
   :content => '10.0.0.1'
 })
 A.create!({
-  :domain => domain,
-  :name => 'ns2',
+  :domain  => domain,
+  :name    => 'ns2',
   :content => '10.0.0.2'
 })
 A.create!({
-  :domain => domain,
+  :domain  => domain,
+  :name    => '@',
   :content => '10.0.0.3'
 })
 A.create!({
-  :domain => domain,
-  :name => 'mail',
+  :domain  => domain,
+  :name    => 'mail',
   :content => '10.0.0.4'
 })
 MX.create!({
-  :domain => domain,
-  :type => 'MX',
+  :domain  => domain,
+  :name    => '@',
+  :type    => 'MX',
   :content => 'mail',
-  :prio => 10
+  :prio    => 10
 })
 
 puts <<-EOF
-
-
 -------------------------------------------------------------------------------
-
-
-Congratulations on setting up your PowerDNS on Rails database. You can now
+Congratulations on setting up your GloboDns on Rails database. You can now
 start the server by running the command below, and then pointing your browser
 to http://localhost:3000/
 
@@ -143,10 +144,6 @@ $ ./script/rails s
 
 You can then login with "admin@example.com" using the password "secret".
 
-Thanks for trying out PowerDNS on Rails!
-
-
+Thanks for trying out GloboDns
 -------------------------------------------------------------------------------
-
-
 EOF

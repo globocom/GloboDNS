@@ -32,7 +32,7 @@ class DomainsController < InheritedResources::Base
 
   def show
     if current_user && current_user.admin?
-      @users = User.active_owners
+      @users = User.all
     end
 
     query                = params[:record].blank? ? nil : params[:record]

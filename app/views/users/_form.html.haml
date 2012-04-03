@@ -1,10 +1,13 @@
 %div{:style => "display: none"}
-  #admin-user= t :help_user_is_admin
+  #role-help= t :help_user_is_admin
   #domain-owner= t :help_user_is_user
   #token-user-help= t :help_user_token_info
 
-- form_for( @user ) do |f|
-  = error_messages_for( :user )
+= form_for(@user) do |f|
+  - if @user && @user.errors.any?
+    %ul 
+    - @user.errors.full_messages.each do |msg|
+      %li= msg
 
   %table
     %tr
@@ -18,7 +21,6 @@
       %td
         = f.password_field :password
         - unless @user.new_record?
-          %br
           %em= t :text_user_password_edit_notice
     %tr
       %td.top= t :label_user_password_again
@@ -26,21 +28,14 @@
     %tr
       %td.top= t :label_user_role_sign
       %td
-        = f.radio_button :admin, true
-        = t "label_user_roles.admin"
-        = help_icon('admin-user')
-        %br
-        = f.radio_button :admin, false
-        = t "label_user_roles.domain_owner"
-        = help_icon('domain-owner')
-        %br
-        = f.check_box 'auth_tokens'
-        = t :text_user_manage_token
-        = help_icon('token-user-help')
+        = f.collection_select :role, User::ROLES.to_a, :last, :first
+        = help_icon('role-help')
     %tr
       %td &nbsp;
       %td &nbsp;
     %tr
-      %td.right= link_to t(:generic_cancel), users_path
-      %td= submit_tag t(:generic_save)
+      %td
+        = link_to t(:generic_cancel), users_path
+        &nbsp;&nbsp;
+        = submit_tag t(:generic_save)
 
