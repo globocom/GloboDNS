@@ -39,7 +39,7 @@ class ZoneTemplate < ActiveRecord::Base
   # This method will throw exceptions as it encounters errors, and will use a
   # transaction to complete/rollback the operation.
   def build( domain_name, user = nil )
-    domain = Domain.new( :name => domain_name, :ttl => self.ttl )
+    domain = Domain.new(:ttl => self.ttl, :type => 'MASTER')
     domain.user = user if user.is_a?( User )
 
     self.class.transaction do
@@ -49,6 +49,7 @@ class ZoneTemplate < ActiveRecord::Base
       Domain::SOA_FIELDS.each do |f|
         domain.send( "#{f}=", built_soa_template.send( f ) )
       end
+      domain.name = domain_name
 
       # save the zone or die
       domain.save!

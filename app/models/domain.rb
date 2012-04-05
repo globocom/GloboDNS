@@ -122,12 +122,11 @@ class Domain < ActiveRecord::Base
   end
 
   def set_soa_attributes
-    soa_record.name = Record::fqdn(self.name, self.name) if self.name_changed?
-    soa_record.ttl  = self.ttl  if self.ttl_changed?
+    soa_record.ttl = self.ttl if self.ttl_changed?
   end
 
   def update_soa_record
-    soa_record.save(false) if soa_record.changed?
+    soa_record.save(:validate => false) if soa_record.changed?
   end
 
   def attach_errors(e)

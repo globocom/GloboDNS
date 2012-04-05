@@ -1,18 +1,17 @@
 require 'digest/sha1'
 
 class User < ActiveRecord::Base
+
   # Include default devise modules. Others available are:
   # :token_authenticatable, :confirmable, :lockable and :timeoutable
   devise :database_authenticatable,
+         :token_authenticatable,
          :rememberable,
          :validatable,
          :encryptable,
          :encryptor => :restful_authentication_sha1
          # :recoverable,
          # :confirmable,
-
-  # Setup accessible (or protected) attributes for your model
-  attr_accessible :email, :password, :password_confirmation, :remember_me
 
   # Virtual attribute for the unencrypted password
   #attr_accessor :password
@@ -26,12 +25,13 @@ class User < ActiveRecord::Base
   #validates_length_of       :email,    :within => 3..100
   #validates_uniqueness_of   :login, :email, :case_sensitive => false
 
-  before_save :check_auth_tokens
+  # before_save :check_auth_tokens
+  before_save   :ensure_authentication_token
   after_destroy :persist_audits
 
   # prevents a user from submitting a crafted form that bypasses activation
   # anything else you want your user to change should be added here.
-  attr_accessible :login, :email, :password, :password_confirmation, :admin, :auth_tokens
+  attr_accessible :login, :email, :password, :password_confirmation, :role, :authentication_token
 
   has_many :domains, :dependent => :nullify
   has_many :zone_templates, :dependent => :nullify
@@ -121,6 +121,10 @@ class User < ActiveRecord::Base
 
   def <=>(user)
     user.login <=> self.login
+  end
+
+  def auth_json
+      self.to_json(:root => false, :only => [:id, :authentication_token])
   end
 
   protected

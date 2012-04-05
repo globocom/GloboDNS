@@ -1,26 +1,25 @@
 class RecordTemplate < ActiveRecord::Base
-
   belongs_to :zone_template
 
   # General validations
-  validates_presence_of :zone_template_id
-  validates_associated :zone_template
+  validates_presence_of :zone_template_id, :name
+  validates_associated  :zone_template
   validates_presence_of :record_type
 
-  before_save :update_soa_content
+  before_save       :update_soa_content
   before_validation :inherit_ttl
-  after_initialize :update_convenience_accessors
-  validate :validate_record_template
+  after_initialize  :update_convenience_accessors
+  validate          :validate_record_template
+
+  attr_accessible :name, :record_type, :content, :ttl, :prio
 
   # We need to cope with the SOA convenience
   SOA::SOA_FIELDS.each do |f|
     attr_accessor f
   end
 
-  class << self
-    def record_types
-      Record.record_types
-    end
+  def self.record_types
+    Record.record_types
   end
 
   # Hook into #reload
@@ -40,7 +39,7 @@ class RecordTemplate < ActiveRecord::Base
     # have (and the id as well)
     attrs = self.attributes.dup
     attrs.delete_if { |k,_| !record_class.columns.map( &:name ).include?( k ) }
-    attrs.delete( :id )
+    attrs.delete('id')
 
     # parse each attribute, looking for %ZONE%
     unless domain_name.nil?
@@ -85,6 +84,7 @@ class RecordTemplate < ActiveRecord::Base
   # model without any duplication of rules. This allows us to simply extend the
   # appropriate record and gain those validations in the templates
   def validate_record_template #:nodoc:
+    puts "[validate_record_template]"
     unless self.record_type.blank?
       record = build
       record.errors.each do |k,v|

@@ -5,8 +5,8 @@
   %td
     = link_to info_icon('table_edit.png', 'zone-edit'), edit_domain_path(domain)
     = link_to info_icon('report_magnify.png', 'audits'), audits_path(:action => :domain, :id => domain)
-    - unless domain.slave?
-      = link_to info_icon('brick_go.png', 'macro'), apply_macro_domain_path( domain )
+    /- unless domain.slave?
+    /  = link_to info_icon('brick_go.png', 'macro'), apply_macro_domain_path( domain )
     - if current_user.admin? && domain.user
       = link_to_function info_icon('database_delete.png', 'delete-zone'), "deleteDomain();" , :id => "delete-link-buffer"
     - elsif !current_token

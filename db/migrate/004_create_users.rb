@@ -6,8 +6,8 @@ class CreateUsers < ActiveRecord::Migration
             t.string   :encrypted_password,       :null => false, :limit => 128
             t.string   :password_salt,            :null => false, :limit => 128
             t.string   :role,                                     :limit =>  1
-            t.string   :remember_token
-            t.datetime :remember_token_created_at
+            t.string   :authentication_token
+            t.datetime :remember_created_at
             t.timestamps
         end
     end

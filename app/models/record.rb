@@ -13,7 +13,7 @@ class Record < ActiveRecord::Base
   belongs_to :domain
 
   validates_presence_of     :domain_id, :if => Proc.new {|record| !record.is_a?(SOA)}
-  validates_presence_of     :name, :allow_nil => true
+  validates_presence_of     :name
   validates_numericality_of :ttl, :greater_than_or_equal_to => 0, :only_integer => true, :allow_nil => true
 
   class_attribute :batch_soa_updates

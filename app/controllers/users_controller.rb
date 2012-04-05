@@ -1,9 +1,20 @@
 class UsersController < InheritedResources::Base
+  skip_before_filter :authenticate_user!, :only => [:token]
 
   before_filter do
     unless current_user.admin?
       redirect_to root_url
     end
+  end
+
+  def token
+      resource = warden.authenticate!(auth_options)
+      set_flash_message(:notice, :signed_in) if is_navigational_format?
+      sign_in(resource_name, resource)
+      resource.ensure_authentication_token!
+      respond_to do |format|
+          format.json { render :status => :ok, :json => {:token => resource.auth_token}.to_json }
+      end
   end
 
   def update

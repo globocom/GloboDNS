@@ -28,7 +28,7 @@
               /li= link_to((t :layout_menu_reports), reports_path)
             %li= link_to((t :layout_menu_export), export_path)
             %li= link_to((t :layout_menu_test),   test_path)
-            %li= link_to((t :layout_menu_logout), destroy_user_session_path)
+            %li= link_to((t :layout_menu_logout), destroy_user_session_path, :method => 'DELETE')
       %hr
       #body
         = show_flash

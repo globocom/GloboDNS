@@ -1,48 +1,12 @@
 class SessionsController < Devise::SessionsController
+    skip_before_filter :login_required, :except => [ :destroy ]
 
-  skip_before_filter :login_required, :except => [ :destroy ]
-
-  #def show
-  #  render :action => :new
-  #end
-
-  ## render new.rhtml
-  #def new
-  #end
-
-  #def create
-  #  self.current_user = User.authenticate(params[:login], params[:password])
-
-  #  if logged_in?
-  #    if params[:remember_me] == "1"
-  #      current_user.remember_me unless current_user.remember_token?
-  #      cookies[:auth_token] = { :value => self.current_user.remember_token , :expires => self.current_user.remember_token_expires_at }
-  #    end
-  #    redirect_back_or_default( session_path )
-  #    flash[:notice] = t(:message_user_logged)
-  #  else
-  #    render :action => 'new'
-  #  end
-  #end
-
-  #def token
-  #  self.current_token = AuthToken.authenticate( params[:token] )
-  #  if token_user?
-  #    redirect_to( domain_path( current_token.domain ) )
-  #  end
-  #end
-
-  #def destroy
-  #  if logged_in?
-  #    self.current_user.forget_me
-
-  #    cookies.delete :auth_token
-  #  end
-
-  #  self.current_token.expire if self.current_token
-  #  reset_session
-
-  #  flash[:notice] = t(:message_user_logout)
-  #  redirect_back_or_default( session_path )
-  #end
+    def create
+        resource = warden.authenticate!(auth_options)
+        set_flash_message(:notice, :signed_in) if is_navigational_format?
+        sign_in(resource_name, resource)
+        respond_with resource, :location => after_sign_in_path_for(resource) do |format|
+            format.json { render :status => :ok, :json => resource.auth_json }
+        end
+    end
 end
