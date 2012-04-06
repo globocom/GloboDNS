@@ -1,0 +1,18 @@
+%h1= t(:title_bind_configuration)
+%div.bind-config
+  %textarea#bind_config~ @current_config
+  %div.actions
+    = link_to_function(t(:discard), 'discardBindConfiguration()', :class => 'ui-button')
+    = submit_tag(t(:generic_save), :class => 'ui-button')
+
+%h1= t(:title_bind_export)
+%div.bind-export
+  %p= t(:desc_bind_export)
+  %div.actions
+    = submit_tag t(:generic_export), :class => 'ui-button'
+
+%h1= t(:title_bind_test)
+%div.bind-test
+  %p= t(:desc_bind_test)
+  %div.actions
+    = submit_tag t(:generic_test), :class => 'ui-button'

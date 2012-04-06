@@ -1,4 +1,17 @@
-class Bind9Controller < InheritedResources::Base
+class Bind9Controller < ApplicationController
+    include GloboDns::Config
+
+    def index
+        get_current_config
+    end
+
+    def show_config
+        get_current_config
+    end
+
+    def update_config
+    end
+
     def export
         GloboDns::Exporter.new.export_all(:logger       => Logger.new(sio = StringIO.new('', 'w')),
                                           :test_changes => false)
@@ -18,5 +31,11 @@ class Bind9Controller < InheritedResources::Base
             format.json { render :json => {'output' => @output}.to_json }
             format.html
         end
+    end
+
+    private
+
+    def get_current_config
+        @current_config = IO.read(File.join(BIND_CHROOT_DIR, BIND_CONFIG_FILE))
     end
 end

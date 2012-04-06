@@ -19,29 +19,20 @@
               = submit_tag( t(:generic_search) )
         %ul
           %li= link_to((t :layout_menu_home), root_url)
-          %li= link_to((t :layout_menu_domains), domains_path)
-          %li= link_to((t :layout_menu_templates), zone_templates_path)
-          /li= link_to((t :layout_menu_macros), macros_path)
-          - if current_user && current_user.admin?
+          - if current_user
+            %li= link_to((t :layout_menu_domains), domains_path)
+            %li= link_to((t :layout_menu_templates), zone_templates_path)
             %li= link_to((t :layout_menu_logs), audits_path)
             %li= link_to((t :layout_menu_users), users_path)
-            /li= link_to((t :layout_menu_reports), reports_path)
-          %li= link_to((t :layout_menu_export), export_path)
-          %li= link_to((t :layout_menu_test),   test_path)
-          %li= link_to((t :layout_menu_logout), destroy_user_session_path, :method => 'DELETE')
+            %li= link_to((t :layout_menu_bind), bind9_path)
+            %li= link_to((t :layout_menu_logout), destroy_user_session_path, :method => 'DELETE')
       %hr
       #body
         = show_flash
         = yield
       %hr
       #footer
-        /= link_to "PowerDNS on Rails", "http://www.opensourcery.co.za/powerdns-on-rails", :target => '_blank'
-        &copy; 2011 - Kenneth Kalmer
+        &copy; 2011 - Kenneth Kalmer ; 2012 - Globo.com S/A
         %br
         Released under the MIT License.
-        / %br
-        / %br
-        / = link_to "Report Bugs", "http://kennethkalmer.lighthouseapp.com/projects/11831-powerdns-on-rails", :target => '_blank'
-        / \-
-        / = link_to "Github", "http://github.com/kennethkalmer/powerdns-on-rails", :target => '_blank'
 

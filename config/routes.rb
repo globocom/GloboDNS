@@ -18,8 +18,14 @@ GloboDns::Application.routes.draw do
 
     match '/search(/:action)'       => 'search#results', :as => :search, :via => :get
     match '/audits(/:action(/:id))' => 'audits#index',   :as => :audits, :via => :get
-    match '/export'                 => 'bind9#export',   :as => :export, :via => :get
-    match '/test'                   => 'bind9#test',     :as => :test,   :via => :get
+
+    scope 'bind9', :as => 'bind9', :controller => 'bind9' do
+        get  '',       :action => 'index'
+        get  'config', :action => 'show_config'
+        put  'config', :action => 'update_config'
+        post 'export'
+        post 'test'
+    end
 
     root :to => 'dashboard#index'
 end

@@ -104,6 +104,8 @@ en:
   generic_remove: "Remove"
   generic_create: "Create"
   generic_update: "Update"
+  generic_export: "Export"
+  generic_test: "Test"
   generic_yes: "Yes"
   generic_no: "No"
 
@@ -119,8 +121,7 @@ en:
   layout_menu_logs: "Logs"
   layout_menu_users: "Users"
   layout_menu_reports: "Reports"
-  layout_menu_export: "Export"
-  layout_menu_test: "Test"
+  layout_menu_bind: "BIND"
   layout_menu_logout: "Logout"
 
 # Audits _domain_audit
@@ -502,9 +503,12 @@ en:
   confirm_user_remove: "Are you sure you want to remove this user?"
   label_user_detail: "More Detail"
 
-# Bind9 export
-  title_export: Exporting to Bind9 configuration
-  title_test:   Testing the latest exported changes
+# Bind9
+  title_bind_configuration: BIND Configuration
+  title_bind_export: Export
+  desc_bind_export: Export BIND configuration and reload server
+  title_bind_test: Test
+  desc_bind_test: Test the latest exported changes
 
 
 ### Controllers
