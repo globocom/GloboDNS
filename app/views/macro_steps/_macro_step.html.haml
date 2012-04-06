@@ -25,4 +25,4 @@
           %td{ :width => 220 }= f.text_field :content, :size => 15
           %td{ :width => 44 }
             = image_submit_tag "table_save.png", { :class => 'nb' }
-            = link_to_function image_tag('cancel.png'), "hideRecordTemplate(#{macro_step.id})"
+            = link_to_function(t(:generic_cancel), "hideRecordTemplate(#{macro_step.id})", :class => 'ui-button ui-button-icon-only ui-icon-cancel')

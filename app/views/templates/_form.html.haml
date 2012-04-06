@@ -3,7 +3,11 @@
   #zone-ttl
 
 = form_for( @zone_template ) do |f|
-  = error_messages_for :zone_template
+  - if @zone_template && @zone_template.errors.any?
+    %ul 
+    - @zone_template.errors.full_messages.each do |msg|
+      %li= msg
+
   %table
     %tr
       %td= t :label_template_zone_name
@@ -13,11 +17,6 @@
       %td= t :label_template_zone_ttl
       %td &nbsp;
       %td= f.text_field :ttl, :size => 6
-    - if User.active_owners.any?
-      %tr
-        %td= t :label_template_zone_owner
-        %td &nbsp;
-        %td= f.collection_select :user_id, User.active_owners, :id, :login, :include_blank => true
-    %tr
-      %td= link_to_cancel @zone_template
+    %tr.actions
+      %td= link_to_cancel @zone_template, :class => 'ui-button cancel'
       %td= submit_tag t(:generic_save)

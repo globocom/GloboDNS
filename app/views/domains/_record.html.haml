@@ -10,13 +10,13 @@
       - if current_user || current_token.can_change?( record )
         = link_to_function info_icon('database_edit.png', "record-template-edit"), "editRecord(#{record.id}, '#{record.type.downcase}')"
       - if current_user || current_token.can_remove?( record )
-        = link_to info_icon('database_delete.png', "record-template-delete"), domain_record_path( record.domain, record ), :method => :delete, :confirm => t(:confirm_domain_delte_record)
+        = link_to info_icon('database_delete.png', "record-template-delete"), record_path(record), :method => :delete, :confirm => t(:confirm_domain_delte_record)
 
 - unless record.domain.slave?
   - if current_user || current_token.can_change?( record )
     %tr[ record, :edit ]{ :style => "display: none;" }
       %td{ :colspan => 7 }
-        = form_for( record, :as => :record, :url => domain_record_path(record.domain, record ), :remote => true ) do |f|
+        = form_for(record, :as => :record, :url => record_path(record), :remote => true) do |f|
           %div[ record, :error ]
             %table.gridwide
               %tr
@@ -30,5 +30,6 @@
                     &nbsp;
                 %td{ :width => 250 }= f.text_field :content, :size => 15
                 %td{ :width => 39 }
-                  = image_submit_tag "table_save.png", { :class => 'nb' }
-                  = link_to_function image_tag("cancel.png"), "hideRecord(#{record.id}, '#{record.type.downcase}')"
+                  /= image_submit_tag 'table_save.png', { :class => 'nb' }
+                  = f.button(t(:generic_save), :class => 'nb ui-button ui-button-icon-only ui-icon-disk')
+                  = link_to_function(t(:generic_cancel), "hideRecord(#{record.id}, '#{record.type.downcase}')", :class => 'ui-button ui-button-icon-only ui-icon-trash')

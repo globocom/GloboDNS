@@ -12,7 +12,7 @@
   #help-expire= t :help_domain_expire
   #help-minimum= t :help_domain_minimum
 
-%h1.underline
+%h1
   = @zone_template.name
   &nbsp;
   = link_to info_icon( 'database_edit.png', 'edit-template' ), edit_zone_template_path(@zone_template)
@@ -34,7 +34,7 @@
 
 %p &nbsp;
 
-%h1.underline= t :title_template_records
+%h1= t :title_template_records
 
 - unless @zone_template.has_soa?
   &nbsp;
@@ -64,8 +64,7 @@
     %table.grid
       %tr.all
         %td= t :label_template_record_type
-        %td
-          = f.select :record_type, RecordTemplate.record_types.map { |t| [t,t] }
+        %td= f.select :record_type, RecordTemplate.record_types.map { |t| [t,t] }
         %td &nbsp;
       %tr.all
         %td= t :label_template_record_host
@@ -73,11 +72,11 @@
         %td &nbsp;
       %tr.all
         %td= t :label_template_record_ttl
-        %td= f.text_field :ttl, :size => 6
+        %td= f.text_field :ttl
         %td &nbsp;
       %tr.rt-mx.rt-srv{ :style => 'display :none' }
         %td= t :label_template_record_priority
-        %td= f.text_field :prio, :size => 6
+        %td= f.text_field :prio
         %td &nbsp;
       %tr.all
         %td= t :label_template_record_data
@@ -93,31 +92,26 @@
         %td= help_icon('help-contact')
       %tr.rt-soa{ :style => 'display :none' }
         %td= t :label_template_record_refresh
-        %td
-          = f.text_field :refresh, :size => 6
-          = help_icon('help-refresh')
+        %td= f.text_field :refresh
+        %td= help_icon('help-refresh')
         %td &nbsp;
       %tr.rt-soa{ :style => 'display :none' }
         %td= t :label_template_record_retry
-        %td
-          = f.text_field :retry, :size => 6
-          = help_icon('help-retry')
-        %td &nbsp;
+        %td= f.text_field :retry
+        %td= help_icon('help-retry')
       %tr.rt-soa{ :style => 'display :none' }
         %td= t :label_template_record_expire
-        %td
-          = f.text_field :expire, :size => 6
-          = help_icon('help-expire')
+        %td= f.text_field :expire
+        %td= help_icon('help-expire')
         %td &nbsp;
       %tr.rt-soa{ :style => 'display :none' }
         %td= t :label_template_record_minimum
-        %td
-          = f.text_field :minimum, :size => 6
-          = help_icon('help-minimum')
-        %td &nbsp;
-      %tr.all
-        %td.right= link_to_function t(:generic_cancel), "hideAll()"
-        %td= submit_tag t(:generic_save)
+        %td= f.text_field :minimum
+        %td= help_icon('help-minimum')
+      %tr.all.actions
+        %td{:colspan => 3}
+          = link_to_function t(:generic_cancel), "hideAll()", :class => 'ui-button'
+          = submit_tag t(:generic_save)
 
 :javascript
   function hideAll() {

@@ -85,4 +85,4 @@
 
         %td.top{ :width => 39 }
           = image_submit_tag "table_save.png", { :class => 'nb' }
-          = link_to_function image_tag("cancel.png"), "hideRecordTemplate(#{record_template.id})"
+          = link_to_function(t(:generic_cancel), "hideRecordTemplate(#{record_template.id})", :class => 'ui-button ui-button-icon-only ui-icon-cancel')

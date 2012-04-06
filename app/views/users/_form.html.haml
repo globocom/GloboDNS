@@ -13,29 +13,29 @@
     %tr
       %td= t :label_user_name
       %td= f.text_field :login
+      %td  &nbsp;
     %tr
       %td= t :label_user_email
       %td= f.text_field :email
+      %td  &nbsp;
     %tr
-      %td.top= t :label_user_password
+      %td= t :label_user_password
+      %td= f.password_field :password
       %td
-        = f.password_field :password
-        - unless @user.new_record?
+        - if @user.new_record?
+          &nbsp;
+        - else
           %em= t :text_user_password_edit_notice
     %tr
-      %td.top= t :label_user_password_again
+      %td= t :label_user_password_again
       %td= f.password_field :password_confirmation
+      %td  &nbsp;
     %tr
-      %td.top= t :label_user_role_sign
-      %td
-        = f.collection_select :role, User::ROLES.to_a, :last, :first
-        = help_icon('role-help')
-    %tr
-      %td &nbsp;
-      %td &nbsp;
-    %tr
-      %td
-        = link_to t(:generic_cancel), users_path
-        &nbsp;&nbsp;
+      %td= t :label_user_role_sign
+      %td= f.collection_select :role, User::ROLES.to_a, :last, :first
+      %td= help_icon('role-help')
+    %tr.actions
+      %td{:colspan => 3}
+        = link_to(t(:generic_cancel), users_path, :class => 'ui-button ui-icon-cancel')
         = submit_tag t(:generic_save)
 

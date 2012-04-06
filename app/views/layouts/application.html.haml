@@ -11,24 +11,24 @@
         %h1
           /t :layout_main_title
           %img{'src' => image_path('logo_small.png')}
-      - if current_user
-        #search-bar{:style => "display: inline; float: right;"}
-          = form_tag( { :controller => :search, :action => :results }, { :method => :get } ) do
-            = text_field_tag :q
-            = submit_tag( t(:generic_search) )
-        #nav
-          %ul
-            %li= link_to((t :layout_menu_home), root_url)
-            %li= link_to((t :layout_menu_domains), domains_path)
-            %li= link_to((t :layout_menu_templates), zone_templates_path)
-            /li= link_to((t :layout_menu_macros), macros_path)
-            - if current_user.admin?
-              %li= link_to((t :layout_menu_logs), audits_path)
-              %li= link_to((t :layout_menu_users), users_path)
-              /li= link_to((t :layout_menu_reports), reports_path)
-            %li= link_to((t :layout_menu_export), export_path)
-            %li= link_to((t :layout_menu_test),   test_path)
-            %li= link_to((t :layout_menu_logout), destroy_user_session_path, :method => 'DELETE')
+      #nav
+        - if current_user
+          #search-bar
+            = form_tag( { :controller => :search, :action => :results }, { :method => :get } ) do
+              = text_field_tag :q
+              = submit_tag( t(:generic_search) )
+        %ul
+          %li= link_to((t :layout_menu_home), root_url)
+          %li= link_to((t :layout_menu_domains), domains_path)
+          %li= link_to((t :layout_menu_templates), zone_templates_path)
+          /li= link_to((t :layout_menu_macros), macros_path)
+          - if current_user && current_user.admin?
+            %li= link_to((t :layout_menu_logs), audits_path)
+            %li= link_to((t :layout_menu_users), users_path)
+            /li= link_to((t :layout_menu_reports), reports_path)
+          %li= link_to((t :layout_menu_export), export_path)
+          %li= link_to((t :layout_menu_test),   test_path)
+          %li= link_to((t :layout_menu_logout), destroy_user_session_path, :method => 'DELETE')
       %hr
       #body
         = show_flash

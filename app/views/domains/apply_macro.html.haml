@@ -1,6 +1,6 @@
 - @page_title = t :title_macro_for, :domain => @domain.name
 
-%h1.underline= t :title_macro_apply
+%h1= t :title_macro_apply
 
 %p= t :text_macro_description
 
@@ -9,6 +9,7 @@
     %tr
       %td= t :label_macro_sign
       %td= select_tag :macro_id, options_for_select( @macros.map { |m| [ m.name, m.id ] } )
-    %tr
-      %td.right= link_to t(:generic_cancel), domain_path( @domain )
-      %td= submit_tag t(:label_macro_apply)
+    %tr.actions
+      %td{:colspan => 2}
+        = link_to t(:generic_cancel), domain_path(@domain), :class => 'ui-button ui-icon-cancel'
+        = submit_tag t(:label_macro_apply)

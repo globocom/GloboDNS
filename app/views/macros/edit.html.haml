@@ -1,4 +1,4 @@
-%h1.underline
+%h1
   = @macro.new_record? ? t(:title_macro_new) : t(:title_macro_update)
 
 %div{ :style => "display:none" }
@@ -6,31 +6,30 @@
   #macro-active= t :help_macro_active
 
 = form_for( @macro ) do |f|
-  = error_messages_for :macro
+  - if @macro && @macro.errors.any?
+    %ul 
+    - @macro.errors.full_messages.each do |msg|
+      %li= msg
 
   %table
     %tr
       %td= t(:label_macro_name)
-      %td &nbsp;
-      %td
-        = f.text_field :name
-        = help_icon('macro-name')
+      %td= f.text_field :name
+      %td= help_icon('macro-name')
     %tr
-      %td.top= t(:label_macro_description)
-      %td &nbsp;
+      %td= t(:label_macro_description)
       %td= f.text_area :description, :size => '35x2'
+      %td  &nbsp;
     - unless @users.nil? || @users.empty?
       %tr
         %td= t(:label_macro_owner)
-        %td &nbsp;
         %td= f.collection_select :user_id, @users, :id, :login, :include_blank => true
+        %td  &nbsp;
     %tr
       %td= t(:label_macro_active)
-      %td &nbsp;
-      %td
-        = f.check_box :active
-        = help_icon('macro-active')
-    %tr
-      %td.right= link_to_cancel @macro
-      %td &nbsp;
-      %td= submit_tag t(:generic_save)
+      %td= f.check_box :active
+      %td= help_icon('macro-active')
+    %tr.actions
+      %td{:colspan => 3}
+        = link_to_cancel(@macro, :class => 'ui-button ui-icon-cancel')
+        = submit_tag t(:generic_save)

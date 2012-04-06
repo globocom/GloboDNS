@@ -45,8 +45,6 @@
         - if current_user
           = link_to info_icon('table_edit.png', 'zone-edit'), edit_domain_path(@domain)
           = link_to info_icon('report_magnify.png', 'audits'), audits_path(:action => :domain, :id => @domain)
-          - unless @domain.slave?
-            = link_to info_icon('brick_go.png', 'macro'), apply_macro_domain_path( @domain )
           - if current_user.admin? && @domain.user
             = link_to_function info_icon('database_delete.png', 'delete-zone'), "deleteDomain();" , :id => "delete-link-buffer"
           - elsif !current_token
@@ -72,9 +70,9 @@
             - else
               \-
           #owner-edit{ :style => 'display: none' }
-            = form_for( @domain, :url => change_owner_domain_path( @domain, :remote => true ) ) do |f|
-              = f.collection_select "user_id", @users, :id, :login, :include_blank => true
-              = submit_tag(t(:generic_save))
+            /= form_for( @domain, :url => change_owner_domain_path( @domain, :remote => true ) ) do |f|
+            /  = f.collection_select "user_id", @users, :id, :login, :include_blank => true
+            /  = submit_tag(t(:generic_save))
         %td= link_to_function info_icon('user_edit.png', 'change-owner'), "changeOwner()"
       %tr
         %td{ :valign => 'top' }=t :label_domain_notes
@@ -88,7 +86,7 @@
             = form_for( @domain, :url => update_note_domain_path( @domain ), :remote => true ) do |f|
               = f.text_area :notes, :rows => 4, :cols => 30
               %br
-              = link_to_function t(:generic_cancel), "hideNoteForm()"
+              = link_to_function(t(:generic_cancel), "hideNoteForm()", :class => 'ui-button ui-icon-cancel')
               = submit_tag(t(:generic_update))
 
 #domain-soa.padded
@@ -129,17 +127,16 @@
         %table
           %tr.all
             %td= t :label_domain_record_type
-            %td
-              = select_record_type( f )
+            %td= select_record_type( f )
           %tr.all
             %td= t :label_domain_record_host
             %td= f.text_field :name
           %tr.all
             %td= t :label_domain_record_ttl
-            %td= f.text_field :ttl, :size => 6
+            %td= f.text_field :ttl
           %tr.rt-mx.rt-srv{ :style => 'display :none' }
             %td= t :label_domain_record_priority
-            %td= f.text_field :prio, :size => 6
+            %td= f.text_field :prio
           %tr.all
             %td= t :label_domain_record_data
             %td= f.text_field :content
@@ -151,20 +148,19 @@
             %td= f.text_field :contact
           %tr.rt-soa{ :style => 'display :none' }
             %td= t :label_domain_refresh
-            %td= f.text_field :refresh, :size => 6
+            %td= f.text_field :refresh
           %tr.rt-soa{ :style => 'display :none' }
             %td= t :label_domain_retry
-            %td= f.text_field :retry, :size => 6
+            %td= f.text_field :retry
           %tr.rt-soa{ :style => 'display :none' }
             %td= t :label_domain_expire
-            %td= f.text_field :expire, :size => 6
+            %td= f.text_field :expire
           %tr.rt-soa{ :style => 'display :none' }
             %td= t :label_domain_minimum
-            %td= f.text_field :minimum, :size => 6
-          %tr.all
-            %td &nbsp;
-            %td
-              = link_to_function(t(:generic_cancel), "hideRecordForm()")
+            %td= f.text_field :minimum
+          %tr.all.actions
+            %td{:colspan => 2}
+              = link_to_function(t(:generic_cancel), "hideRecordForm()", :class => 'ui-button ui-icon-cancel')
               = submit_tag(t(:generic_create))
 
 :javascript

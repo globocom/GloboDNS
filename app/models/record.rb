@@ -20,7 +20,10 @@ class Record < ActiveRecord::Base
 
   # This is needed here for generic form support, actual functionality
   # implemented in #SOA
-  attr_accessor :primary_ns, :contact, :refresh, :retry, :expire, :minimum
+  attr_accessor   :primary_ns, :contact, :refresh, :retry, :expire, :minimum
+
+  # 'type' is a special inheritance column use by Rails and not accessible by default;
+  protected_attributes.delete('type')
 
   before_validation :inherit_attributes_from_domain
   before_save       :update_change_date

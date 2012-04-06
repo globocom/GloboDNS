@@ -26,14 +26,14 @@ module ApplicationHelper
 
   # Add a cancel link for shared forms. Looks at the provided object and either
   # creates a link to the index or show actions.
-  def link_to_cancel( object )
+  def link_to_cancel(object, options = {})
     path = object.class.name.tableize
     path = if object.new_record?
              send( path.pluralize + '_path' )
            else
              send( path.singularize + '_path', object )
            end
-    link_to "Cancel", path
+    link_to "Cancel", path, options
   end
 
   def help_icon( dom_id )

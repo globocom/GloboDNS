@@ -8,7 +8,7 @@
   #content-field=t :help_macro_content_field
   #name-field=t :help_macro_name_field
 
-%h1.underline
+%h1
   = @macro.name
   &nbsp;
   = link_to edit_macro_path( @macro ) do
@@ -17,24 +17,22 @@
 %table.grid
   %tr
     %td= t :label_macro_name
-    %td &nbsp;
+    %td  &nbsp;
     %td= @macro.name
   %tr
     %td.top= t :label_macro_description
-    %td &nbsp;
+    %td  &nbsp;
     %td= @macro.description
   %tr
     %td= t :label_macro_owner
-    %td &nbsp;
+    %td  &nbsp;
     %td= @macro.user.nil? ? '-' : @macro.user.login
   %tr
     %td= t :label_macro_active
-    %td &nbsp;
+    %td  &nbsp;
     %td= @macro.active? ? t(:generic_yes) : t(:generic_no)
 
-%p &nbsp;
-
-%h1.underline=t :title_macro_steps
+%h1= t(:title_macro_steps)
 
 %table#steps-table.gridwide
   %tr
@@ -57,32 +55,32 @@
     %table.grid
       %tr.all
         %td= t :label_macro_step_position
-        %td= f.text_field :position, :size => 5
+        %td= f.text_field :position
+        %td  &nbsp;
       %tr.all
         %td= t :label_macro_step_action
-        %td
-          = f.select :action, MacroStep.valid_actions.map { |a| [ a.humanize, a ] }
-          = info_icon( 'help.png', 'actions' )
+        %td= f.select :action, MacroStep.valid_actions.map { |a| [ a.humanize, a ] }
+        %td= info_icon( 'help.png', 'actions' )
       %tr.all
         %td= t :label_domain_record_type
-        %td
-          = f.select :record_type, Macro.record_types.map { |t| [t,t] }
+        %td= f.select :record_type, Macro.record_types.map { |t| [t,t] }
+        %td  &nbsp;
       %tr.all
         %td= t :label_domain_record_host
-        %td
-          = f.text_field :name
-          = info_icon( 'help.png', 'name-field' )
+        %td= f.text_field :name
+        %td= info_icon( 'help.png', 'name-field' )
       %tr.rt-mx.rt-srv{ :style => 'display :none' }
         %td= t :label_domain_record_priority
-        %td= f.text_field :prio, :size => 6
+        %td= f.text_field :prio
+        %td  &nbsp;
       %tr.all
         %td= t :label_domain_record_data
-        %td
-          = f.text_field :content
-          = info_icon( 'help.png', 'content-field' )
-      %tr.all
-        %td.right= link_to_function t(:generic_cancel), "hideAll()"
-        %td= submit_tag t(:generic_save)
+        %td= f.text_field :content
+        %td= info_icon( 'help.png', 'content-field' )
+      %tr.all.actions
+        %td{:colspan => 3}
+          = link_to_function(t(:generic_cancel), "hideAll()", :class => 'ui-button ui-icon-cancel')
+          = submit_tag t(:generic_save)
 
 :javascript
   // Blatantly copied from record templates, needs to be unified
