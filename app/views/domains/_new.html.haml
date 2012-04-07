@@ -1,77 +1,78 @@
-/ These divs contain the help information.
-%div{ :style => 'display: none' }
-  #help-domain=t :help_domain_fqdn
-  #help-primary-ns=t :help_domain_primary_ns
-  #help-contact=t :help_domain_contact
-  #help-refresh=t :help_domain_refresh
-  #help-retry=t :help_domain_retry
-  #help-expire=t :help_domain_expire
-  #help-minimum=t :help_domain_minimum
-  #help-type=t :help_domain_type
-  #help-master=t :help_domain_master
+%div.new-domain-form-container{ :class => (domain.errors.any? || defined?(show_form)) ? '' : 'hidden' }
+  %div{ :style => 'display: none' }
+    #help-domain=t :help_domain_fqdn
+    #help-primary-ns=t :help_domain_primary_ns
+    #help-contact=t :help_domain_contact
+    #help-refresh=t :help_domain_refresh
+    #help-retry=t :help_domain_retry
+    #help-expire=t :help_domain_expire
+    #help-minimum=t :help_domain_minimum
+    #help-type=t :help_domain_type
+    #help-master=t :help_domain_master
 
-%p=t :label_create_new_domain_note
+  %p= t(:label_create_new_domain_note)
 
-= form_for( @domain || Domain.new ) do |f|
-  - if @domain && @domain.errors.any?
-    %ul 
-    - @domain.errors.full_messages.each do |msg|
-      %li= msg
+  = form_for(domain, :remote => true, :html => {:class => 'new-domain-form'}) do |f|
+    - if domain.errors.any?
+      %ul.errors
+        - domain.errors.full_messages.each do |msg|
+          %li= msg
 
-  %p &nbsp;
-  %table
-    %tbody
-      %tr
-        %td= t :label_domain_name
-        %td= f.text_field :name
-        %td= help_icon('help-domain')
-      %tr
-        %td= t :label_domain_type
-        %td= f.select :type, ['MASTER','SLAVE']
-        %td= help_icon('help-type')
-      %tr#master-address{ :style => 'display: none' }
-        %td= t :label_domain_master_address
-        %td= f.text_field :master
-        %td= help_icon('help-master')
-      %tr#zone-templates
-        %td= t :label_domain_zone_template
-        %td
-          - if ZoneTemplate.with_soa.user(current_user).size > 0
-            = f.collection_select( :zone_template_id, ZoneTemplate.with_soa.user( current_user ), :id, :name, :include_blank => true )
-          - else
-            %em
-              =link_to((t :label_create_zone_templates), new_zone_template_path)
-              =t :label_zone_for_eazy_management
-        %td &nbsp;
-    %tbody#no-template-input
-      %tr
-        %td= t :label_domain_primary_name_server
-        %td= f.text_field :primary_ns
-        %td= help_icon('help-primary-ns')
-      %tr
-        %td= t :label_domain_contact
-        %td= f.text_field :contact
-        %td= help_icon('help-contact')
-      %tr
-        %td= t :label_domain_refresh
-        %td= f.text_field :refresh, :size => 6
-        %td= help_icon('help-refresh')
-      %tr
-        %td= t :label_domain_retry
-        %td= f.text_field :retry, :size => 6
-        %td= help_icon('help-retry')
-      %tr
-        %td= t :label_domain_expire
-        %td= f.text_field :expire, :size => 6
-        %td= help_icon('help-expire')
-      %tr
-        %td= t :label_domain_minimum
-        %td= f.text_field :minimum, :size => 6
-        %td= help_icon('help-minimum')
-    %tfoot
-      %tr.actions
-        %td{:colspan => 3}
-          - if @domain
-            /%div.ui-button= link_to_cancel(@domain, :class => 'ui-button')
-            = link_to_cancel(@domain, :class => 'ui-button')
-          = submit_tag((t :generic_save))
+    %table#new-domain
+      %tbody
+        %tr
+          %td= f.label :name, t(:label_domain_name)
+          %td= f.text_field :name
+          %td= help_icon('help-domain')
+        %tr
+          %td= f.label :ttl, t(:label_domain_ttl)
+          %td= f.text_field :ttl
+          %td= help_icon('help-domain-ttl')
+        %tr#zone-templates
+          %td= f.label :zone_template, t(:label_domain_zone_template)
+          %td
+            - if ZoneTemplate.with_soa.count > 0
+              = f.collection_select(:zone_template_id, ZoneTemplate.with_soa.all, :id, :name, :include_blank => true)
+            - else
+              %em
+                = link_to(t(:label_create_zone_templates), new_zone_template_path)
+                = t(:label_zone_for_eazy_management)
+          %td &nbsp;
+      %tbody#no-template-input
+        %tr
+          %td= f.label :type, t(:label_domain_type)
+          %td= f.select :type, ['MASTER','SLAVE']
+          %td= help_icon('help-type')
+        %tr#master-address
+          %td= f.label :master, t(:label_domain_master_address)
+          %td= f.text_field :master
+          %td= help_icon('help-master')
+        %tr
+          %td= f.label :primary_ns, t(:label_domain_primary_name_server)
+          %td= f.text_field :primary_ns
+          %td= help_icon('help-primary-ns')
+        %tr
+          %td= f.label :contact, t(:label_domain_contact)
+          %td= f.text_field :contact
+          %td= help_icon('help-contact')
+        %tr
+          %td= f.label :refresh, t(:label_domain_refresh)
+          %td= f.text_field :refresh
+          %td= help_icon('help-refresh')
+        %tr
+          %td= f.label :retry, t(:label_domain_retry)
+          %td= f.text_field :retry
+          %td= help_icon('help-retry')
+        %tr
+          %td= f.label :expire, t(:label_domain_expire)
+          %td= f.text_field :expire
+          %td= help_icon('help-expire')
+        %tr
+          %td= f.label :minimum, t(:label_domain_minimum)
+          %td= f.text_field :minimum
+          %td= help_icon('help-minimum')
+      %tfoot
+        %tr.actions
+          %td{:colspan => 3}
+            = button_tag(t(:generic_cancel), :class => 'cancel-new-domain-button ui-icon-ban-circle')
+            = f.button(t(:generic_create),   :class => 'create-domain-button ui-icon-download-alt')

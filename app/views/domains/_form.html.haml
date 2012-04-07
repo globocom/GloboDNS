@@ -1,0 +1,52 @@
+%div#show-domain-container{:class => domain.errors.empty? ? '' : 'hidden'}
+  %table#show-domain
+    %tr
+      %td= label_tag :name, t(:label_domain_name)
+      %td= domain.valid_attribute(:name)
+    %tr
+      %td= label_tag :type, t(:label_domain_type)
+      %td= domain.valid_attribute(:type).humanize
+    - if domain.slave?
+      %tr
+        %td= label_tag :master, t(:label_domain_master_server)
+        %td= domain.valid_attribute(:master)
+    %tr
+      %td= label_tag :ttl, t(:label_domain_ttl)
+      %td= domain.valid_attribute(:ttl)
+    %tr
+      %td= label_tag :notes, t(:label_domain_notes)
+      %td= domain.valid_attribute(:notes)
+
+%div#edit-domain-container{:class => domain.errors.empty? ? 'hidden' : ''}
+  = form_for(domain, :remote => true, :html => {:class => 'update-domain-form'}) do |f|
+
+    - if domain && domain.errors.any?
+      %ul.errors
+        - domain.errors.full_messages.each do |msg|
+          %li= msg
+
+    %table#edit-domain
+      %tr
+        %td= f.label :name, t(:label_domain_name)
+        %td= f.text_field :name
+        %td= help_icon('help-domain-name')
+      %tr
+        %td= f.label :type, t(:label_domain_type)
+        %td= f.select :type, [t(:label_domain_type_master), t(:label_domain_type_slave)]
+        %td= help_icon('help-domain-type')
+      %tr
+        %td= f.label :master, t(:label_domain_master_server)
+        %td= f.text_field :master
+        %td= help_icon('help-domain-master')
+      %tr
+        %td= f.label :ttl, t(:label_domain_ttl)
+        %td= f.text_field :ttl
+        %td= help_icon('help-domain-ttl')
+      %tr
+        %td.notes= f.label :notes, t(:label_domain_notes)
+        %td= f.text_area :notes
+        %td= help_icon('help-domain-notes')
+      %tr.actions
+        %td{:colspan => 3}
+          = button_tag(t(:generic_cancel), :class => 'cancel-update-domain-button ui-icon-ban-circle')
+          = f.button(t(:generic_save),   :class => 'update-domain-button ui-icon-download-alt')

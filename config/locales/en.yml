@@ -98,6 +98,8 @@ en:
 
 # Generic texts
   generic_save: "Save"
+  generic_edit: "Edit"
+  generic_delete: "Delete"
   generic_search: "Search"
   generic_cancel: "Cancel"
   generic_change: "Change"
@@ -123,6 +125,10 @@ en:
   layout_menu_reports: "Reports"
   layout_menu_bind: "BIND"
   layout_menu_logout: "Logout"
+
+# Sign in
+  title_sign_in: Sign In
+  button_sign_in: Sign in
 
 # Audits _domain_audit
   label_audit_time: "Time:"
@@ -155,7 +161,7 @@ en:
 # Domains _record
   label_domain_edit_record: "Edit this record"
   label_domain_delete_record: "Delete this record"
-  confirm_domain_delte_record: "Are you sure?"
+  confirm_domain_delete_record: "Are you sure?"
 
 # Domains _new
   help_domain_fqdn:
@@ -197,9 +203,10 @@ en:
   label_create_new_domain_note:
     Create a new domain by entering the Start of Authority (SOA) information below.
 
-  label_domain_name: "Domain name"
+  label_domain_name: "Name"
   label_domain_type: "Type"
   label_domain_master_address: "Master Address"
+  label_domain_ttl: "Default TTL"
   label_domain_zone_template: "Zone Template"
   label_create_zone_templates: "Create Zone Templates"
   label_zone_for_eazy_management: "for easier management of new domains"
@@ -245,6 +252,8 @@ en:
   confirm_domain_delete: "Are you sure you want to remove domain %{domain}?"
 
   label_domain_master_server: "Master server"
+  label_domain_type_master: "MASTER"
+  label_domain_type_slave: "SLAVE"
   label_domain_owner: "Owner"
   label_domain_notes: "Notes"
 
@@ -253,34 +262,33 @@ en:
   label_soa_record_yet_propagated_from_master: "SOA record yet propagated from master server"
   label_primary_name_server: "Primary name server"
 
-  title_domian_rrs: "Domain RR's"
+  title_records: 'Records'
   label_domain_record_host: "Host"
   label_domain_record_ttl: "TTL"
   label_domain_record_type: "Type"
   label_domain_record_priority: "Priority"
   label_domain_record_data: "Data"
-  label_domain_record_new: "New record"
+  label_domain_record_new: "New Record"
 
 # Domains edit
   title_update_zone: "Update zone"
   help_ttl:
     The default TTL for new records created on this domain. Changing this value
     doesn't affect existing records.
-  label_default_ttl: "Default TTL"
 
 # Domains index
   help_adds_new_domain: "Adds a new domain"
   help_delete_domain: "Delete this domain from the system"
-  label_add_new_zone: "Add new zone"
+  label_add_domain: "Add Domain"
   title_domains_list: "Domains"
 
 # Domains new
-  title_domain_new_zone: "New zone"
+  title_new_domain: "New Domain"
   label_domain_more_soa_info: "More information on SOA records"
   link_to_soa_help: "ch8/soa.html"
 
 # Macros_steps _macro_step
-  confirm_macro_step_delte: "Are you sure you want to remove this step?"
+  confirm_macro_step_delete: "Are you sure you want to remove this step?"
   message_macro_step_created: "Macro step created"
   message_macro_step_updated: "Macro step updated"
   message_macro_step_cannot_update: "Could not update macro step"

@@ -1,109 +1,70 @@
-class DomainsController < InheritedResources::Base
+class DomainsController < ApplicationController
+    respond_to :html, :json
+    responders :flash
 
-  # Keep token users in line
-  before_filter :restrict_token_movements, :except => :show
-
-  custom_actions :resource => :apply_macro
-  respond_to :xml, :json, :js
-
-  protected
-
-  def collection
-    @domains = Domain.user( current_user ).paginate :page => params[:page]
-  end
-
-  def resource
-    @domain = Domain.scoped.includes(:records)
-
-    if current_user
-      @domain = @domain.user( current_user ).find( params[:id] )
-    else
-      @domain = @domain.find( current_token.domain_id )
-    end
-
-    @domain
-  end
-
-  def restrict_token_movements
-    redirect_to domain_path( current_token.domain ) if current_token
-  end
-
-  public
-
-  def show
-    if current_user && current_user.admin?
-      @users = User.all
-    end
-
-    query                = params[:record].blank? ? nil : params[:record]
-    @records_without_soa = resource.records_without_soa(query).paginate(:page => params[:page], :per_page => 20)
-
-    show!
-  end
-
-  def create
-    @domain = Domain.new(params[:domain])
-
-    unless @domain.slave?
-      @zone_template   = ZoneTemplate.find(params[:domain][:zone_template_id])           unless params[:domain][:zone_template_id].blank?
-      @zone_template ||= ZoneTemplate.find_by_name(params[:domain][:zone_template_name]) unless params[:domain][:zone_template_name].blank?
-
-      unless @zone_template.nil?
-        begin
-          @domain = @zone_template.build( params[:domain][:name] )
-        rescue ActiveRecord::RecordInvalid => e
-          @domain.attach_errors(e)
-
-          render :action => :new
-          return
+    def index
+        @domains = Domain.scoped
+        @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
+        respond_with(@domains) do |format|
+            format.html { render :partial => 'list', :object => @domains, :as => :domains if request.xhr? }
         end
-      end
     end
 
-    @domain.user = current_user unless current_user.admin?
-    create!
-  end
-
-  # Non-CRUD methods
-  def update_note
-    resource.update_attribute( :notes, params[:domain][:notes] )
-  end
-
-  def change_owner
-    resource.update_attribute :user_id, params[:domain][:user_id]
-
-    respond_to do |wants|
-      wants.js
-    end
-  end
-
-  # GET: list of macros to apply
-  # POST: apply selected macro
-  def apply_macro
-    @domain = resource
-
-    if request.get?
-      @macros = Macro.user(current_user)
-
-      respond_to do |format|
-        format.html
-        format.xml { render :xml => @macros }
-      end
-
-    else
-      @macro = Macro.user( current_user ).find( params[:macro_id] )
-      @macro.apply_to( resource )
-
-      respond_to do |format|
-        format.html {
-          flash[:notice] = t(:message_domain_macro_applied)
-          redirect_to resource
-        }
-        format.xml { render :xml => resource.reload.to_xml(:include => [:records]), :status => :accepted, :location => domain_path(@domain) }
-      end
-
+    def show
+        @domain = Domain.find(params[:id])
+        unless request.xhr?
+            query    = params[:record].blank? ? nil : params[:record]
+            @records = @domain.records.without_soa.paginate(:page => params[:page], :per_page => 10)
+        end
+        respond_with(@domain)
     end
 
-  end
+    def new
+        @domain = Domain.new
+        respond_with(@domain)
+    end
 
+    def edit
+        @domain = Domain.find(params[:id])
+        respond_with(@domain)
+    end
+
+    def create
+        @domain = Domain.new(params[:domain])
+
+        if params[:domain][:zone_template_id].present? || params[:domain][:zone_template_name].present?
+            @zone_template   = ZoneTemplate.where('id'   => params[:domain][:zone_template_id]).first   if params[:domain][:zone_template_id]
+            @zone_template ||= ZoneTemplate.where('name' => params[:domain][:zone_template_name]).first if params[:domain][:zone_template_name]
+            if @zone_template
+                @domain = @zone_template.build(@domain.name)
+            else
+                @domain.errors.add(:zone_template, 'ZoneTemplate not found')
+            end
+        end
+
+        @domain.save
+
+        respond_with(@domain) do |format|
+            format.html { render :partial => @domain, :status => :ok } if request.xhr? && @domain.valid?
+            format.html { render :partial => 'new',   :status => :unprocessable_entity, :object => @domain, :as => :domain } if request.xhr? && !@domain.valid?
+        end
+    end
+
+    def update
+        @domain = Domain.find(params[:id])
+        @domain.update_attributes(params[:domain])
+        respond_with(@domain) do |format|
+            format.html { render :partial => 'form', :object => @domain, :as => :domain if request.xhr? }
+        end
+    end
+
+    def destroy
+        @domain = Domain.find(params[:id])
+        @domain.destroy
+        respond_with(@domain)
+    end
+
+    def update_note
+        resource.update_attribute( :notes, params[:domain][:notes] )
+    end
 end

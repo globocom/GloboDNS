@@ -31,33 +31,22 @@ class RecordTemplate < ActiveRecord::Base
 
   # Convert this template record into a instance +record_type+ with the
   # attributes of the template copied over to the instance
-  def build( domain_name = nil )
-    # get the class of the record_type
-    record_class = self.record_type.constantize
+  def build(domain_name = nil)
+    klass       = self.record_type.constantize
+    attr_names  = klass.accessible_attributes.to_a.any? ? klass.accessible_attributes : klass.column_names
+    attr_names -= klass.protected_attributes.to_a
 
-    # duplicate our own attributes, strip out the ones the destination doesn't
-    # have (and the id as well)
-    attrs = self.attributes.dup
-    attrs.delete_if { |k,_| !record_class.columns.map( &:name ).include?( k ) }
-    attrs.delete('id')
-
-    # parse each attribute, looking for %ZONE%
-    unless domain_name.nil?
-      attrs.keys.each do |k|
-        attrs[k] = attrs[k].gsub( '%ZONE%', domain_name ) if attrs[k].is_a?( String )
+    attrs = self.attributes.slice(*attr_names)
+    if domain_name
+      attrs.each do |name, value|
+        attrs[name] = value.gsub('%ZONE%', domain_name) if value.is_a?(String)
       end
     end
 
-    # Handle SOA convenience fields if needed
-    if soa?
-      SOA::SOA_FIELDS.each do |soa_field|
-        attrs[soa_field] = instance_variable_get("@#{soa_field}")
-      end
-      attrs[:serial] = 0
-    end
+    record = klass.new(attrs)
+    record.serial = 0 if record.is_a?(SOA) # overwrite 'serial' attribute of SOA records
 
-    # instantiate a new destination with our duplicated attributes & validate
-    record_class.new( attrs )
+    record
   end
 
   def soa?
@@ -84,7 +73,6 @@ class RecordTemplate < ActiveRecord::Base
   # model without any duplication of rules. This allows us to simply extend the
   # appropriate record and gain those validations in the templates
   def validate_record_template #:nodoc:
-    puts "[validate_record_template]"
     unless self.record_type.blank?
       record = build
       record.errors.each do |k,v|

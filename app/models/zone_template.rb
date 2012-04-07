@@ -38,34 +38,17 @@ class ZoneTemplate < ActiveRecord::Base
   #
   # This method will throw exceptions as it encounters errors, and will use a
   # transaction to complete/rollback the operation.
-  def build( domain_name, user = nil )
-    domain = Domain.new(:ttl => self.ttl, :type => 'MASTER')
-    domain.user = user if user.is_a?( User )
+  def build(domain_name, user = nil)
+    domain = Domain.new(:name => domain_name,
+                        :ttl  => self.ttl,
+                        :type => 'MASTER',
+                        :user => user.is_a?(User) ? user : nil)
 
-    self.class.transaction do
-      # Pick our SOA template out, and populate the zone
-      soa_template = record_templates.detect { |r| r.record_type == 'SOA' }
-      built_soa_template = soa_template.build( domain_name )
-      Domain::SOA_FIELDS.each do |f|
-        domain.send( "#{f}=", built_soa_template.send( f ) )
-      end
-      domain.name = domain_name
+    record_templates.dup.each do |template|
+      record = template.build(domain_name)
 
-      # save the zone or die
-      domain.save!
-
-      # get the templates
-      templates = record_templates.dup
-
-      Record.batch do
-        # now build the remaining records according to the templates
-        templates.delete( soa_template )
-        templates.each do |template|
-          record = template.build( domain_name )
-          record.domain = domain
-          record.save!
-        end
-      end
+      domain.records   << record
+      domain.soa_record = record if record.is_a?(SOA)
     end
 
     domain

@@ -1,35 +1,24 @@
+- even_odd = cycle('even', 'odd')
 %tr[ record, :marker ]
-%tr[ record, :show ]
-  %td{ :width => 250 }= record.shortname
-  %td{ :width => 50 }= record.ttl
-  %td{ :width => 30 }= record.type
-  %td{ :width => 30 }= record.prio
-  %td{ :width => 250 }= record.content
-  %td{ :width => 39 }
+%tr[ record, :show ]{:class => even_odd}
+  %td.name=    record.shortname
+  %td.ttl=     record.ttl
+  %td.type=    record.type
+  %td.prio=    record.prio
+  %td.content= record.content
+  %td.actions
     - unless record.domain.slave?
-      - if current_user || current_token.can_change?( record )
-        = link_to_function info_icon('database_edit.png', "record-template-edit"), "editRecord(#{record.id}, '#{record.type.downcase}')"
-      - if current_user || current_token.can_remove?( record )
-        = link_to info_icon('database_delete.png', "record-template-delete"), record_path(record), :method => :delete, :confirm => t(:confirm_domain_delte_record)
+      = link_to '', '#', :class => 'edit-record-button ui-icon-edit', :title => t(:generic_edit)
+      = link_to '', record_path(record), :remote => true, :method => :delete, :confirm => t(:confirm_domain_delte_record), :class => 'delete-record-button ui-icon-trash', :title => t(:generic_delete)
 
 - unless record.domain.slave?
-  - if current_user || current_token.can_change?( record )
-    %tr[ record, :edit ]{ :style => "display: none;" }
-      %td{ :colspan => 7 }
-        = form_for(record, :as => :record, :url => record_path(record), :remote => true) do |f|
-          %div[ record, :error ]
-            %table.gridwide
-              %tr
-                %td{ :width => 250 }= f.text_field :shortname, :size => 15
-                %td{ :width => 50 }= f.text_field :ttl, :size => 3
-                %td{ :width => 30 }= record.type
-                %td{ :width => 30 }
-                  - if record.supports_prio?
-                    = f.text_field :prio, :size => 2
-                  - else
-                    &nbsp;
-                %td{ :width => 250 }= f.text_field :content, :size => 15
-                %td{ :width => 39 }
-                  /= image_submit_tag 'table_save.png', { :class => 'nb' }
-                  = f.button(t(:generic_save), :class => 'nb ui-button ui-button-icon-only ui-icon-disk')
-                  = link_to_function(t(:generic_cancel), "hideRecord(#{record.id}, '#{record.type.downcase}')", :class => 'ui-button ui-button-icon-only ui-icon-trash')
+  %tr[ record, :edit ]{:style => 'display: none;', :class => "#{even_odd} edit-record"}
+    = form_for(record, :as => :record, :url => record_path(record), :remote => true) do |f|
+      %td.name=    f.text_field :shortname
+      %td.ttl=     f.text_field :ttl
+      %td.type=    record.type
+      %td.prio=    record.supports_prio? ? f.text_field(:prio) : '&nbsp;'.html_safe
+      %td.content= f.text_field :content
+      %td.actions
+        = link_to('', '#', :remote => true, :alt => t(:generic_save),   :class => 'save-record-button ui-icon-download-alt')
+        = link_to('', '#', :remote => true, :alt => t(:generic_cancel), :class => 'cancel-edit-record-button ui-icon-ban-circle')

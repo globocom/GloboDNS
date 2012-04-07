@@ -1,0 +1,11 @@
+%div.record-table-container
+  %table#record-table
+    %tr
+      %th= t :label_domain_record_host
+      %th= t :label_domain_record_ttl
+      %th= t :label_domain_record_type
+      %th= t :label_domain_record_priority
+      %th= t :label_domain_record_data
+      %th  &nbsp;
+    = render :partial => 'records/record', :collection => @records
+  = will_paginate @records, :id => 'record-table-pagination', :params => { :controller => 'records', :action => 'index', :domain_id => @records.first.domain_id, :id => nil }

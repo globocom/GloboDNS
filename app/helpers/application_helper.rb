@@ -36,6 +36,19 @@ module ApplicationHelper
     link_to "Cancel", path, options
   end
 
+  # Add a cancel link for shared forms. Looks at the provided object and either
+  # creates a link to the index or show actions.
+  def cancel_button(options = {})
+    # path = object.class.name.tableize
+    # path = if object.new_record?
+    #          send(path.pluralize + '_path')
+    #        else
+    #          send(path.singularize + '_path', object)
+    #        end
+    # button_to_function(t(:generic_cancel), 'history.back()', options)
+    button_tag(t(:generic_cancel), options.merge({:onclick => 'history.back()'}))
+  end
+
   def help_icon( dom_id )
     image_tag('help.png', :id => "help-icn-#{dom_id}", :class => 'help-icn', "data-help" => dom_id )
   end

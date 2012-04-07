@@ -1,10 +1,6 @@
-%h1
-  =t :label_last_x_domains, :value => 5
-
-%table
+%h1=t :label_last_x_domains, :value => 5
+%table#domains-table
   = render :partial => '/domains/domain', :collection => @latest_domains
 
-%h1
-  = t :label_new_domain
-
-= render :partial => '/domains/new'
+%h1= t(:label_new_domain).titleize
+= render :partial => '/domains/new', :object => Domain.new, :as => :domain, :locals => {:show_form => true}

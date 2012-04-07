@@ -10,9 +10,9 @@ class Record < ActiveRecord::Base
   acts_as_audited :associated_with => :domain
   self.non_audited_columns.delete( self.inheritance_column ) # Audit the 'type' column
 
-  belongs_to :domain
+  belongs_to :domain, :inverse_of => :records
 
-  validates_presence_of     :domain_id, :if => Proc.new {|record| !record.is_a?(SOA)}
+  validates_presence_of     :domain
   validates_presence_of     :name
   validates_numericality_of :ttl, :greater_than_or_equal_to => 0, :only_integer => true, :allow_nil => true
 
@@ -29,7 +29,8 @@ class Record < ActiveRecord::Base
   before_save       :update_change_date
   after_save        :update_soa_serial
 
-  scope :sorted, order('name ASC')
+  scope :sorted,      order('name ASC')
+  scope :without_soa, where('type != ?', 'SOA')
 
   # Known record types
   @@record_types = ['A', 'AAAA', 'CNAME', 'LOC', 'MX', 'NS', 'PTR', 'SOA', 'SPF', 'SRV', 'TXT']
@@ -122,6 +123,11 @@ class Record < ActiveRecord::Base
 
   def resolve_resource_class
     self.class.resolv_resource_class(self.type)
+  end
+
+  # fixed partial path, as we don't need a different partial for each record type
+  def to_partial_path
+    Record._to_partial_path
   end
 
   def self.fqdn(record_name, domain_name)

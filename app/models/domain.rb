@@ -16,7 +16,7 @@ class Domain < ActiveRecord::Base
 
   belongs_to :user
 
-  has_many :records, :dependent => :destroy
+  has_many :records, :dependent => :destroy, :inverse_of => :domain
 
   has_one  :soa_record,    :class_name => 'SOA'
   has_many :ns_records,    :class_name => 'NS'
@@ -31,6 +31,7 @@ class Domain < ActiveRecord::Base
   has_many :ptr_records,   :class_name => 'PTR'
 
   validates_presence_of   :name
+  validates_presence_of   :ttl
   validates_uniqueness_of :name
   validates_inclusion_of  :type, :in => %w(NATIVE MASTER SLAVE), :message => "must be one of NATIVE, MASTER, or SLAVE"
   validates_presence_of   :master, :if => :slave?
@@ -50,7 +51,7 @@ class Domain < ActiveRecord::Base
   SOA_FIELDS.each do |f|
     unless self.column_names.include?(f.to_s)
       attr_accessor f
-      validates_presence_of f, :on => :create, :unless => :slave?
+      # validates_presence_of f, :on => :create, :unless => :slave?
     end
   end
 
@@ -137,7 +138,7 @@ class Domain < ActiveRecord::Base
 
   # create & validate soa record
   def validate_soa_record
-    return if self.slave?
+    return true if self.slave? || (self.soa_record && self.soa_record.valid?)
 
     self.soa_record = SOA.new(:domain => self)
     SOA_FIELDS.each do |f|

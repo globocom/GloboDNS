@@ -14,23 +14,23 @@
       %li= msg
   %table.grid
     %tr
-      %td= t :label_domain_name
+      %td= f.label t(:label_domain_name)
       %td= f.text_field :name
       %td= help_icon('help-domain')
     %tr
-      %td= t :label_domain_type
-      %td= f.select :type, ['NATIVE','MASTER','SLAVE']
+      %td= f.label t(:label_domain_type)
+      %td= f.select :type, ['MASTER','SLAVE']
       %td= help_icon('help-type')
     %tr#master-address{ :style => 'display: none' }
-      %td= t :label_domain_master_address
+      %td= f.label t(:label_domain_master_address)
       %td= f.text_field :master
       %td= help_icon('help-master')
     %tr
-      %td= t :label_default_ttl
+      %td= f.label t(:label_default_ttl)
       %td= f.text_field :ttl, :size => 8
       %td= help_icon('help-ttl')
     %tr.actions
       %td{:colspan => 3}
-        = link_to_cancel(@domain, :class => 'ui-button ui-icon-cancel')
-        = submit_tag t(:generic_save)
+        = cancel_button(:class => 'ui-icon-ban-circle')
+        = f.button t(:generic_save), :class => 'ui-icon-download-alt'
 
