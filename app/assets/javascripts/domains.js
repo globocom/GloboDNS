@@ -155,7 +155,7 @@ $(document).ready(function() {
 
 	// ------------------- Records table -------------------
 
-	$('#record-table-pagination a').live('ajax:success', function (evt, data, statusStr, xhr) {
+	$('#records-search-form, #record-table-pagination a').live('ajax:success', function (evt, data, statusStr, xhr) {
 		$('.record-table-container').replaceWith(data);
 	}).live('ajax:error', function () {
 		alert("[ERROR] unable to retrieve domains");
@@ -239,4 +239,8 @@ $(document).ready(function() {
 		$('table#record-table tr.show-record:nth-child(6n), table#record-table tr.edit-recordnth-child(6n+1)').addClass("odd").removeClass("even");
 		$('table#record-table tr.show-record:nth-child(6n+3), table#record-table tr.edit-recordnth-child(6n+4)').addClass("even").removeClass("odd");
 	}
+
+	// ------------------- BIND -------------------
+	$('.bind9-export-form').live('ajax:success', function () {
+	});
 });

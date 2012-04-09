@@ -1,15 +1,11 @@
 %h1= t(:title_bind_configuration)
 %div.bind-config
-  %textarea#bind_config~ @current_config
-  %div.actions
-    = link_to_function(t(:discard), 'discardBindConfiguration()', :class => 'ui-button')
-    = submit_tag(t(:generic_save), :class => 'ui-button')
-
-%h1= t(:title_bind_export)
-%div.bind-export
-  %p= t(:desc_bind_export)
-  %div.actions
-    = submit_tag t(:generic_export), :class => 'ui-button'
+  = form_tag(bind9_export_path, :remote => true, :html => 'bind9-export-form') do |f|
+    ~ text_area_tag 'named_conf', @current_config
+    %div.actions
+      = button_tag(t(:generic_reset), :type => 'reset', :class => 'cancel-new-record-button ui-icon-ban-circle')
+      = button_tag(t(:generic_export), :url => bind9_export_path, :class => 'export-bind-button ui-icon-download-alt')
+      = button_tag(t(:label_export_all), :url => bind9_export_path(:all => true), :remote => true, :class => 'export-all-bind-button ui-icon-download-alt')
 
 %h1= t(:title_bind_test)
 %div.bind-test

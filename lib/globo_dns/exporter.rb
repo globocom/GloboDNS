@@ -5,11 +5,24 @@ class Exporter
     include GloboDns::Config
     include GloboDns::Util
 
-    def export_all(options = {})
+    CONFIG_START_TAG = '### BEGIN GloboDns ###'
+    CONFIG_END_TAG   = '### END GloboDns ###'
+
+    def export_all(named_conf_content, options = {})
         @options = options
         @logger  = @options.delete(:logger) || Rails.log
 
         Dir.mktmpdir do |tmp_dir|
+            #--- main configuration file ---
+            export_named_conf(named_conf_content, tmp_dir) if named_conf_content.present?
+
+            STDERR.puts "cat #{File.join(tmp_dir, NAMED_CONF_FILE)}"
+            STDERR.puts system("cat", File.join(tmp_dir, NAMED_CONF_FILE))
+
+            #--- views
+            File.open(File.join(tmp_dir, VIEWS_FILE), 'w') do |file|
+            end
+
             #--- regular zone records
             File.open(File.join(tmp_dir, ZONES_FILE), 'w') do |file|
                 Domain.standard.each do |domain|
@@ -53,6 +66,21 @@ class Exporter
     
     private
 
+    def export_named_conf(content, tmp_dir)
+        File.open(File.join(tmp_dir, NAMED_CONF_FILE), 'w') do |file|
+            file.puts content
+            file.puts CONFIG_START_TAG
+            file.puts '# this block is auto generated; do not edit'
+            file.puts
+            file.puts "include \"#{File.join(BIND_CONFIG_DIR, VIEWS_FILE)}\";"
+            file.puts "include \"#{File.join(BIND_CONFIG_DIR, ZONES_FILE)}\";"
+            file.puts "include \"#{File.join(BIND_CONFIG_DIR, SLAVES_FILE)}\";"
+            file.puts "include \"#{File.join(BIND_CONFIG_DIR, REVERSE_FILE)}\";"
+            file.puts
+            file.puts CONFIG_END_TAG
+        end
+    end
+
     def export_domain(domain, tmp_dir)
         @logger.info "[GloboDns::exporter] generating file \"#{domain.zonefile_path}\""
         format = build_record_format(domain)
@@ -87,7 +115,10 @@ class Exporter
                                      '--omit-dir-times',
                                      '--no-group',
                                      '--no-perms',
+                                     "--include=#{NAMED_CONF_FILE}",
+                                     "--include=#{VIEWS_FILE}",
                                      "--include=#{ZONES_FILE}",
+                                     "--include=#{SLAVES_FILE}",
                                      "--include=#{ZONES_DIR}/",
                                      "--include=#{ZONES_DIR}/*",
                                      "--include=#{REVERSE_DIR}/",

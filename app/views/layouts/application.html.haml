@@ -14,9 +14,9 @@
       #nav
         - if current_user
           #search-bar
-            = form_tag( { :controller => :search, :action => :results }, { :method => :get } ) do
-              = text_field_tag :q
-              = submit_tag( t(:generic_search) )
+            = form_tag(domains_path, { :method => :get }) do
+              = text_field_tag :query, ''
+              %span.search-icon
         %ul
           %li= link_to((t :layout_menu_home), root_url)
           - if current_user

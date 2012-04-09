@@ -13,7 +13,8 @@ class Bind9Controller < ApplicationController
     end
 
     def export
-        GloboDns::Exporter.new.export_all(:logger       => Logger.new(sio = StringIO.new('', 'w')),
+        GloboDns::Exporter.new.export_all(params[:named_conf],
+                                          :logger       => Logger.new(sio = StringIO.new('', 'w')),
                                           :test_changes => false)
         @output = sio.string
         respond_to do |format|
@@ -36,6 +37,6 @@ class Bind9Controller < ApplicationController
     private
 
     def get_current_config
-        @current_config = IO.read(File.join(BIND_CHROOT_DIR, BIND_CONFIG_FILE))
+        @current_config = IO.read(File.join(BIND_CHROOT_DIR, BIND_CONFIG_FILE)).sub(/#{GloboDns::Exporter::CONFIG_START_TAG}.*#{GloboDns::Exporter::CONFIG_END_TAG}\n/m, '')
     end
 end

@@ -69,6 +69,7 @@ class Domain < ActiveRecord::Base
   scope :reverse,  where('type != ?', 'SLAVE').where('name LIKE ?',     '%in-addr.arpa')
   scope :standard, where('type != ?', 'SLAVE').where('name NOT LIKE ?', '%in-addr.arpa')
   scope :slave,    where('type  = ?', 'SLAVE')
+  scope :matching, lambda { |query| where('name LIKE ?', "%#{query}%") }
   default_scope    order('name')
 
   def self.search( string, page, user = nil )

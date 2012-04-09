@@ -5,6 +5,7 @@ class RecordsController < ApplicationController
     def index
         @records = Record.where(:domain_id => params[:domain_id])
         @records = @records.without_soa.paginate(:page => params[:page], :per_page => 10) if request.format.html? || request.format.js?
+        @records = @records.matching(params[:query]) if params[:query].present?
         respond_with(@records) do |format|
             format.html { render :partial => 'list', :object => @records, :as => :records if request.xhr? }
         end

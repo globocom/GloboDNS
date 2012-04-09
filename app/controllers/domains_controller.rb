@@ -5,6 +5,7 @@ class DomainsController < ApplicationController
     def index
         @domains = Domain.scoped
         @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
+        @domains = @domains.matching(params[:query]) if params[:query].present?
         respond_with(@domains) do |format|
             format.html { render :partial => 'list', :object => @domains, :as => :domains if request.xhr? }
         end

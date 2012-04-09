@@ -39,10 +39,12 @@
 
 - unless @domain.slave?
   #domain-records
+    #records-search-bar
+      = form_tag(domain_records_path(@domain), :remote => true, :method => :get, :id => 'records-search-form') do
+        = text_field_tag :query, ''
+        %span.search-icon
+
     %h1= t(:title_records)
-    - form_tag({ :controller => :domains, :action => :show }, { :method => :get }) do
-      = text_field_tag :record
-      = submit_tag t(:generic_search)
 
     = render :partial => 'records/list', :object => @records, :as => :records
 

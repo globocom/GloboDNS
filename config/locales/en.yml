@@ -107,6 +107,7 @@ en:
   generic_create: "Create"
   generic_update: "Update"
   generic_export: "Export"
+  generic_reset: "Reset"
   generic_test: "Test"
   generic_yes: "Yes"
   generic_no: "No"
@@ -281,6 +282,7 @@ en:
   help_delete_domain: "Delete this domain from the system"
   label_add_domain: "Add Domain"
   title_domains_list: "Domains"
+  message_no_domains_found: "No domains found"
 
 # Domains new
   title_new_domain: "New Domain"
@@ -514,6 +516,7 @@ en:
 # Bind9
   title_bind_configuration: BIND Configuration
   title_bind_export: Export
+  label_export_all: Export All
   desc_bind_export: Export BIND configuration and reload server
   title_bind_test: Test
   desc_bind_test: Test the latest exported changes

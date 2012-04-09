@@ -10,11 +10,13 @@ development:
     rndc_config_file:  '/var/named/chroot/etc/rndc.conf'
     rndc_key:          'rndc-key'
 
+    named_conf_file:   'named.conf'
     zones_dir:         'zones'
     zones_file:        'zones.conf'
     reverse_dir:       'reverse'
     reverse_file:      'reverse.conf'
     slaves_file:       'slaves.conf'
+    views_file:        'views.conf'
 
     nameserver_host:   'localhost'
     record_order:

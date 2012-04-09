@@ -31,6 +31,7 @@ class Record < ActiveRecord::Base
 
   scope :sorted,      order('name ASC')
   scope :without_soa, where('type != ?', 'SOA')
+  scope :matching,    lambda { |query| where('name LIKE ? OR content LIKE ?', "%#{query}%", "%#{query}%") }
 
   # Known record types
   @@record_types = ['A', 'AAAA', 'CNAME', 'LOC', 'MX', 'NS', 'PTR', 'SOA', 'SPF', 'SRV', 'TXT']
