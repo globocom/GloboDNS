@@ -6,12 +6,12 @@
     = javascript_include_tag 'application'
     = csrf_meta_tag
   %body
-    #container
-      #header
+    .container
+      .header
         %h1
           /t :layout_main_title
           %img{'src' => image_path('logo_small.png')}
-      #nav
+      .nav
         - if current_user
           #search-bar
             = form_tag(domains_path, { :method => :get }) do
@@ -27,11 +27,11 @@
             %li= link_to((t :layout_menu_bind), bind9_path)
             %li= link_to((t :layout_menu_logout), destroy_user_session_path, :method => 'DELETE')
       %hr
-      #body
+      .body
         = show_flash
         = yield
       %hr
-      #footer
+      .footer
         &copy; 2011 - Kenneth Kalmer ; 2012 - Globo.com S/A
         %br
         Released under the MIT License.

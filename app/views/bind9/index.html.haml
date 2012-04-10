@@ -1,11 +1,14 @@
 %h1= t(:title_bind_configuration)
 %div.bind-config
-  = form_tag(bind9_export_path, :remote => true, :html => 'bind9-export-form') do |f|
+  = form_tag(bind9_export_path, :remote => true, :class => 'bind9-export-form') do |f|
     ~ text_area_tag 'named_conf', @current_config
     %div.actions
-      = button_tag(t(:generic_reset), :type => 'reset', :class => 'cancel-new-record-button ui-icon-ban-circle')
-      = button_tag(t(:generic_export), :url => bind9_export_path, :class => 'export-bind-button ui-icon-download-alt')
-      = button_tag(t(:label_export_all), :url => bind9_export_path(:all => true), :remote => true, :class => 'export-all-bind-button ui-icon-download-alt')
+      = button_tag(t(:generic_reload),   :type => 'reset', :class => 'reload-bind-config-button ui-icon-refresh', 'data-method' => :get, 'data-remote' => true, :href => bind9_config_path)
+      = button_tag(t(:generic_export),   :class => 'export-bind-button ui-icon-download-alt')
+      = button_tag(t(:label_export_all), :class => 'export-all-bind-button ui-icon-download-alt')
+
+%div.export-output.hidden
+  %h2= t(:desc_export_output)
 
 %h1= t(:title_bind_test)
 %div.bind-test

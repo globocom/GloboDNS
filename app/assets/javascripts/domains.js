@@ -192,15 +192,10 @@ $(document).ready(function() {
 
 	$('.update-record-form').live('ajax:success', function (evt, data, statusStr, xhr) {
 		var markerRow = $(this).closest('tr');
-		if (console) console.log("marker row: ", markerRow);
 		markerRow.before(data);
-		if (console) console.log("added data");
 		markerRow.next().next().remove();
-		if (console) console.log("removed edit record row");
 		markerRow.next().remove();
-		if (console) console.log("removed show record row");
 		markerRow.remove();
-		if (console) console.log("removed marker row");
 		fixRecordTableZebraStriping();
 	}).live('ajax:error', function () {
 		alert("[ERROR] unable to create new Record");
@@ -236,11 +231,28 @@ $(document).ready(function() {
 	});
 
 	var fixRecordTableZebraStriping = function () {
-		$('table#record-table tr.show-record:nth-child(6n), table#record-table tr.edit-recordnth-child(6n+1)').addClass("odd").removeClass("even");
-		$('table#record-table tr.show-record:nth-child(6n+3), table#record-table tr.edit-recordnth-child(6n+4)').addClass("even").removeClass("odd");
+		$('table#record-table tr.show-record:nth-child(6n), table#record-table tr.edit-record:nth-child(6n+1)').addClass("odd").removeClass("even");
+		$('table#record-table tr.show-record:nth-child(6n+3), table#record-table tr.edit-record:nth-child(6n+4)').addClass("even").removeClass("odd");
 	}
 
 	// ------------------- BIND -------------------
-	$('.bind9-export-form').live('ajax:success', function () {
+	$('.reload-bind-config-button').live('click', function () {
+		$.rails.handleRemote($(this));
+		return false;
+	});
+
+	$('.reload-bind-config-button').live('ajax:success', function (evt, data, statusStr, xhr) {
+		$('textarea#named_conf').val(data);
+		return false;
+	}).live('ajax:error', function (evt, xhr, statusStr, error) {
+		alert("[ERROR] export failed");
+	});
+
+	$('.bind9-export-form').live('ajax:success', function (evt, data, statusStr, xhr) {
+		$('.export-output pre').remove()
+		$('.export-output').append(data)
+		$('.export-output').show();
+	}).live('ajax:error', function (evt, xhr, statusStr, error) {
+		alert("[ERROR] export failed");
 	});
 });

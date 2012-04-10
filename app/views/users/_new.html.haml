@@ -1,0 +1,40 @@
+%div.new-user-form-container{ :class => user.errors.any? ? '' : 'hidden' }
+
+  %div{:style => "display: none"}
+    #role-help= t :help_user_is_admin
+
+  = form_for(user, :remote => true, :html => {:class => 'new-user-form'}) do |f|
+    - if user && user.errors.any?
+      %ul.errors 
+      - user.errors.full_messages.each do |msg|
+        %li= msg
+
+    %table#new-user
+      %tbody
+        %tr
+          %td= f.label :login, t(:label_user_login)
+          %td= f.text_field :login
+          %td  &nbsp;
+        %tr
+          %td= f.label :email, t(:label_user_email)
+          %td= f.text_field :email
+          %td  &nbsp;
+        %tr
+          %td= f.label :password, t(:label_user_password)
+          %td= f.password_field :password
+          %td
+            - unless user.new_record?
+              %em= t(:text_user_password_edit_notice)
+        %tr
+          %td= f.label :password_confirmation, t(:label_user_password_confirmation)
+          %td= f.password_field :password_confirmation
+          %td  &nbsp;
+        %tr
+          %td= f.label :role, t(:label_user_role)
+          %td= f.collection_select :role, User::ROLES.to_a, :first, :last
+          %td= help_icon('role-help')
+      %tfoot
+        %tr.actions
+          %td{:colspan => 3}
+            = button_tag(t(:generic_cancel), :class => 'cancel-new-user-button ui-icon-ban-circle')
+            = f.button(t(:generic_create),   :class => 'create-user-button ui-icon-download-alt')

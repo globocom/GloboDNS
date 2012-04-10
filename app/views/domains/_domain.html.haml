@@ -1,6 +1,6 @@
 - even_odd = cycle('even', 'odd')
-%tr
-  %td{:class => even_odd}
+%tr{:class => even_odd}
+  %td
     = link_to domain.name, domain_path(domain)
   /%td
   /  = link_to info_icon('table_edit.png', 'zone-edit'), edit_domain_path(domain)

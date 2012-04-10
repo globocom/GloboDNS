@@ -1,25 +1,22 @@
-%div{ :style => "display: none;" }
-  %div{ :id => "new-user-#{user.id}" }= t :help_user_create
-  %div{ :id => "active-user-#{user.id}" }= t :help_user_is_active
-  %div{ :id => "suspended-user-#{user.id}" }= t :help_user_is_suspended
-  %div{ :id => "edit-user-#{user.id}" }= t :help_user_details_edit
-  %div{ :id => "suspend-user-#{user.id}" }= t :help_user_suspend
-  %div{ :id => "reactivate-user-#{user.id}" }= t :help_user_activate
-  %div{ :id => "delete-user-#{user.id}" }= t :help_user_delete
+- even_odd = cycle('even', 'odd')
+%tr[ user, :marker ]{:class => 'marker hidden'}
+  %td
+    = form_for(user, :remote => true, :as => 'user', :url => user_path(user), :method => 'put', :html => {:id => "update-user-form-#{user.id}", :class => 'update-user-form'}) do |g|
+      %span
 
-%tr[ user, :show ]
-  %td= link_to user.login, user_path( user )
-  %td= user.email
-  %td= user.admin? ? t("label_user_role.admin") : t("label_user_role.user")
-  %td
-    /- unless user.suspended?
-    /= info_icon('flag_green.png', "active-user-#{user.id}")
-    /- else
-    = info_icon('flag_orange.png', "suspended-user-#{user.id}")
-  %td
-    = link_to info_icon('user_edit.png', "edit-user-#{user.id}"), edit_user_path( user )
-    / - unless user.suspended?
-    / = link_to info_icon('user_suspend.png', "suspend-user-#{user.id}"), suspend_user_path( user ), :method => :put unless user.eql?(current_user)
-    / - else
-    / = link_to info_icon('user_go.png', "reactivate-user-#{user.id}"), unsuspend_user_path( user ), :method => :put
-    = link_to info_icon('user_delete.png', "delete-user-#{user.id}"), purge_user_path( user ), :method => :delete unless user.eql?(current_user)
+%tr[ user, :show ]{ :class => "#{even_odd} show-user" }
+  %td.login= user.login
+  %td.email= user.email
+  %td.role=  User::ROLES[user.role]
+  %td.actions
+    = link_to '', '#', :class => 'edit-user-button ui-icon-edit', :title => t(:generic_edit)
+    = link_to '', user_path(user), :remote => true, :method => :delete, :confirm => t(:confirm_user_delete), :class => 'delete-user-button ui-icon-trash', :title => t(:generic_delete)
+
+%tr[ user, :edit ]{ :class => "#{even_odd} hidden edit-user"}
+  = form_for(user, :as => 'user', :url => user_path(user)) do |f|
+    %td.login= f.text_field :login
+    %td.email= f.text_field :email
+    %td.role=  f.collection_select :role, User::ROLES.to_a, :first, :last
+    %td.actions
+      = link_to('', '#', :class => 'update-user-button ui-icon-download-alt',    :title => t(:generic_update))
+      = link_to('', '#', :class => 'cancel-edit-user-button ui-icon-ban-circle', :title => t(:generic_cancel))

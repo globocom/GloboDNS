@@ -2,164 +2,69 @@ require 'digest/sha1'
 
 class User < ActiveRecord::Base
 
-  # Include default devise modules. Others available are:
-  # :token_authenticatable, :confirmable, :lockable and :timeoutable
-  devise :database_authenticatable,
-         :token_authenticatable,
-         :rememberable,
-         :validatable,
-         :encryptable,
-         :encryptor => :restful_authentication_sha1
-         # :recoverable,
-         # :confirmable,
+    devise :database_authenticatable,
+           :token_authenticatable,
+           :rememberable,
+           :validatable,
+           :encryptable,
+           :encryptor => :restful_authentication_sha1
+           # :recoverable,
+           # :confirmable,
 
-  # Virtual attribute for the unencrypted password
-  #attr_accessor :password
+    #validates_presence_of     :login, :email
+    #validates_presence_of     :password,                   :if => :password_required?
+    #validates_presence_of     :password_confirmation,      :if => :password_required?
+    #validates_length_of       :password, :within => 4..40, :if => :password_required?
+    #validates_confirmation_of :password,                   :if => :password_required?
+    #validates_length_of       :login,    :within => 3..40
+    #validates_length_of       :email,    :within => 3..100
+    #validates_uniqueness_of   :login, :email, :case_sensitive => false
 
-  #validates_presence_of     :login, :email
-  #validates_presence_of     :password,                   :if => :password_required?
-  #validates_presence_of     :password_confirmation,      :if => :password_required?
-  #validates_length_of       :password, :within => 4..40, :if => :password_required?
-  #validates_confirmation_of :password,                   :if => :password_required?
-  #validates_length_of       :login,    :within => 3..40
-  #validates_length_of       :email,    :within => 3..100
-  #validates_uniqueness_of   :login, :email, :case_sensitive => false
+    # before_save :check_auth_tokens
+    before_save   :ensure_authentication_token
+    after_destroy :persist_audits
 
-  # before_save :check_auth_tokens
-  before_save   :ensure_authentication_token
-  after_destroy :persist_audits
+    # prevents a user from submitting a crafted form that bypasses activation
+    # anything else you want your user to change should be added here.
+    attr_accessible :login, :email, :password, :password_confirmation, :role, :authentication_token
 
-  # prevents a user from submitting a crafted form that bypasses activation
-  # anything else you want your user to change should be added here.
-  attr_accessible :login, :email, :password, :password_confirmation, :role, :authentication_token
+    has_many :audits, :as => :user
 
-  has_many :domains, :dependent => :nullify
-  has_many :zone_templates, :dependent => :nullify
-  has_many :audits, :as => :user
-
-  # Named scopes
-  scope :active_owners, where(:state => :active, :admin => false)
-
-  ROLES = [:ADMIN, :MANAGER, :VIEWER].inject(Hash.new) do |hash, role|
-      role_str = role.to_s.sub(/^ROLE_/, '')[0]
-      const_set(('ROLE_' + role.to_s).to_sym, role_str)
-      hash[role] = role_str
-      hash
-  end
-
-  def admin?
-      role == ROLE_ADMIN
-  end
-
-  def manager?
-      role == ROLE_MANAGER
-  end
-
-  def viewer?
-      role == ROLE_VIEWER
-  end
-
-  class << self
-
-    ## Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
-    #def authenticate(login, password)
-    #  u = find_in_state :first, :active, :conditions => {:login => login} # need to get the salt
-    #  u && u.authenticated?(password) ? u : nil
-    #end
-
-    ## Encrypts some data with the salt.
-    #def encrypt(password, salt)
-    #  Digest::SHA1.hexdigest("--#{salt}--#{password}--")
-    #end
-
-    # For our lookup purposes
-    def search( params, page )
-      paginate :per_page => 50, :page => page,
-        :conditions => ['login LIKE ?', "%#{params.chomp}%"]
+    ROLES = [:ADMIN, :MANAGER, :VIEWER].inject(Hash.new) do |hash, role|
+        role_str = role.to_s.sub(/^ROLE_/, '')[0]
+        const_set(('ROLE_' + role.to_s).to_sym, role_str)
+        hash[role_str] = role
+        hash
     end
 
-  end
+    def admin?
+        role == ROLE_ADMIN
+    end
 
-  ## Encrypts the password with the user salt
-  #def encrypt(password)
-  #  self.class.encrypt(password, salt)
-  #end
+    def manager?
+        role == ROLE_MANAGER
+    end
 
-  #def authenticated?(password)
-  #  crypted_password == encrypt(password)
-  #end
+    def viewer?
+        role == ROLE_VIEWER
+    end
 
-  #def remember_token?
-  #  remember_token_expires_at && Time.now.utc < remember_token_expires_at
-  #end
+    def auth_json
+        self.to_json(:root => false, :only => [:id, :authentication_token])
+    end
 
-  ## These create and unset the fields required for remembering users between browser closes
-  #def remember_me
-  #  remember_me_for 2.weeks
-  #end
-
-  #def remember_me_for(time)
-  #  remember_me_until time.from_now.utc
-  #end
-
-  #def remember_me_until(time)
-  #  self.remember_token_expires_at = time
-  #  self.remember_token            = encrypt("#{email}--#{remember_token_expires_at}")
-  #  save(:validate => false)
-  #end
-
-  #def forget_me
-  #  self.remember_token_expires_at = nil
-  #  self.remember_token            = nil
-  #  save(:validate => false)
-  #end
-
-  ## Returns true if the user has just been activated.
-  #def recently_activated?
-  #  @activated
-  #end
-
-  def <=>(user)
-    user.login <=> self.login
-  end
-
-  def auth_json
-      self.to_json(:root => false, :only => [:id, :authentication_token])
-  end
-
-  protected
-    ## before filter
-    #def encrypt_password
-    #  return if password.blank?
-    #  self.salt = Digest::SHA1.hexdigest("--#{Time.now.to_s}--#{login}--") if new_record?
-    #  self.crypted_password = encrypt(password)
-    #end
-
-    #def password_required?
-    #  crypted_password.nil? || !password.nil?
-    #end
-
-    #def do_delete
-    #  self.deleted_at = Time.now.utc
-    #end
-
-    #def do_activate
-    #  encrypt_password
-    #  @activated = true
-    #  self.activated_at = Time.now.utc
-    #  self.deleted_at = self.activation_code = nil
-    #end
+    protected
 
     def persist_audits
-      quoted_login = ActiveRecord::Base.connection.quote(self.login)
-      Audit.update_all(
-                       "username = #{quoted_login}",
-                       [ 'user_type = ? AND user_id = ?', self.class.name, self.id ]
-                       )
+        quoted_login = ActiveRecord::Base.connection.quote(self.login)
+        Audit.update_all(
+            "username = #{quoted_login}",
+            [ 'user_type = ? AND user_id = ?', self.class.name, self.id ]
+        )
     end
 
     def check_auth_tokens
-      self.auth_tokens = false unless self.admin?
-      nil # Don't halt callback chain
+        self.auth_tokens = false unless self.admin?
+        nil # Don't halt callback chain
     end
 end

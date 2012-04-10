@@ -1,11 +1,8 @@
-#new-user{ :style => 'display: none' }= t :help_user_add
+#div{ :style => 'display: none' }
+  #new-user= t(:help_user_add)
 
-%h1= t :title_users
+%h1= t(:title_users)
+= render :partial => 'list', :object => @users, :as => :users
 
-%table.gridwide
-  %tr
-    %td{ :colspan => 5 }
-      = link_to info_icon('user_add.png', 'new-user'), new_user_path
-      = link_to t(:label_user_create), new_user_path
-  = render :partial => 'user', :collection => @users
-
+= button_tag t(:label_add_user).titleize, :class => 'new-user-button ui-icon-plus'
+= render :partial => 'new', :object => User.new, :as => :user

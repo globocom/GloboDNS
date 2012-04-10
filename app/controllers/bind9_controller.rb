@@ -1,37 +1,32 @@
 class Bind9Controller < ApplicationController
     include GloboDns::Config
 
+    respond_to :html, :json
+
     def index
         get_current_config
     end
 
-    def show_config
+    def configuration
         get_current_config
+        respond_with(@current_config) do |format|
+            format.html { render :text => @current_config if request.xhr? }
+        end
     end
 
     def update_config
     end
 
     def export
-        GloboDns::Exporter.new.export_all(params[:named_conf],
-                                          :logger       => Logger.new(sio = StringIO.new('', 'w')),
-                                          :test_changes => false)
-        @output = sio.string
-        respond_to do |format|
-            format.xml  { render :xml  => @output }
-            format.json { render :json => @output }
-            format.html
+        GloboDns::Exporter.new.export_all(params[:named_conf], :logger => Logger.new(sio = StringIO.new('', 'w')), :test_changes => false)
+        respond_with(@output = sio.string) do |format|
+            format.html { render :layout => !request.xhr? }
         end
     end
 
     def test
         GloboDns::Tester.new(:logger => Logger.new(sio = StringIO.new('', 'w'))).run_all
-        @output = sio.string
-        respond_to do |format|
-            format.xml  { render :xml  => {'output' => @output}.to_xml  }
-            format.json { render :json => {'output' => @output}.to_json }
-            format.html
-        end
+        respond_with(@output = sio.string)
     end
 
     private

@@ -1,0 +1,12 @@
+%div.users-table-container
+  %table#users-table
+    %thead
+      %tr
+        %th= t :label_user_login
+        %th= t :label_user_email
+        %th= t :label_user_role
+        %th  &nbsp;
+    %tbody
+      = render :partial => 'user', :collection => users
+  = will_paginate users, :id => 'users-table-pagination', :previous_label => '«'.html_safe, :next_label => '»'.html_safe
+

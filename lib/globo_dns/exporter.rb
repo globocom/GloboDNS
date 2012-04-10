@@ -10,11 +10,19 @@ class Exporter
 
     def export_all(named_conf_content, options = {})
         @options = options
-        @logger  = @options.delete(:logger) || Rails.log
+        @logger  = @options.delete(:logger) || Rails.logger
+
+        Domain.connection.execute "LOCK TABLE #{Domain.table_name} READ, #{Record.table_name} READ";
+
+        sleep 10
 
         Dir.mktmpdir do |tmp_dir|
             #--- main configuration file ---
-            export_named_conf(named_conf_content, tmp_dir) if named_conf_content.present?
+            if named_conf_content.present?
+                export_named_conf(named_conf_content, tmp_dir)
+            else
+                FileUtils.copy(File.join(BIND_CHROOT_DIR, BIND_CONFIG_FILE), tmp_dir, :preserve => true)
+            end
 
             STDERR.puts "cat #{File.join(tmp_dir, NAMED_CONF_FILE)}"
             STDERR.puts system("cat", File.join(tmp_dir, NAMED_CONF_FILE))
@@ -62,6 +70,8 @@ class Exporter
             #--- test the changes by parsing the git commit log
             test_changes if @options[:test_changes]
         end
+    ensure
+        Domain.connection.execute 'UNLOCK TABLES';
     end
     
     private

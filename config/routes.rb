@@ -21,8 +21,7 @@ GloboDns::Application.routes.draw do
 
     scope 'bind9', :as => 'bind9', :controller => 'bind9' do
         get  '',       :action => 'index'
-        get  'config', :action => 'show_config'
-        put  'config', :action => 'update_config'
+        get  'config', :action => 'configuration'
         post 'export'
         post 'test'
     end

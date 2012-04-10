@@ -10,8 +10,10 @@ class UsersController < ApplicationController
 
     def index
         @users = User.scoped
-        # @users = @users.paginate(:page => params[:page], :per_page => 20) unless request.xhr?
-        respond_with(@users)
+        @users = @users.paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
+        respond_with(@users) do |format|
+            format.html { render :partial => 'list', :object => @users, :as => :users if request.xhr? }
+        end
     end
 
     def show
@@ -32,7 +34,10 @@ class UsersController < ApplicationController
     def create
         @user = User.new(params[:user])
         @user.save
-        respond_with(@user)
+        respond_with(@user) do |format|
+            format.html { render :partial => @user, :status => :ok } if request.xhr? && @user.valid?
+            format.html { render :partial => 'new', :status => :unprocessable_entity, :object => @user, :as => :user } if request.xhr? && !@user.valid?
+        end
     end
 
     def update
@@ -44,6 +49,8 @@ class UsersController < ApplicationController
     def destroy
         @user = User.find(params[:id])
         @user.destroy
-        respond_with(@user)
+        respond_with(@user) do |format|
+            format.html { head :no_content if request.xhr? }
+        end
     end
 end

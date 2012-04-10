@@ -108,6 +108,7 @@ en:
   generic_update: "Update"
   generic_export: "Export"
   generic_reset: "Reset"
+  generic_reload: "Reload"
   generic_test: "Test"
   generic_yes: "Yes"
   generic_no: "No"
@@ -461,56 +462,43 @@ en:
     Your account has been created.
   text_user_mailer_visit_url_to_activate_account:
     Visit this url to activate your account:
-  label_user_name: "Username"
-  label_user_password: "Password"
 
 # Users _user
-  help_user_create:
-    Creates a new user
-  help_user_is_active:
-    This is an active user
-  help_user_is_suspended:
-    This user is currently suspended
-  help_user_details_edit:
-    Edit this user's details
-  help_user_suspend:
-    Suspend this user
-  help_user_activate:
-    Re-activates this user
-  help_user_delete:
-    Delete this user from the system
+  help_user_create: Creates a new user
+  help_user_is_active: This is an active user
+  help_user_is_suspended: This user is currently suspended
+  help_user_details_edit: Edit this user's details
+  help_user_suspend: Suspend this user
+  help_user_activate: Re-activates this user
+  help_user_delete: Delete this user from the system
   label_user_roles:
     admin: "Admin"
     user: "User"
     domain_owner: "Domain Owner"
 
 # User form
-  help_user_is_admin:
-    This user has access to all PowerDNS on Rails facilities.
-  help_user_is_user:
-    This user can only change aspects of his domain.
+  help_user_is_admin: This user has access to all PowerDNS on Rails facilities.
+  help_user_is_user: This user can only change aspects of his domain.
   help_user_token_info:
     Only has effect if the user is an admin. This allows the user to generate
     authentication tokens for temporary access to manage a specific domain.
     Useful only where PowerDNS on Rails' API features are used.
 
-  label_user_email: "Email address"
-  text_user_password_edit_notice:
-    Leave blank to keep current password
-  label_user_password_again: "Password (Again)"
-  label_user_role_sign: "Role"
-  text_user_manage_token:
-    Manage authentication tokens
+  label_user_email: "Email"
+  label_user_password: "Password"
+  label_user_password_confirmation: "Password confirmation"
+  label_user_role: "Role"
+  text_user_password_edit_notice: Leave blank to keep current password
 
 # User index
-  help_user_add:
-    Add a new user to PowerDNS on Rails
+  help_user_add: Add a new user to PowerDNS on Rails
   title_users: "Users"
+  label_add_user: "Add User"
 
 # User show
   title_user_detail_for: " Details for %{user}"
   label_user_create: "New user"
-  confirm_user_remove: "Are you sure you want to remove this user?"
+  confirm_user_delete: "Are you sure you want to remove this user?"
   label_user_detail: "More Detail"
 
 # Bind9
@@ -518,6 +506,7 @@ en:
   title_bind_export: Export
   label_export_all: Export All
   desc_bind_export: Export BIND configuration and reload server
+  desc_export_output: 'Export output:'
   title_bind_test: Test
   desc_bind_test: Test the latest exported changes
 

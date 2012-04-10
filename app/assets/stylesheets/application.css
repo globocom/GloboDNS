@@ -16,43 +16,45 @@ body {
     color: #3f3f3f;
     background-color: #eee;
 }
-#container {
+.container {
     width: 900px;
     margin: 2em auto 2em auto;
 	box-shadow: 0px 0px 16px #888;
 	background-color: white;
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
 }
-#header {
+.header {
     height: 72px;
     padding: 3em 3em 1em 3em;
     /* background-image: url(top-background.png); */
     /* background-repeat: repeat-x; */
 }
-#header h1 {
+.header h1 {
     padding: 0;
     margin: 0;
 }
-#nav {
+.nav {
     padding: 1em 3em;
 }
-#nav ul {
+.nav ul {
     list-style-type: none;
     padding: 0;
     margin: 0;
 }
-#nav ul li {
+.nav ul li {
     display: inline;
     padding-right: 1em;
 	font-size: 12pt;
 	text-shadow: 1px 1px 1px #ccc;
-	font-family: VAGRounded BT, Arial, Helvetica, Lucida Grande, Sans-serif;
+	font-family: VAGRounded, Arial, Helvetica, Lucida Grande, Sans-serif;
 }
-#nav a:link, #nav a:active, #nav a:visited {
+.nav a:link, .nav a:active, .nav a:visited {
     color: #0f2f98;
     font-weight: normal;
     text-decoration: none;
 }
-#nav a:hover {
+.nav a:hover {
 	color: #4a65be;
 }
 #search-bar, #records-search-bar {
@@ -70,11 +72,11 @@ body {
 	width: 10em;
 	padding-right: 1.5em;
 }
-#body {
+.body {
     padding: 0 3em 2em 3em;
     background-color: white;
 }
-#footer {
+.footer {
 	margin: 0 auto;
 	padding: 1em 0 3em 0;
 	width: 30em;
@@ -82,35 +84,35 @@ body {
 	color: #999;
 	font-size: 9pt;
 }
-#body h1 {
+.body h1 {
     margin: 2em 0 .5em 0;
     font-size: 12pt;
 	line-height: 1.5em;
 	text-shadow: 1px 1px 1px #ccc;
-	font-family: VAGRounded BT, Arial, Helvetica, Lucida Grande, Sans-serif;
+	font-family: VAGRounded, Arial, Helvetica, Lucida Grande, Sans-serif;
 	font-weight: normal;
 }
-#body h1:after {
+.body h1:after {
 	content: '';
 	display: block;
 	background-image: -moz-linear-gradient(to right , #dde, #fff, #fff, #fff, #fff);
 	background-image: -webkit-linear-gradient(left, #dde, #fff, #fff, #fff, #fff);
 	height: 1px;
 }
-#body h1 a {
+.body h1 a {
 	color: inherit;
 	line-height: 1em;
 }
-#body h1 a:first-child {
+.body h1 a:first-child {
 	padding-left: 1em;
 }
-#body h1 a:hover {
+.body h1 a:hover {
 	color: #666;
 }
-#body h2 {
-    margin: 0;
-    padding: 2px 0;
-    font-size: 12pt;
+.body h2 {
+    margin: 1em 0 .5em 0;
+	padding: .5em 0 1em 0;
+    font-size: 11pt;
 }
 p {
     margin: 1em 0;
@@ -138,7 +140,7 @@ hr {
 	border: 0;
 	height: 1px;
 	background: -moz-linear-gradient(left center, rgba(255, 255, 255, 0), #CCC, #CCC, rgba(255, 255, 255, 0));
-	background: -webkit-linear-gradient(left, #FFF, #CCC, #CCC, #FFF);
+	background: -webkit-linear-gradient(left, #fff, #fff, #ccc, #ccc, #fff, #fff);
 }
 .hidden {
 	display: none;
@@ -219,6 +221,7 @@ input[type="text"], input[type="password"], textarea, select {
 	width: 15em;
 	padding: .25em;
     border: 1px solid #ccc;
+	color: #444;
 }
 input[type="text"], input[type="password"], select {
 	height: 1.2em;
@@ -234,6 +237,7 @@ input[type="submit"], input[type="button"], button {
     border-right:  1px solid #aaa;
     background: -moz-linear-gradient(top, #f7f7f7, #e7e7e7);
     background: -webkit-linear-gradient(top, #f7f7f7, #e7e7e7);
+	color: #444;
 }
 input[type="submit"], input[type="button"], button,
 input[type="text"], input[type="password"], textarea, select {
@@ -263,7 +267,7 @@ input[type="submit"]:hover, input[type="button"]:hover, button:hover {
     background: -webkit-linear-gradient(top, #ffffff, #efefef);
 }
 textarea#named_conf {
-	width: 98%;
+	width: 99%;
 	height: 25em;
 	font-family: Monospace;
 }
@@ -292,7 +296,7 @@ table#domains-table {
 table#domains-table td {
     padding: .5em 0;
 }
-table#domains-table tr td.odd {
+table#domains-table tr td.even {
     background-color: #f7f7f7;
 }
 
@@ -355,11 +359,72 @@ table#record-table tr.edit-record td {
 table#record-table td input#record_ttl, table#record-table td input#record_prio {
 	width: 4em;
 }
+
+table#users-table {
+	width: 100%;
+	margin-bottom: 2em;
+	border-bottom: 1px solid #efefef;
+    border-collapse: collapse;
+}
+table#users-table th {
+    text-align: left;
+}
+table#users-table th, table#users-table td {
+    padding: .5em 0;
+}
+table#users-table tr.even {
+    background-color: #f7f7f7;
+}
+table#users-table td.actions {
+    text-align: right;
+}
+table#users-table td.actions a {
+    color: #444;
+    font-size: 120%;
+}
+table#users-table td.login {
+	width: 20%;
+}
+table#users-table td.login input {
+	width: 10em;
+}
+table#users-table td.email, table#users-table td.role {
+	width: 35%;
+}
+table#users-table td.role select {
+	width: 12em;
+}
+table#users-table td.actions {
+	width: 10%;
+}
+table#users-table tr.edit-user td {
+	padding: 0;
+}
+#users-table-pagination {
+    margin: -2em 0 2em 0;
+}
+table#new-user td label {
+	padding-right: 1em;
+}
+
 .fieldWithErrors input {
     border: 1px solid #F66;
 }
 input.nb, textarea.nb {
     border: none;
+}
+.export-output h2 {
+	margin: 2em 0 .5em 0;
+	padding: 0;
+}
+.export-output pre {
+	width: 99%;
+	background: #f7f7f7;
+	margin: 0;
+	padding: .25em;
+    border: 1px solid #ccc;
+	color: #3f3f3f;
+	font: Monospace;
 }
 
 ul.start {
