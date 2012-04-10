@@ -5,9 +5,10 @@
       %span
 
 %tr[ user, :show ]{ :class => "#{even_odd} show-user" }
-  %td.login= user.login
-  %td.email= user.email
-  %td.role=  User::ROLES[user.role]
+  %td.login=   user.login
+  %td.email=   user.email
+  %td.password &nbsp;
+  %td.role=    User::ROLES[user.role]
   %td.actions
     = link_to '', '#', :class => 'edit-user-button ui-icon-edit', :title => t(:generic_edit)
     = link_to '', user_path(user), :remote => true, :method => :delete, :confirm => t(:confirm_user_delete), :class => 'delete-user-button ui-icon-trash', :title => t(:generic_delete)
@@ -16,6 +17,11 @@
   = form_for(user, :as => 'user', :url => user_path(user)) do |f|
     %td.login= f.text_field :login
     %td.email= f.text_field :email
+    %td.password
+      = f.password_field :password
+      = '/'
+      = f.password_field :password_confirmation
+      %span= help_icon('password-help')
     %td.role=  f.collection_select :role, User::ROLES.to_a, :first, :last
     %td.actions
       = link_to('', '#', :class => 'update-user-button ui-icon-download-alt',    :title => t(:generic_update))

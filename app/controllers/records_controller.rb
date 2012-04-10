@@ -37,7 +37,8 @@ class RecordsController < ApplicationController
         @record = Record.find(params[:id])
         @record.update_attributes(params[:record])
         respond_with(@record) do |format|
-            format.html { render :partial => @record if request.xhr? }
+            format.html { render :status  => @record.valid? ? :ok     : :unprocessable_entity,
+                                 :partial => @record.valid? ? @record : 'errors' } if request.xhr?
         end
     end
 

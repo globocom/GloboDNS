@@ -45,47 +45,7 @@
         %span.search-icon
 
     %h1= t(:title_records)
-
     = render :partial => 'records/list', :object => @records, :as => :records
 
-    = button_tag t(:label_domain_record_new).titleize, :class => 'new-record-button ui-icon-plus'
-    #record-form-div{ :style => "display: none;" }
-      = form_for(:record, :url => domain_records_path(@domain), :remote => true, :html => {:id => 'new-record-form'}) do |f|
-        %table
-          %tr.all
-            %td= t :label_domain_record_type
-            %td= select_record_type( f )
-          %tr.all
-            %td= t :label_domain_record_host
-            %td= f.text_field :name
-          %tr.all
-            %td= t :label_domain_record_ttl
-            %td= f.text_field :ttl
-          %tr.rt-mx.rt-srv{ :style => 'display :none' }
-            %td= t :label_domain_record_priority
-            %td= f.text_field :prio
-          %tr.all
-            %td= t :label_domain_record_data
-            %td= f.text_field :content
-          %tr.rt-soa{ :style => 'display :none' }
-            %td= t :label_primary_name_server
-            %td= f.text_field :primary_ns
-          %tr.rt-soa{ :style => 'display :none' }
-            %td= t :label_domain_contact
-            %td= f.text_field :contact
-          %tr.rt-soa{ :style => 'display :none' }
-            %td= t :label_domain_refresh
-            %td= f.text_field :refresh
-          %tr.rt-soa{ :style => 'display :none' }
-            %td= t :label_domain_retry
-            %td= f.text_field :retry
-          %tr.rt-soa{ :style => 'display :none' }
-            %td= t :label_domain_expire
-            %td= f.text_field :expire
-          %tr.rt-soa{ :style => 'display :none' }
-            %td= t :label_domain_minimum
-            %td= f.text_field :minimum
-          %tr.all.actions
-            %td{:colspan => 2}
-              = button_tag(t(:generic_cancel), :class => 'cancel-new-record-button ui-icon-ban-circle')
-              = f.button(t(:generic_create),   :class => 'ui-icon-download-alt')
+    = button_tag t(:label_add_record).titleize, :class => 'new-record-button ui-icon-plus'
+    = render :partial => 'records/new', :object => @domain.records.new, :as => :record

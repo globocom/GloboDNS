@@ -191,14 +191,19 @@ $(document).ready(function() {
 	});
 
 	$('.update-record-form').live('ajax:success', function (evt, data, statusStr, xhr) {
+        $('.record-table-container ul').remove();
 		var markerRow = $(this).closest('tr');
 		markerRow.before(data);
 		markerRow.next().next().remove();
 		markerRow.next().remove();
 		markerRow.remove();
 		fixRecordTableZebraStriping();
-	}).live('ajax:error', function () {
-		alert("[ERROR] unable to create new Record");
+    }).live('ajax:error', function (evt, xhr, statusStr, error) {
+        if (xhr.status === 422) { // :unprocessable_entity
+            $('.record-table-container ul').remove();
+            $('.record-table-container').prepend(xhr.responseText);
+        } else
+            alert("[ERROR] unable to update Record");
 	});
 
 	$('#new-record-form').live('ajax:success', function (evt, data, statusSTr, xhr) {
@@ -210,13 +215,13 @@ $(document).ready(function() {
 
 	$('.new-record-button').live('click', function () {
 		$('.new-record-button').hide();
-		$('#record-form-div').show();
+		$('.new-record-form-container').show();
 		return false;
 	});
 
 	$('.cancel-new-record-button').live('click', function () {
 		$('.new-record-button').show();
-		$('#record-form-div').hide();
+		$('.new-record-form-container').hide();
 		return false;
 	});
 

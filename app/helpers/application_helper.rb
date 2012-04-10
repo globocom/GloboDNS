@@ -50,7 +50,8 @@ module ApplicationHelper
   end
 
   def help_icon( dom_id )
-    image_tag('help.png', :id => "help-icn-#{dom_id}", :class => 'help-icn', "data-help" => dom_id )
+    # image_tag('help.png', :id => "help-icn-#{dom_id}", :class => 'help-icon', "data-help" => dom_id )
+    content_tag(:span, '', :id => "help-icn-#{dom_id}", :class => 'help-icon ui-icon-question-sign', "data-help" => dom_id)
   end
 
   def info_icon( image, dom_id )

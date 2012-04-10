@@ -33,7 +33,7 @@ class Record < ActiveRecord::Base
   scope :without_soa, where('type != ?', 'SOA')
   scope :matching,    lambda { |query| where('name LIKE ? OR content LIKE ?', "%#{query}%", "%#{query}%") }
 
-  # Known record types
+  # known record types
   @@record_types = ['A', 'AAAA', 'CNAME', 'LOC', 'MX', 'NS', 'PTR', 'SOA', 'SPF', 'SRV', 'TXT']
   cattr_reader :record_types
 

@@ -1,0 +1,5 @@
+- user ||= @user
+- if user && user.errors.any?
+  %ul.errors
+    - user.errors.full_messages.each do |msg|
+      %li= msg

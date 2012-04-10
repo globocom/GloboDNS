@@ -1,5 +1,6 @@
 #div{ :style => 'display: none' }
   #new-user= t(:help_user_add)
+  #password-help= t(:text_user_password_edit_notice)
 
 %h1= t(:title_users)
 = render :partial => 'list', :object => @users, :as => :users

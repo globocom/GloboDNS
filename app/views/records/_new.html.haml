@@ -1,0 +1,30 @@
+%div.new-record-form-container{ :class => record.errors.any? ? '' : 'hidden' }
+
+  = form_for([@domain, record], :remote => true, :html => {:id => 'new-record-form'}) do |f|
+
+    - if record && record.errors.any?
+      %ul.errors 
+      - record.errors.full_messages.each do |msg|
+        %li= msg
+
+    %table#new-record
+      %tbody
+        %tr
+          %td= f.label :type, t(:label_domain_record_type)
+          %td= f.select :type, Record::record_types - ['SOA']
+        %tr
+          %td= f.label :host, t(:label_domain_record_host)
+          %td= f.text_field :name
+        %tr
+          %td= f.label :ttl, t(:label_domain_record_ttl)
+          %td= f.text_field :ttl
+        %tr
+          %td= f.label :prio, t(:label_domain_record_priority)
+          %td= f.text_field :prio
+        %tr
+          %td= f.label :content, t(:label_domain_record_data)
+          %td= f.text_field :content
+        %tr.actions
+          %td{:colspan => 2}
+            = button_tag(t(:generic_cancel), :class => 'cancel-new-record-button ui-icon-ban-circle')
+            = f.button(t(:generic_create),   :class => 'ui-icon-download-alt')

@@ -26,6 +26,7 @@
 	font-style: normal;
 	display: inline-block;
     padding-right: .5em;
+    line-height: 100%;
 }
 
 .ui-icon, .ui-icon-searchfield::after {

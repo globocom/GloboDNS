@@ -1,0 +1,5 @@
+- record ||= @record
+- if record && record.errors.any?
+  %ul.errors
+    - record.errors.full_messages.each do |msg|
+      %li= msg

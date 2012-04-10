@@ -41,9 +41,16 @@ class UsersController < ApplicationController
     end
 
     def update
+        if params[:user] && params[:user][:password].blank? && params[:user][:password_confirmation].blank?
+            params[:user].delete(:password)
+            params[:user].delete(:password_confirmation)
+        end
         @user = User.find(params[:id])
         @user.update_attributes(params[:user])
-        respond_with(@user)
+        respond_with(@user) do |format|
+            format.html { render :status  => @user.valid? ? :ok   : :unprocessable_entity,
+                                 :partial => @user.valid? ? @user : 'errors' } if request.xhr?
+        end
     end
 
     def destroy

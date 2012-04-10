@@ -157,7 +157,7 @@ en:
     Coming soon!
 
 # Dashboard index
-  label_last_x_domains: "Latest %{value} domains"
+  label_lastest_domains: "Latest Domains"
   label_new_domain: "New domain"
 
 # Domains _record
@@ -265,12 +265,12 @@ en:
   label_primary_name_server: "Primary name server"
 
   title_records: 'Records'
+  label_add_record: "Add Record"
   label_domain_record_host: "Host"
   label_domain_record_ttl: "TTL"
   label_domain_record_type: "Type"
   label_domain_record_priority: "Priority"
   label_domain_record_data: "Data"
-  label_domain_record_new: "New Record"
 
 # Domains edit
   title_update_zone: "Update zone"
