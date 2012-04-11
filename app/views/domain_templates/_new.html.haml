@@ -1,0 +1,58 @@
+%div.new-domain-template-form-container{ :class => domain_template.errors.any? ? '' : 'hidden' }
+  %div.hidden
+    #help-name=       t(:help_domain_template_name)
+    #help-ttl=        t(:help_domain_template_ttl)
+    #help-primary-ns= t(:help_domain_template_primary_ns)
+    #help-contact=    t(:help_domain_template_contact)
+    #help-refresh=    t(:help_domain_template_refresh)
+    #help-retry=      t(:help_domain_template_retry)
+    #help-expire=     t(:help_domain_template_expire)
+    #help-minimum=    t(:help_domain_template_minimum)
+    #help-type=       t(:help_domain_template_type)
+    #help-master=     t(:help_domain_template_master)
+
+  = form_for(domain_template, :remote => true, :html => {:class => 'new-domain-template-form'}) do |f|
+    - if domain_template.errors.any?
+      %ul.errors
+        - domain_template.errors.full_messages.each do |msg|
+          %li= msg
+
+    %table#new-domain-template
+      %tbody
+        %tr
+          %td= f.label :name, t(:label_domain_template_name)
+          %td= f.text_field :name
+          %td= help_icon('help-name')
+        %tr
+          %td= f.label :ttl, t(:label_domain_template_ttl)
+          %td= f.text_field :ttl
+          %td= help_icon('help-ttl')
+        %tr
+          %td= f.label :primary_ns, t(:label_domain_primary_name_server)
+          %td= f.text_field :primary_ns
+          %td= help_icon('help-primary-ns')
+        %tr
+          %td= f.label :contact, t(:label_domain_contact)
+          %td= f.text_field :contact
+          %td= help_icon('help-contact')
+        %tr
+          %td= f.label :refresh, t(:label_domain_refresh)
+          %td= f.text_field :refresh
+          %td= help_icon('help-refresh')
+        %tr
+          %td= f.label :retry, t(:label_domain_retry)
+          %td= f.text_field :retry
+          %td= help_icon('help-retry')
+        %tr
+          %td= f.label :expire, t(:label_domain_expire)
+          %td= f.text_field :expire
+          %td= help_icon('help-expire')
+        %tr
+          %td= f.label :minimum, t(:label_domain_minimum)
+          %td= f.text_field :minimum
+          %td= help_icon('help-minimum')
+      %tfoot
+        %tr.actions
+          %td{:colspan => 3}
+            = button_tag(t(:generic_cancel), :class => 'cancel-new-domain-template-button ui-icon-ban-circle')
+            = f.button(t(:generic_create),   :class => 'create-domain-template-button ui-icon-download-alt')

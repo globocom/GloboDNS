@@ -5,7 +5,7 @@ require 'scoped_finders'
 # A #Domain is a unique domain name entry, and contains various #Record entries to
 # represent its data.
 #
-# The zone is used for the following purposes:
+# The domain is used for the following purposes:
 # * It is the $ORIGIN off all its records
 # * It specifies a default $TTL
 #
@@ -59,7 +59,7 @@ class Domain < ActiveRecord::Base
   attr_accessor :serial
 
   # Helper attributes for API clients and forms (keep it RESTful)
-  attr_accessor :zone_template_id, :zone_template_name
+  attr_accessor :domain_template_id, :domain_template_name
 
   # Needed for acts_as_audited (TODO: figure out why this is needed...)
   #attr_accessible :type

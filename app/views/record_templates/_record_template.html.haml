@@ -1,0 +1,25 @@
+- even_odd = cycle('even', 'odd')
+%tr[ record_template, :marker ]{:class => 'marker hidden'}
+  %td
+    = form_for(record_template, :remote => true, :as => 'record_template', :url => record_template_path(record_template), :method => 'put', :html => {:id => "update-record-template-form-#{record_template.id}", :class => 'update-record-template-form'}) do |g|
+      %span
+%tr[ record_template, :show ]{:class => "#{even_odd} show-record-template"}
+  %td.name=    record_template.name
+  %td.ttl=     record_template.ttl
+  %td.type=    record_template.record_type
+  %td.prio=    record_template.prio
+  %td.content= record_template.content
+  %td.actions
+    = link_to '', '#', :class => 'edit-record-template-button ui-icon-edit', :title => t(:generic_edit)
+    = link_to '', record_template_path(record_template), :remote => true, :method => :delete, :confirm => t(:confirm_delete_record_template), :class => 'delete-record-template-button ui-icon-trash', :title => t(:generic_delete)
+
+%tr[ record_template, :edit ]{:class => "#{even_odd} edit-record-template hidden"}
+  = form_for(record_template, :as => 'record_template', :url => record_template_path(record_template)) do |f|
+    %td.name=    f.text_field :name
+    %td.ttl=     f.text_field :ttl
+    %td.type=    record_template.record_type
+    %td.prio=    f.text_field :prio
+    %td.content= f.text_field :content
+    %td.actions
+      = link_to('', '#', :class => 'update-record-template-button ui-icon-download-alt',    :title => t(:generic_update))
+      = link_to('', '#', :class => 'cancel-edit-record-template-button ui-icon-ban-circle', :title => t(:generic_cancel))

@@ -362,7 +362,9 @@ table#record-table td input#record_ttl, table#record-table td input#record_prio 
     width: 4em;
 }
 table#new-record td label {
-    padding-right: 1em;
+    padding-right: 2em;
+	min-width: 5em;
+    display: block;
 }
 
 table#users-table {
@@ -413,6 +415,75 @@ table#users-table tr.edit-user td {
 }
 table#new-user td label {
     padding-right: 1em;
+}
+
+table#domain-templates-table {
+    width: 100%;
+    margin-bottom: 2em;
+    border-bottom: 1px solid #efefef;
+    border-collapse: collapse;
+}
+table#domain-templates-table td {
+    padding: .5em 0;
+}
+table#domain-templates-table tr.even {
+    background-color: #f7f7f7;
+}
+
+table#show-domain-template td, table#edit-domain-template td, table#new-domain-template td {
+    height: 2em;
+}
+table#show-domain-template td label, table#edit-domain-template td label, table#new-domain-template td label {
+    display: block;
+    min-width: 10em;
+    padding-right: 2em;
+}
+
+table#show-soa-record-template td, table#edit-soa-record-template td {
+    height: 2em;
+}
+table#show-soa-record-template td label, table#edit-soa-record-template td label {
+    padding-right: 2em;
+}
+
+table#record-templates-table {
+    width: 100%;
+    margin-bottom: 2em;
+    border-collapse: collapse;
+    border-bottom: 1px solid #efefef;
+}
+table#record-templates-table th {
+    text-align: left;
+}
+table#record-templates-table th, table#record-templates-table td {
+    padding: .5em 0;
+}
+table#record-templates-table tr.even {
+    background-color: #f7f7f7;
+}
+table#record-templates-table td.actions {
+    text-align: right;
+}
+table#record-templates-table td.actions a {
+    color: #444;
+    font-size: 120%;
+}
+table#record-templates-table td.name, table#record-templates-table td.data {
+    width: 30%;
+}
+table#record-templates-table td.ttl, table#record-templates-table td.type, table#record-templates-table td.prio {
+    width: 10%;
+}
+table#record-templates-table tr.edit-record td {
+    padding: 0;
+}
+table#record-templates-table td input#record_template_ttl, table#record-templates-table td input#record_template_prio {
+    width: 4em;
+}
+table#new-record-template td label {
+	display: block;
+	min-width: 5em;
+    padding-right: 2em;
 }
 
 .fieldWithErrors input {

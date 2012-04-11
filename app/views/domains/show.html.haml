@@ -35,7 +35,7 @@
   %h1
     = t(:title_soa_record)
     = link_to('', '#', :class => 'edit-soa-record-button ui-icon-edit', :title => t(:generic_edit))
-  = render :partial => @domain.soa_record #'/domains/soa_record', :object => @domain.soa_record
+  = render :partial => @domain.soa_record
 
 - unless @domain.slave?
   #domain-records
@@ -47,5 +47,5 @@
     %h1= t(:title_records)
     = render :partial => 'records/list', :object => @records, :as => :records
 
-    = button_tag t(:label_add_record).titleize, :class => 'new-record-button ui-icon-plus'
+    = button_tag t(:label_add_record), :class => 'new-record-button ui-icon-plus'
     = render :partial => 'records/new', :object => @domain.records.new, :as => :record

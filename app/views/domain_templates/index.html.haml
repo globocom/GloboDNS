@@ -1,0 +1,11 @@
+%div.hidden
+  #new-template=    t(:help_template_domain_new)
+  #edit-template=   t(:help_template_domain_edit)
+  #delete-template= t(:help_template_domain_delete)
+  #missing-soa=     t(:help_template_domain_soa_missing)
+
+%h1= t(:title_domain_template)
+= render :partial => 'list', :object => @domain_templates, :as => :domain_templates
+
+= button_tag t(:label_add_domain_template).titleize, :class => 'new-domain-template-button ui-icon-plus'
+= render :partial => 'new', :object => DomainTemplate.new, :as => :domain_template

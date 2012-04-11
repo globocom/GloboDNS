@@ -28,15 +28,15 @@
           %td= f.label :ttl, t(:label_domain_ttl)
           %td= f.text_field :ttl
           %td= help_icon('help-domain-ttl')
-        %tr#zone-templates
-          %td= f.label :zone_template, t(:label_domain_zone_template)
+        %tr#domain-templates
+          %td= f.label :domain_template, t(:label_domain_domain_template)
           %td
-            - if ZoneTemplate.with_soa.count > 0
-              = f.collection_select(:zone_template_id, ZoneTemplate.with_soa.all, :id, :name, :include_blank => true)
+            - if DomainTemplate.with_soa.count > 0
+              = f.collection_select(:domain_template_id, DomainTemplate.with_soa.all, :id, :name, :include_blank => true)
             - else
               %em
-                = link_to(t(:label_create_zone_templates), new_zone_template_path)
-                = t(:label_zone_for_eazy_management)
+                = link_to(t(:label_create_domain_templates), new_domain_template_path)
+                = t(:label_domain_for_eazy_management)
           %td &nbsp;
       %tbody#no-template-input
         %tr

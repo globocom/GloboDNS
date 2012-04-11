@@ -33,13 +33,13 @@ class DomainsController < ApplicationController
     def create
         @domain = Domain.new(params[:domain])
 
-        if params[:domain][:zone_template_id].present? || params[:domain][:zone_template_name].present?
-            @zone_template   = ZoneTemplate.where('id'   => params[:domain][:zone_template_id]).first   if params[:domain][:zone_template_id]
-            @zone_template ||= ZoneTemplate.where('name' => params[:domain][:zone_template_name]).first if params[:domain][:zone_template_name]
-            if @zone_template
-                @domain = @zone_template.build(@domain.name)
+        if params[:domain][:domain_template_id].present? || params[:domain][:domain_template_name].present?
+            @domain_template   = DomainTemplate.where('id'   => params[:domain][:domain_template_id]).first   if params[:domain][:domain_template_id]
+            @domain_template ||= DomainTemplate.where('name' => params[:domain][:domain_template_name]).first if params[:domain][:domain_template_name]
+            if @domain_template
+                @domain = @domain_template.build(@domain.name)
             else
-                @domain.errors.add(:zone_template, 'ZoneTemplate not found')
+                @domain.errors.add(:domain_template, 'Domain Template not found')
             end
         end
 

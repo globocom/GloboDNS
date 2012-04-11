@@ -1,0 +1,7 @@
+%div.domains-templates-table-container
+  - if domain_templates.empty?
+    %div.flash-error= t(:message_no_domain_templates_found)
+  %table#domain-templates-table
+    %tbody
+      = render :partial => 'domain_template', :collection => domain_templates
+  = will_paginate domain_templates, :id => 'domain-templates-table-pagination', :previous_label => '«'.html_safe, :next_label => '»'.html_safe

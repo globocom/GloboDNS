@@ -209,8 +209,8 @@ en:
   label_domain_type: "Type"
   label_domain_master_address: "Master Address"
   label_domain_ttl: "Default TTL"
-  label_domain_zone_template: "Zone Template"
-  label_create_zone_templates: "Create Zone Templates"
+  label_domain_zone_template: "Domain Template"
+  label_create_zone_templates: "Create Domain Templates"
   label_zone_for_eazy_management: "for easier management of new domains"
   label_domain_primary_name_server: "Primary name server"
   label_domain_contact: "Contact"
@@ -410,37 +410,33 @@ en:
 
 # Templates form
   title_template_editing:
-    new: "New Zone Template"
-    update: "Update Zone Template"
-  help_template_name:
-    The name by which our zone templates will be known.
-  label_template_zone_name: "Name"
-  label_template_zone_ttl: "TTL"
-  label_template_zone_owner: "Owner"
+    new: "Add Domain Template"
+    update: "Update Domain Template"
+  help_template_name: The name by which our zone templates will be known.
+  label_domain_template_name: "Name"
+  label_domain_template_ttl:  "TTL"
 
 # Templates index
-  help_template_zone_new:
-    Add a new zone template
-  help_template_zone_edit:
-    Edit this zone template's information
-  help_template_zone_delete:
-    Delete this zone template
-  help_template_zone_soa_missing:
-    Zone templates without SOA records cannot be used when creating new zones.
-  label_template_create_new: "New template"
+  help_template_zone_new: Add a new zone template
+  help_template_zone_edit: Edit this zone template's information
+  help_template_zone_delete: Delete this zone template
+  help_template_zone_soa_missing: Domain templates without SOA records cannot be used when creating new zones.
+  title_domain_templates: "Domain Templates"
+  label_add_domain_template: "Add Domain Template"
 
 # Templates show
-  help_template_record_add:
-    Add a new record template
-  help_template_record_edit:
-    Edit this record template's information
-  help_template_record_delete:
-    Delete this record template
-  message_template_cannot_use_no_soa:
-    This template cannot be used to create new zones until it has an SOA record
-  label_template_record_create_new: "New Record Template"
-
+  help_template_record_add: Add a new record template
+  help_template_record_edit: Edit this record template's information
+  help_template_record_delete: Delete this record template
+  message_template_cannot_use_no_soa: This template cannot be used to create new zones until it has an SOA record
+  title_domain_template: Domain Template
+  title_record_templates: Record Templates
+  label_add_record_template: "Add Record Template"
+  message_no_domain_templates_found: "No domains templates found"
   title_template_records: "Record templates"
+  confirm_delete_domain_template: "Are you sure you want to remove the domain template \"%{name}?\""
+
+  title_soa_record_template: SOA Record Template
 
   label_template_record_type: "Type"
   label_template_record_host: "Host"
@@ -453,6 +449,9 @@ en:
   label_template_record_retry: "Retry"
   label_template_record_expire: "Expire"
   label_template_record_minimum: "Minimum"
+
+# Record Templates # _record_template
+  confirm_delete_record_template: "Are you sure?"
 
 # User_mailer activation
   text_user_mailer_accout_activated: "%{user}, your account has been activated.  You may now start adding your plugins:"
@@ -530,8 +529,8 @@ en:
   message_macro_removed: "Macro removed"
 
 # templates_controller
-  message_template_zone_created: "Zone template created"
-  message_template_zone_updated: "Zone template updated"
+  message_template_zone_created: "Domain template created"
+  message_template_zone_updated: "Domain template updated"
 
 # records_controller
   message_token_not_authorized: "Token not authorized"

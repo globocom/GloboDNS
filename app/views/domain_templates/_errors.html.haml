@@ -1,0 +1,5 @@
+- domain_template ||= @domain_template
+- if domain_template && domain_template.errors.any?
+  %ul.errors
+    - domain_template.errors.full_messages.each do |msg|
+      %li= msg

@@ -51,13 +51,13 @@ $(document).ready(function() {
 		$('table#domains-table tr:nth-child(odd) td').addClass("odd").removeClass("even");
 	}
 
-	$('table#new-domain select#domain_zone_template_id').live('change', function (evt) {
+	$('table#new-domain select#domain_template_id').live('change', function (evt) {
 		if ($(this).val() == '')
 			$('tbody#no-template-input').show();
 		else
 			$('tbody#no-template-input').hide();
 	});
-	$('table#new-domain select#domain_zone_template_id').change();
+	$('table#new-domain select#domain_template_id').change();
 
 	$('table#new-domain select#domain_type').live('change', function (evt) {
 		if ($(this).val() == 'MASTER')
@@ -206,6 +206,22 @@ $(document).ready(function() {
             alert("[ERROR] unable to update Record");
 	});
 
+	$('.delete-record-button').live('ajax:success', function () {
+		var row  = $(this).closest('tr');
+		var prev = row.prev();
+		var next = row.next();
+		next.remove(); row.remove(); prev.remove();
+		fixRecordTableZebraStriping();
+	}).live('ajax:error', function () {
+		alert("[ERROR] unable to delete Record");
+	});
+
+	var fixRecordTableZebraStriping = function () {
+		$('table#record-table tr.show-record:nth-child(6n), table#record-table tr.edit-record:nth-child(6n+1)').addClass("odd").removeClass("even");
+		$('table#record-table tr.show-record:nth-child(6n+3), table#record-table tr.edit-record:nth-child(6n+4)').addClass("even").removeClass("odd");
+	}
+
+	// ---------------- New Record form -------------------
 	$('#new-record-form').live('ajax:success', function (evt, data, statusSTr, xhr) {
 		$('table#record-table tbody').append(data);
 		fixRecordTableZebraStriping();
@@ -225,39 +241,10 @@ $(document).ready(function() {
 		return false;
 	});
 
-	$('.delete-record-button').live('ajax:success', function () {
-		var row  = $(this).closest('tr');
-		var prev = row.prev();
-		var next = row.next();
-		next.remove(); row.remove(); prev.remove();
-		fixRecordTableZebraStriping();
-	}).live('ajax:error', function () {
-		alert("[ERROR] unable to delete Record");
+	$('#new-record-form select#record_type').live('change', function () {
+		var val = $(this).val();
+		$('#new-record-form input#record_prio').closest('tr').toggle((val == 'MX' || val == 'SRV'));
 	});
+	$('#new-record-form select#record_type').change();
 
-	var fixRecordTableZebraStriping = function () {
-		$('table#record-table tr.show-record:nth-child(6n), table#record-table tr.edit-record:nth-child(6n+1)').addClass("odd").removeClass("even");
-		$('table#record-table tr.show-record:nth-child(6n+3), table#record-table tr.edit-record:nth-child(6n+4)').addClass("even").removeClass("odd");
-	}
-
-	// ------------------- BIND -------------------
-	$('.reload-bind-config-button').live('click', function () {
-		$.rails.handleRemote($(this));
-		return false;
-	});
-
-	$('.reload-bind-config-button').live('ajax:success', function (evt, data, statusStr, xhr) {
-		$('textarea#named_conf').val(data);
-		return false;
-	}).live('ajax:error', function (evt, xhr, statusStr, error) {
-		alert("[ERROR] export failed");
-	});
-
-	$('.bind9-export-form').live('ajax:success', function (evt, data, statusStr, xhr) {
-		$('.export-output pre').remove()
-		$('.export-output').append(data)
-		$('.export-output').show();
-	}).live('ajax:error', function (evt, xhr, statusStr, error) {
-		alert("[ERROR] export failed");
-	});
 });

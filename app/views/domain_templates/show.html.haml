@@ -1,0 +1,32 @@
+%div.hidden
+  #new-template=           t(:help_template_domain_new)
+  #edit-template=          t(:help_template_domain_edit)
+  #delete-template=        t(:help_template_domain_delete)
+  #new-record-template=    t(:help_template_record_add)
+  #edit-record-template=   t(:help_template_record_edit)
+  #delete-record-template= t(:help_template_record_delete)
+  #help-primary-ns=        t(:help_domain_primary_ns)
+  #help-contact=           t(:help_domain_contact)
+  #help-refresh=           t(:help_domain_refresh)
+  #help-retry=             t(:help_domain_retry)
+  #help-expire=            t(:help_domain_expire)
+  #help-minimum=           t(:help_domain_minimum)
+
+%h1
+  = DomainTemplate.model_name.human.titleize
+  = link_to('', '#', :class => 'edit-domain-template-button ui-icon-edit', :title => t(:generic_edit))
+  = link_to('', domain_template_path(@domain_template), :class => 'delete-domain-template-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :confirm => t(:confirm_delete_domain_template, :name => @domain_template.name))
+= render :partial => 'form', :object => @domain_template, :as => :domain_template
+
+#domain-template-soa
+  %h1
+    = t(:title_soa_record_template)
+    = link_to('', '#', :class => 'edit-soa-record-template-button ui-icon-edit', :title => t(:generic_edit))
+  = render :partial => @soa_record_template
+
+#record-templates
+  %h1= t(:title_record_templates)
+  = render :partial => 'record_templates/list', :object => @record_templates, :as => :record_templates
+
+  = button_tag t(:label_add_record_template), :class => 'new-record-template-button ui-icon-plus'
+  = render :partial => 'record_templates/new', :object => @domain_template.record_templates.new, :as => :record_template

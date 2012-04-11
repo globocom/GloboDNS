@@ -1,33 +1,33 @@
-%div#show-soa-container{:class => soa_record.errors.empty? ? '' : 'hidden' }
-  %table#show-soa-record
+%div#show-soa-record-template-container{:class => soa_record_template.errors.empty? ? '' : 'hidden' }
+  %table#show-soa-record-template
     %tr
       %td= label_tag :primary_ns, t(:label_domain_primary_name_server)
-      %td= soa_record.valid_attribute(:primary_ns)
+      %td= soa_record_template.primary_ns
     %tr
       %td= label_tag :contact, t(:label_domain_contact)
-      %td= soa_record.valid_attribute(:contact)
+      %td= soa_record_template.contact
     %tr
       %td= label_tag :refresh, t(:label_domain_refresh)
-      %td= soa_record.valid_attribute(:refresh)
+      %td= soa_record_template.refresh
     %tr
       %td= label_tag :retry, t(:label_domain_retry)
-      %td= soa_record.valid_attribute(:retry)
+      %td= soa_record_template.retry
     %tr
       %td= label_tag :expire, t(:label_domain_expire)
-      %td= soa_record.valid_attribute(:expire)
+      %td= soa_record_template.expire
     %tr
       %td= label_tag :minimum, t(:label_domain_minimum)
-      %td= soa_record.valid_attribute(:minimum)
+      %td= soa_record_template.minimum
 
-%div#edit-soa-container{:class => soa_record.errors.empty? ? 'hidden' : '' }
-  = form_for(soa_record, :as => 'record', :url => record_path(soa_record), :remote => true, :method => :put, :html => {:class => 'update-soa-record-form'}) do |f|
+%div#edit-soa-record-template-container.hidden
+  = form_for(soa_record_template, :url => record_template_path(soa_record_template), :remote => true, :method => :put, :html => { :class => 'update-soa-record-template-form' }) do |f|
 
-    - if soa_record && soa_record.errors.any?
-      %ul.errors
-        - soa_record.errors.full_messages.each do |msg|
-          %li= msg
+    - if soa_record_template && soa_record_template.errors.any?
+      %ul 
+      - soa_record_template.errors.full_messages.each do |msg|
+        %li= msg
 
-    %table#edit-soa-record
+    %table#edit-soa-record-template
       %tr
         %td= f.label :primary_ns, t(:label_domain_primary_name_server)
         %td= f.text_field :primary_ns
@@ -54,5 +54,5 @@
         %td= help_icon('help-minimum')
       %tr.actions
         %td{:colspan => 3}
-          = button_tag(t(:generic_cancel), :class => 'cancel-update-soa-record-button ui-icon-ban-circle')
-          = f.button(t(:generic_save),   :class => 'update-soa-record-button ui-icon-download-alt')
+          = button_tag(t(:generic_cancel), :class => 'cancel-edit-soa-record-template-button ui-icon-ban-circle')
+          = f.button(t(:generic_update),   :class => 'update-soa-record-template-button ui-icon-download-alt')

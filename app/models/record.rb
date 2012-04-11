@@ -22,8 +22,8 @@ class Record < ActiveRecord::Base
   # implemented in #SOA
   attr_accessor   :primary_ns, :contact, :refresh, :retry, :expire, :minimum
 
-  # 'type' is a special inheritance column use by Rails and not accessible by default;
-  protected_attributes.delete('type')
+  attr_protected :domain_id
+  protected_attributes.delete('type') # 'type' is a special inheritance column use by Rails and not accessible by default;
 
   before_validation :inherit_attributes_from_domain
   before_save       :update_change_date

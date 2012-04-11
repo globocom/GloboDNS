@@ -1,0 +1,32 @@
+- domain_template ||= @domain_template
+%div#show-domain-template-container{:class => domain_template.errors.empty? ? '' : 'hidden'}
+  %table#show-domain-template
+    %tr
+      %td= label_tag :name, t(:label_domain_name)
+      %td= domain_template.name
+    %tr
+      %td= label_tag :ttl, t(:label_domain_ttl)
+      %td= domain_template.ttl
+
+%div#edit-domain-template-container{:class => domain_template.errors.empty? ? 'hidden' : ''}
+  = form_for(domain_template, :remote => true, :html => {:class => 'update-domain-template-form'}) do |f|
+
+    - if domain_template && domain_template.errors.any?
+      %ul.errors
+        - domain_template.errors.full_messages.each do |msg|
+          %li= msg
+
+    %table#edit-domain-template
+      %tr
+        %td= f.label :name, t(:label_domain_name)
+        %td= f.text_field :name
+        %td= help_icon('help-domain-name')
+      %tr
+        %td= f.label :ttl, t(:label_domain_ttl)
+        %td= f.text_field :ttl
+        %td= help_icon('help-domain-ttl')
+      %tr.actions
+        %td{:colspan => 3}
+          = button_tag(t(:generic_cancel), :class => 'cancel-edit-domain-template-button ui-icon-ban-circle')
+          = f.button(t(:generic_save),     :class => 'update-domain-template-button ui-icon-download-alt')
+

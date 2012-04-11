@@ -6,6 +6,7 @@
 //# require jquery-ui.js
 //# require prototip.js
 //= require domains
+//= require domain_templates
 //= require users
 //= require_self
 

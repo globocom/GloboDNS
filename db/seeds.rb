@@ -15,17 +15,17 @@ user.role = User::ROLE_ADMIN
 user.save!
 #user.confirm!
 
-# Create an example zone template
-zone_template = ZoneTemplate.find_by_name('Example Template') || ZoneTemplate.new(:name => 'Example Template')
-zone_template.ttl = 86400
-zone_template.save!
+# Create an example doman template
+domain_template = DomainTemplate.find_by_name('Example Template') || DomainTemplate.new(:name => 'Example Template')
+domain_template.ttl = 86400
+domain_template.save!
 
-# Clean and re-populate the zone template
-zone_template.record_templates.clear
+# Clean and re-populate the domain template
+domain_template.record_templates.clear
 
 # SOA
 RecordTemplate.create!({
-  :zone_template => zone_template,
+  :domain_template => domain_template,
   :record_type => 'SOA',
   :primary_ns => 'ns1.%ZONE%',
   :contact => 'template@example.com',
@@ -37,42 +37,42 @@ RecordTemplate.create!({
 
 # NS records
 RecordTemplate.create!({
-  :zone_template => zone_template,
+  :domain_template => domain_template,
   :record_type => 'NS',
   :content => 'ns1.%ZONE%'
 })
 RecordTemplate.create!({
-  :zone_template => zone_template,
+  :domain_template => domain_template,
   :record_type => 'NS',
   :content => 'ns2.%ZONE%'
 })
 
 # Assorted A records
 RecordTemplate.create!({
-  :zone_template => zone_template,
+  :domain_template => domain_template,
   :record_type => 'A',
   :name => 'ns1',
   :content => '10.0.0.1'
 })
 RecordTemplate.create!({
-  :zone_template => zone_template,
+  :domain_template => domain_template,
   :record_type => 'A',
   :name => 'ns2',
   :content => '10.0.0.2'
 })
 RecordTemplate.create!({
-  :zone_template => zone_template,
+  :domain_template => domain_template,
   :record_type => 'A',
   :content => '10.0.0.3'
 })
 RecordTemplate.create!({
-  :zone_template => zone_template,
+  :domain_template => domain_template,
   :record_type => 'A',
   :name => 'mail',
   :content => '10.0.0.4'
 })
 RecordTemplate.create!({
-  :zone_template => zone_template,
+  :domain_template => domain_template,
   :record_type => 'MX',
   :content => 'mail',
   :prio => 10
