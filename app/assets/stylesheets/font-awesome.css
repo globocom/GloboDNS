@@ -27,6 +27,8 @@
 	display: inline-block;
     padding-right: .5em;
     line-height: 100%;
+    font-size: 110%; /* without this, the font icons are cropped at the top on windows xp */
+	text-shadow: none;
 }
 
 .ui-icon, .ui-icon-searchfield::after {

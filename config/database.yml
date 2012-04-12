@@ -1,23 +1,19 @@
 # You'll need to configure this file for the appropriate environment before
 # you run GloboDns
 
-# MySQL development
 development:
   adapter: mysql2
-  # database: powerdns_development
   database: globodns
   socket: /var/run/mysqld/mysqld.sock
-  # host: localhost
   username: globodns
   password: "globodns@globoi.com"
 
 # Warning: The database defined as 'test' will be erased and
 # re-generated from your development database when you run 'rake'.
 # Do not set this db to the same as development or production.
-test: &TEST
+test:
   adapter: mysql2
   database: globodns_test
-  # host: localhost
   socket: /var/run/mysqld/mysqld.sock
   username: globodns
   password: "globodns@globoi.com"
@@ -25,10 +21,7 @@ test: &TEST
 production:
   adapter: mysql2
   database: globodns_prod
-  # host: localhost
   socket: /var/run/mysqld/mysqld.sock
   username: globodns
   password: "globodns@globoi.com"
 
-cucumber:
-  <<: *TEST

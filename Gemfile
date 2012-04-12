@@ -5,10 +5,11 @@ gem 'mysql2',          '~> 0.3.0'
 gem 'haml'
 gem 'jquery-rails'
 gem 'will_paginate'
-gem 'acts_as_audited', '~> 2.0.0'
+gem 'acts_as_audited', '~> 2.0'
 gem 'devise'
 gem 'awesome_print'
-gem 'inherited_resources'
+gem 'responders'
+# gem 'inherited_resources'
 # gem 'rabl'
 
 group :assets do
@@ -18,20 +19,11 @@ group :assets do
     gem 'uglifier',     '~> 1.0.3'
 end
 
-
 group :development, :test do
     # gem 'rspec-rails', '~> 2.6.0'
-    gem 'RedCloth', '>= 4.1.1'
+    # gem 'RedCloth', '>= 4.1.1'
 end
 
 group :test do
-    # if RUBY_VERSION < "1.9"
-    #   gem 'ruby-debug'
-    # else
-    #   gem 'ruby-debug19'
-    # end
-    gem 'factory_girl_rails'
-    gem "cucumber-rails"
-    gem 'mocha'
-    gem 'webrat'
+    gem 'tconsole'
 end

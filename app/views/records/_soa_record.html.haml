@@ -2,22 +2,22 @@
   %table#show-soa-record
     %tr
       %td= label_tag :primary_ns, t(:label_domain_primary_name_server)
-      %td= soa_record.valid_attribute(:primary_ns)
+      %td= soa_record.primary_ns
     %tr
       %td= label_tag :contact, t(:label_domain_contact)
-      %td= soa_record.valid_attribute(:contact)
+      %td= soa_record.contact
     %tr
       %td= label_tag :refresh, t(:label_domain_refresh)
-      %td= soa_record.valid_attribute(:refresh)
+      %td= soa_record.refresh
     %tr
       %td= label_tag :retry, t(:label_domain_retry)
-      %td= soa_record.valid_attribute(:retry)
+      %td= soa_record.retry
     %tr
       %td= label_tag :expire, t(:label_domain_expire)
-      %td= soa_record.valid_attribute(:expire)
+      %td= soa_record.expire
     %tr
       %td= label_tag :minimum, t(:label_domain_minimum)
-      %td= soa_record.valid_attribute(:minimum)
+      %td= soa_record.minimum
 
 %div#edit-soa-container{:class => soa_record.errors.empty? ? 'hidden' : '' }
   = form_for(soa_record, :as => 'record', :url => record_path(soa_record), :remote => true, :method => :put, :html => {:class => 'update-soa-record-form'}) do |f|

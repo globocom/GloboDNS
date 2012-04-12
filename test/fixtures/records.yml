@@ -1,0 +1,77 @@
+dom1_soa:
+    domain:  dom1
+    type:    'SOA'
+    name:    '@'
+    content: 'ns1.example.com. root1.example.com. 2000010100 10801 3601 604801 7201'
+
+dom2_soa:
+    domain:  dom2
+    type:    'SOA'
+    name:    '@'
+    content: 'ns2.example.com. root2.example.com. 2000010200 10802 3602 604802 7202'
+
+dom3_soa:
+    domain:  dom3
+    type:    'SOA'
+    name:    '@'
+    content: 'ns3.example.com. root3.example.com. 2000010100 10803 3603 604803 7203'
+
+dom4_soa:
+    domain:  dom4
+    type:    'SOA'
+    name:    '@'
+    content: 'ns4.example.com. root4.example.com. 2000010400 10804 3604 604804 7204'
+
+dom5_soa:
+    domain:  dom5
+    type:    'SOA'
+    name:    '@'
+    content: 'ns5.example.com. root5.example.com. 2000010500 10805 3605 604805 7205'
+
+dom1_ns:
+    domain:  dom1
+    type:    'NS'
+    name:    '@'
+    content: '10.0.0.1'
+
+dom1_mx:
+    domain:  dom1
+    type:    'MX'
+    name:    '@'
+    prio:    10
+    content: '10.0.1.1'
+
+dom1_a1:
+    domain:  dom1
+    type:    'A'
+    name:    'host1'
+    content: '10.0.2.1'
+
+dom1_a2:
+    domain:  dom1,
+    type:    'A'
+    name:    'host2'
+    content: '10.0.2.2'
+
+dom1_cname1:
+    domain:  dom1
+    type:    'CNAME'
+    name:    'host1alias'
+    content: 'host1'
+
+dom1_cname2:
+    domain:  dom1
+    type:    'CNAME'
+    name:    'host2alias'
+    content: 'host2.example.com.'
+
+nodomain_a1:
+    type:      'A'
+    name:      'nodomain_host1'
+    content:   '10.0.3.1'
+
+nodomain_cname:
+    type:      'CNAME'
+    name:      'nodomain_host1alias'
+    content:   'nodomain_host1'
+

@@ -1,6 +1,12 @@
 ENV["RAILS_ENV"] = "test"
+
 require File.expand_path('../../config/environment', __FILE__)
 require 'rails/test_help'
+
+# tconsole requires the 'minitest' gem, which in turn, prints an anoying
+# warning due to this constant being deprecated (but it is referenced by
+# Ruby's version of minitest)
+MiniTest::MINI_DIR = 'bad value'
 
 class ActiveSupport::TestCase
   # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.

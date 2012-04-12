@@ -1,3 +1,4 @@
+- domain ||= @domain
 %div.new-domain-form-container{ :class => (domain.errors.any? || defined?(show_form)) ? '' : 'hidden' }
   %div{ :style => 'display: none' }
     #help-domain=t :help_domain_fqdn
@@ -32,7 +33,7 @@
           %td= f.label :domain_template, t(:label_domain_domain_template)
           %td
             - if DomainTemplate.with_soa.count > 0
-              = f.collection_select(:domain_template_id, DomainTemplate.with_soa.all, :id, :name, :include_blank => true)
+              = collection_select(:domain, :domain_template_id, DomainTemplate.with_soa.all, :id, :name, :include_blank => true)
             - else
               %em
                 = link_to(t(:label_create_domain_templates), new_domain_template_path)

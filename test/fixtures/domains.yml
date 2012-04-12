@@ -1,0 +1,30 @@
+dom1:
+    name: 'domain1.example.com'
+    type: <%= Domain::TYPE_MASTER %>
+    ttl:  86401
+
+dom2:
+    name: 'domain2.example.com'
+    type: <%= Domain::TYPE_MASTER %>
+    ttl:  86402
+
+dom3:
+    name: 'domain3.example.com'
+    type: <%= Domain::TYPE_MASTER %>
+    ttl:  86403
+
+dom4:
+    name: 'domain4.example.com'
+    type: <%= Domain::TYPE_MASTER %>
+    ttl:  86404
+
+dom5:
+    name: 'domain5.example.com'
+    type: <%= Domain::TYPE_MASTER %>
+    ttl:  86405
+
+dom6slave:
+    name: 'slavedomain6.example.com'
+    type: <%= Domain::TYPE_SLAVE %>
+    ttl:  86406
+

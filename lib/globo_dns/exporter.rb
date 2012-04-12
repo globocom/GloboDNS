@@ -14,18 +14,18 @@ class Exporter
 
         Domain.connection.execute "LOCK TABLE #{Domain.table_name} READ, #{Record.table_name} READ";
 
-        sleep 10
+        #--- get last commit timestamp and the export/current timestamp
+        Dir.chdir(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR))
+        @last_commit_date = Time.at(exec('git last commit date', Binaries::GIT, 'log', '-1', '--format="%ct"').to_i)
+        @export_timestamp = Time.now.i
 
         Dir.mktmpdir do |tmp_dir|
+            FileUtils.cp_r(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR), tmp_dir, :preserve => true)
+
             #--- main configuration file ---
             if named_conf_content.present?
                 export_named_conf(named_conf_content, tmp_dir)
-            else
-                FileUtils.copy(File.join(BIND_CHROOT_DIR, BIND_CONFIG_FILE), tmp_dir, :preserve => true)
             end
-
-            STDERR.puts "cat #{File.join(tmp_dir, NAMED_CONF_FILE)}"
-            STDERR.puts system("cat", File.join(tmp_dir, NAMED_CONF_FILE))
 
             #--- views
             File.open(File.join(tmp_dir, VIEWS_FILE), 'w') do |file|
@@ -33,15 +33,18 @@ class Exporter
 
             #--- regular zone records
             File.open(File.join(tmp_dir, ZONES_FILE), 'w') do |file|
-                Domain.standard.each do |domain|
+                Domain.master.each do |domain|
                     file.puts domain.to_bind9_conf
                 end
             end
 
-            Dir.mkdir(File.join(tmp_dir, ZONES_DIR))
-            Domain.standard.each do |domain|
-                next if domain.slave?
-                export_domain(domain, tmp_dir)
+            # Dir.mkdir(File.join(tmp_dir, ZONES_DIR))
+            Domain.master.each do |domain|
+                if domain.updated_since(@last_commit_date)
+                    export_domain(domain, tmp_dir)
+                else
+                    FileUtils.touch(File.join(tmp_dir, zonefile_path))
+                end
             end
 
             #--- then, reverse zone records
@@ -51,10 +54,13 @@ class Exporter
                 end
             end
 
-            Dir.mkdir(File.join(tmp_dir, REVERSE_DIR))
-            Domain.reverse.each do |domain|
-                next if domain.slave?
-                export_domain(domain, tmp_dir)
+            # Dir.mkdir(File.join(tmp_dir, REVERSE_DIR))
+            Domain.reverse.updated_since().each do |domain|
+                if domain.updated_since(@last_commit_date)
+                    export_domain(domain, tmp_dir)
+                else
+                    FileUtils.touch(File.join(tmp_dir, zonefile_path))
+                end
             end
 
             #--- and, finally, the slaves + stubs + forwards
@@ -63,6 +69,12 @@ class Exporter
                     file.puts domain.to_bind9_conf
                 end
             end
+
+            #--- remove files that older than the export timestamp; these are the
+            #    zonefiles from domains that have been removed from the database
+            #    (otherwise they'd have been regenerated or 'touched')
+            remove_untouched_zonefiles(File.join(tmp_dir, ZONES_DIR),   @export_timestamp)
+            remove_untouched_zonefiles(File.join(tmp_dir, REVERSE_DIR), @export_timestamp)
 
             #--- sync generated files on the tmp dir to the one monitored by bind
             sync_and_commit(tmp_dir)
@@ -113,6 +125,15 @@ class Exporter
     def build_record_format(domain)
         sizes = domain.records.select('MAX(LENGTH(name)) AS name, LENGTH(MAX(ttl)) AS ttl, MAX(LENGTH(type)) AS mtype, LENGTH(MAX(prio)) AS prio').first
         "%-#{sizes.name}s %-#{sizes.ttl}d IN %-#{sizes.mtype}s %-#{sizes.prio}s %s\n"
+    end
+
+    def remove_untouched_zonefiles(dir, timestamp)
+        Dir.glob(File.join(dir, 'db.*')).each do |file|
+            if File.mtime(file) < timestamp
+                @logger.info "[INFO] removing untouched zonefile \"#{file}\""
+                File.rm(file)
+            end
+        end
     end
 
     def sync_and_commit(tmp_dir)

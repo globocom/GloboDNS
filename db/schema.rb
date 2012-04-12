@@ -16,8 +16,8 @@ ActiveRecord::Schema.define(:version => 5) do
   create_table "audits", :force => true do |t|
     t.integer  "auditable_id"
     t.string   "auditable_type"
-    t.integer  "association_id"
-    t.string   "association_type"
+    t.integer  "associated_id"
+    t.string   "associated_type"
     t.integer  "user_id"
     t.string   "user_type"
     t.string   "username"
@@ -25,14 +25,21 @@ ActiveRecord::Schema.define(:version => 5) do
     t.string   "action"
     t.text     "audited_changes"
     t.string   "comment"
-    t.integer  "version",          :default => 0
+    t.integer  "version",         :default => 0
     t.datetime "created_at"
   end
 
-  add_index "audits", ["association_id", "association_type"], :name => "association_index"
+  add_index "audits", ["associated_id", "associated_type"], :name => "associated_index"
   add_index "audits", ["auditable_id", "auditable_type"], :name => "auditable_index"
   add_index "audits", ["created_at"], :name => "index_audits_on_created_at"
   add_index "audits", ["user_id", "user_type"], :name => "user_index"
+
+  create_table "domain_templates", :force => true do |t|
+    t.string   "name"
+    t.integer  "ttl",        :null => false
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+  end
 
   create_table "domains", :force => true do |t|
     t.integer  "user_id"
@@ -51,26 +58,25 @@ ActiveRecord::Schema.define(:version => 5) do
   add_index "domains", ["name"], :name => "index_domains_on_name"
 
   create_table "record_templates", :force => true do |t|
-    t.integer  "zone_template_id"
+    t.integer  "domain_template_id"
     t.string   "name"
-    t.string   "record_type",      :null => false
-    t.string   "content",          :null => false
-    t.integer  "ttl",              :null => false
+    t.string   "record_type",        :null => false
+    t.string   "content",            :null => false
+    t.integer  "ttl",                :null => false
     t.integer  "prio"
-    t.datetime "created_at",       :null => false
-    t.datetime "updated_at",       :null => false
+    t.datetime "created_at",         :null => false
+    t.datetime "updated_at",         :null => false
   end
 
   create_table "records", :force => true do |t|
-    t.integer  "domain_id",   :null => false
-    t.string   "name",        :null => false
-    t.string   "type",        :null => false
-    t.string   "content",     :null => false
-    t.integer  "ttl",         :null => false
+    t.integer  "domain_id",  :null => false
+    t.string   "name",       :null => false
+    t.string   "type",       :null => false
+    t.string   "content",    :null => false
+    t.integer  "ttl"
     t.integer  "prio"
-    t.integer  "change_date", :null => false
-    t.datetime "created_at",  :null => false
-    t.datetime "updated_at",  :null => false
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
   end
 
   add_index "records", ["domain_id"], :name => "index_records_on_domain_id"
@@ -86,20 +92,13 @@ ActiveRecord::Schema.define(:version => 5) do
   create_table "users", :force => true do |t|
     t.string   "login"
     t.string   "email"
-    t.string   "encrypted_password",        :limit => 128, :null => false
-    t.string   "password_salt",             :limit => 128, :null => false
-    t.string   "role",                      :limit => 1
-    t.string   "remember_token"
-    t.datetime "remember_token_created_at"
-    t.datetime "created_at",                               :null => false
-    t.datetime "updated_at",                               :null => false
-  end
-
-  create_table "zone_templates", :force => true do |t|
-    t.string   "name"
-    t.integer  "ttl",        :null => false
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
+    t.string   "encrypted_password",   :limit => 128,  :null => false
+    t.string   "password_salt",        :limit => 128,  :null => false
+    t.string   "role",                 :limit => 1
+    t.datetime "remember_created_at"
+    t.datetime "created_at",                           :null => false
+    t.datetime "updated_at",                           :null => false
+    t.string   "authentication_token", :limit => 1024
   end
 
 end

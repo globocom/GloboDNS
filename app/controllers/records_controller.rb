@@ -1,10 +1,12 @@
 class RecordsController < ApplicationController
     respond_to :html, :json
     responders :flash
+    
+    DEFAULT_PAGE_SIZE = 10
 
     def index
         @records = Record.where(:domain_id => params[:domain_id])
-        @records = @records.without_soa.paginate(:page => params[:page], :per_page => 10) if request.format.html? || request.format.js?
+        @records = @records.without_soa.paginate(:page => params[:page] || 1, :per_page => params[:per_page] || DEFAULT_PAGE_SIZE) if request.format.html? || request.format.js?
         @records = @records.matching(params[:query]) if params[:query].present?
         respond_with(@records) do |format|
             format.html { render :partial => 'list', :object => @records, :as => :records if request.xhr? }
@@ -26,10 +28,12 @@ class RecordsController < ApplicationController
     end
 
     def create
-        @record = Record.new(params[:record].merge('domain_id' => params[:domain_id]))
+        @record = params[:record][:type].constantize.new(params[:record])
+        @record.domain_id = params[:domain_id]
         @record.save
         respond_with(@record) do |format|
-            format.html { render :partial => @record if request.xhr? }
+            format.html { render :status  => @record.valid? ? :ok     : :unprocessable_entity,
+                                 :partial => @record.valid? ? @record : 'errors' } if request.xhr?
         end
     end
 

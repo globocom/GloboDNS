@@ -2,20 +2,20 @@
   %table#show-domain
     %tr
       %td= label_tag :name, t(:label_domain_name)
-      %td= domain.valid_attribute(:name)
+      %td= domain.name
     %tr
       %td= label_tag :type, t(:label_domain_type)
-      %td= domain.valid_attribute(:type).humanize
+      %td= domain.type.humanize
     - if domain.slave?
       %tr
         %td= label_tag :master, t(:label_domain_master_server)
-        %td= domain.valid_attribute(:master)
+        %td= domain.master
     %tr
       %td= label_tag :ttl, t(:label_domain_ttl)
-      %td= domain.valid_attribute(:ttl)
+      %td= domain.ttl
     %tr
       %td= label_tag :notes, t(:label_domain_notes)
-      %td= domain.valid_attribute(:notes)
+      %td= domain.notes
 
 %div#edit-domain-container{:class => domain.errors.empty? ? 'hidden' : ''}
   = form_for(domain, :remote => true, :html => {:class => 'update-domain-form'}) do |f|

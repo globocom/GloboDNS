@@ -42,6 +42,41 @@ development:
         chroot:        '/usr/sbin/chroot'
 
 test:
+    bind_user:         'bind'
+    bind_config_file:  '/etc/named.conf'
+    bind_config_dir:   '/etc/named/'
+    bind_chroot_dir:   'tmp/named'
+    bind_error_log:    'log/globodns.error.log'
+    rndc_config_file:  'tmp/rndc.conf'
+    rndc_key:          'rndc-key'
+    named_conf_file:   'named.conf'
+    zones_dir:         'zones'
+    zones_file:        'zones.conf'
+    reverse_dir:       'reverse'
+    reverse_file:      'reverse.conf'
+    slaves_file:       'slaves.conf'
+    views_file:        'views.conf'
+    nameserver_host:   'localhost'
+    record_order:
+        - SOA
+        - NS
+        - MX
+        - A
+        - AAAA
+        - CNAME
+        - LOC
+        - SPF
+        - SRV
+        - PTR
+        - TXT
+    binaries:
+        bind:          '/usr/sbin/named'
+        rndc:          '/usr/sbin/rndc'
+        git:           '/usr/bin/git'
+        zone2sql:      '/usr/bin/zone2sql'
+        rsync:         '/usr/bin/rsync'
+        sudo:          '/usr/bin/sudo'
+        chroot:        '/usr/sbin/chroot'
 
 production:
 

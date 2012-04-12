@@ -1,0 +1,23 @@
+admin:
+    id:                    1
+    login:                 'admin'
+    email:                 'admin@example.com'
+    # password:              'secret'
+    # password_confirmation: 'secret'
+    role:                  <%= User::ROLE_ADMIN %>
+
+operator:
+    id:                    2
+    login:                 'operator'
+    email:                 'operator@example.com'
+    # password:              'secret'
+    # password_confirmation: 'secret'
+    role:                  <%= User::ROLE_OPERATOR %>
+
+viewer:
+    id:                    3
+    login:                 'viewer'
+    email:                 'viewer@example.com'
+    # password:              'secret'
+    # password_confirmation: 'secret'
+    role:                  <%= User::ROLE_VIEWER %>

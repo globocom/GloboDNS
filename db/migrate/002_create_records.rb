@@ -5,9 +5,8 @@ class CreateRecords < ActiveRecord::Migration
             t.string  :name,        :null => false
             t.string  :type,        :null => false
             t.string  :content,     :null => false
-            t.integer :ttl,         :null => false
+            t.integer :ttl,         :null => true
             t.integer :prio
-            t.integer :change_date, :null => false
 
             t.timestamps
         end

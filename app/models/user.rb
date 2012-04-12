@@ -30,8 +30,8 @@ class User < ActiveRecord::Base
 
     has_many :audits, :as => :user
 
-    ROLES = [:ADMIN, :MANAGER, :VIEWER].inject(Hash.new) do |hash, role|
-        role_str = role.to_s.sub(/^ROLE_/, '')[0]
+    ROLES = [:ADMIN, :OPERATOR, :VIEWER].inject(Hash.new) do |hash, role|
+        role_str = role.to_s[0]
         const_set(('ROLE_' + role.to_s).to_sym, role_str)
         hash[role_str] = role
         hash

@@ -11,7 +11,6 @@ class DomainTemplate < ActiveRecord::Base
     after_create              :create_soa_record_template
 
     SOA::SOA_FIELDS.each do |field|
-        puts "delegating #{field} to soa record template"
         delegate field.to_sym, (field.to_s + '=').to_sym, :to => :soa_record_template
     end
 

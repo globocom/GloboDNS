@@ -45,14 +45,13 @@ body {
 .nav ul li {
     display: inline;
     padding-right: 1em;
-    font-size: 12pt;
-    text-shadow: 1px 1px 1px #ccc;
-    font-family: VAGRounded, Arial, Helvetica, Lucida Grande, Sans-serif;
 }
 .nav a:link, .nav a:active, .nav a:visited {
     color: #0f2f98;
-    font-weight: normal;
+    /* text-shadow: 0px 0px 1px #0f2f98; */
+    font-weight: bold;
     text-decoration: none;
+	font-size: 12pt;
 }
 .nav a:hover {
     color: #4a65be;
@@ -86,11 +85,10 @@ body {
 }
 .body h1 {
     margin: 2em 0 .5em 0;
-    font-size: 12pt;
     line-height: 1.5em;
-    text-shadow: 1px 1px 1px #ccc;
-    font-family: VAGRounded, Arial, Helvetica, Lucida Grande, Sans-serif;
-    font-weight: normal;
+    /* text-shadow: 0px 0px 1px #333; */
+    font-size: 12pt;
+    font-weight: bold;
 }
 .body h1:after {
     content: '';
