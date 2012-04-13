@@ -47,7 +47,7 @@ class Domain < ActiveRecord::Base
     validates_inclusion_of  :type, :in => TYPES.keys, :message => "must be one of #{TYPES.keys.join(', ')}"
     validates_presence_of   :master, :if => :slave?
     validates_format_of     :master, :if => :slave?, :allow_blank => true, :with => /\A(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\z/
-    validates_associated    :soa_record
+    validates_associated    :soa_record, :unless => :slave? 
     # validate              :validate_soa_record, :on => :create
 
     after_save  :save_soa_record
@@ -64,11 +64,12 @@ class Domain < ActiveRecord::Base
     #attr_accessible :type
 
     # scopes
-    # scope :user,   lambda { |user| user.admin? ? nil : where(:user_id => user.id) }
-    scope :master,   where('type != ?', 'SLAVE').where('name NOT LIKE ?', '%in-addr.arpa')
-    scope :slave,    where('type  = ?', 'SLAVE')
-    scope :reverse,  where('type != ?', 'SLAVE').where('name LIKE ?',     '%in-addr.arpa')
-    scope :matching, lambda { |query| where('name LIKE ?', "%#{query}%") }
+    # scope :user,        lambda { |user| user.admin? ? nil : where(:user_id => user.id) }
+    scope :master,        where('type != ?', 'SLAVE').where('name NOT LIKE ?', '%in-addr.arpa')
+    scope :slave,         where('type  = ?', 'SLAVE')
+    scope :reverse,       where('type != ?', 'SLAVE').where('name LIKE ?',     '%in-addr.arpa')
+    scope :matching,      lambda { |query|     where('name LIKE ?', "%#{query}%") }
+    scope :updated_since, lambda { |timestamp| where(:id => Record.updated_since(timestamp).select(:domain_id).uniq) }
     default_scope    order('name')
 
     def soa_record
@@ -163,11 +164,31 @@ class Domain < ActiveRecord::Base
     end
 
     def to_bind9_conf
-        <<-EOS
-zone "#{self.name}" {
-    type #{self.slave? ? 'slave' : 'master'};
-    file "#{zonefile_absolute_path}";
-};
-        EOS
+        str  = "zone \"#{self.name}\" {\n"
+        str << "    type    #{self.slave? ? 'slave' : 'master'};\n"
+        str << "    file    \"#{zonefile_absolute_path}\";\n"
+        str << "    masters { #{self.master}; };\n" if self.slave?
+        str << "};\n\n"
+        str
+    end
+
+    def to_zonefile(output)
+        logger.warn "[WARN] called 'to_zonefile' on slave domain (#{self.id})" and return if slave?
+
+        output.puts "$ORIGIN #{self.name.chomp('.')}."
+        output.puts "$TTL    #{self.ttl}"
+        output.puts
+
+        format = records_format
+        records.order("FIELD(type, #{GloboDns::Config::RECORD_ORDER.map{|x| "'#{x}'"}.join(', ')}), name ASC").each do |record|
+            record.domain = self
+            record.update_serial(true) if record.is_a?(SOA)
+            record.to_zonefile(output, format)
+        end
+    end
+
+    def records_format
+        sizes = self.records.select('MAX(LENGTH(name)) AS name, LENGTH(MAX(ttl)) AS ttl, MAX(LENGTH(type)) AS mtype, LENGTH(MAX(prio)) AS prio').first
+        "%-#{sizes.name}s %-#{sizes.ttl}s IN %-#{sizes.mtype}s %-#{sizes.prio}s %s\n"
     end
 end

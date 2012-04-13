@@ -13,7 +13,8 @@ class SOA < Record
     validates                 :contact, :presence => true, :hostname => true
     validates                 :name,    :presence => true, :hostname => true
 
-    before_validation :update_serial
+    # before_validation :update_serial
+    before_validation :set_initial_serial, :on => :create
     before_validation :set_name
     before_validation :set_content
     after_initialize  :update_convenience_accessors
@@ -40,18 +41,27 @@ class SOA < Record
     end
     alias_method_chain :reload, :content
 
-    def update_serial
-        update_serial! if self.new_record? || self.changed?
+    def set_initial_serial
+        self.serial = 0
     end
 
+    # def update_serial
+    #     update_serial! if self.new_record? || self.changed?
+    # end
+    #
     # updates the serial number to the next logical one. Format of the generated
     # serial is YYYYMMDDNN, where NN is the number of the change for the day
-    def update_serial!
+    def update_serial(save = false)
+        puts "[updating serial] (domain: #{self.domain.name})"
         current_date = Time.now.strftime('%Y%m%d')
         if self.serial.to_s.start_with?(current_date)
             self.serial += 1
         else
             self.serial = (current_date + '00').to_i
+        end
+        if save
+            set_content
+            self.update_attribute(:content, self.content)
         end
     end
 
@@ -96,7 +106,6 @@ class SOA < Record
             instance_variable_set("@#{field_name}", field_value)
             instance_variable_set("@#{field_name}_was", field_value)
         end
-
-        update_serial if @serial.nil? || @serial.zero?
+        # update_serial if @serial.nil? || @serial.zero?
     end
 end

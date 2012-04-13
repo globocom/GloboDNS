@@ -7,6 +7,7 @@ module Util
     # raises and exception if the return code is not '0' (success)
     def exec(command_id, *args)
         output = nil
+        # puts "running: #{args.join(' ')}"
         IO::popen(args) do |io|
             output = io.read
         end

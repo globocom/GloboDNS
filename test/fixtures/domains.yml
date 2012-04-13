@@ -24,7 +24,8 @@ dom5:
     ttl:  86405
 
 dom6slave:
-    name: 'slavedomain6.example.com'
-    type: <%= Domain::TYPE_SLAVE %>
-    ttl:  86406
+    name:   'slavedomain6.example.com'
+    type:   <%= Domain::TYPE_SLAVE %>
+    ttl:    86406
+    master: '10.0.6.1'
 

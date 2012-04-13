@@ -87,12 +87,12 @@ class Record < ActiveRecord::Base
     #     self.change_date = Time.now.to_i
     # end
 
-    def update_soa_serial #:nodoc:
-        unless self.type == 'SOA' || @serial_updated || self.domain.slave?
-            self.domain.soa_record.update_serial!
-            @serial_updated = true
-        end
-    end
+    # def update_soa_serial #:nodoc:
+    #     unless self.type == 'SOA' || @serial_updated || self.domain.slave?
+    #         self.domain.soa_record.update_serial!
+    #         @serial_updated = true
+    #     end
+    # end
 
     # by default records don't support priorities. Those who do can overwrite
     # this in their own classes.
@@ -143,7 +143,7 @@ class Record < ActiveRecord::Base
         self.class.fqdn(self.name, self.domain.name)
     end
 
-    def to_zonefile(format)
+    def to_zonefile(output, format)
         # FIXME: fix ending '.' of content on the importer
         content  = self.content
         content += '.' if self.content =~ /\.(?:com|net|org|br|in-addr\.arpa)$/
@@ -156,8 +156,7 @@ class Record < ActiveRecord::Base
             # FIXME: zone2sql sets prio = 0 for all records
             prio = (self.type == 'MX' || (self.prio && (self.prio > 0)) ? self.prio : '')
 
-        # output.printf(format, record.name, record.ttl, record.type, prio, content)
-        sprintf(format, self.name, self.ttl, self.type, prio || '', content)
+        output.printf(format, self.name, self.ttl.to_s || '', self.type, prio || '', content)
     end
 
     private

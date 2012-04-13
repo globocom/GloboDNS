@@ -9,18 +9,21 @@ class Exporter
     CONFIG_END_TAG   = '### END GloboDns ###'
 
     def export_all(named_conf_content, options = {})
-        @options = options
-        @logger  = @options.delete(:logger) || Rails.logger
+        @options     = options
+        @logger      = @options.delete(:logger) || Rails.logger
 
-        Domain.connection.execute "LOCK TABLE #{Domain.table_name} READ, #{Record.table_name} READ";
+        Domain.connection.execute("LOCK TABLE #{Domain.table_name} READ, #{Record.table_name} READ") unless (@options[:lock_tables] == false)
 
         #--- get last commit timestamp and the export/current timestamp
         Dir.chdir(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR))
         @last_commit_date = Time.at(exec('git last commit date', Binaries::GIT, 'log', '-1', '--format="%ct"').to_i)
-        @export_timestamp = Time.now.i
+        @export_timestamp = Time.now
 
-        Dir.mktmpdir do |tmp_dir|
-            FileUtils.cp_r(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR), tmp_dir, :preserve => true)
+        tmp_dir = Dir.mktmpdir
+        @logger.debug "[GloboDns::exporter] tmp dir: #{tmp_dir}" if @options[:keep_tmp_dir] == true
+
+        begin
+            FileUtils.cp_r(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR, '.'), tmp_dir, :preserve => true)
 
             #--- main configuration file ---
             if named_conf_content.present?
@@ -38,9 +41,9 @@ class Exporter
                 end
             end
 
-            # Dir.mkdir(File.join(tmp_dir, ZONES_DIR))
+            File.exists?(abs_zones_dir = File.join(tmp_dir, ZONES_DIR)) or FileUtils.mkdir(abs_zones_dir) 
             Domain.master.each do |domain|
-                if domain.updated_since(@last_commit_date)
+                if domain.records.updated_since(@last_commit_date).exists?
                     export_domain(domain, tmp_dir)
                 else
                     FileUtils.touch(File.join(tmp_dir, zonefile_path))
@@ -54,9 +57,9 @@ class Exporter
                 end
             end
 
-            # Dir.mkdir(File.join(tmp_dir, REVERSE_DIR))
-            Domain.reverse.updated_since().each do |domain|
-                if domain.updated_since(@last_commit_date)
+            File.exists?(abs_reverse_dir = File.join(tmp_dir, REVERSE_DIR)) or FileUtils.mkdir(abs_reverse_dir) 
+            Domain.reverse.each do |domain|
+                if domain.records.updated_since(@last_commit_date).exists?
                     export_domain(domain, tmp_dir)
                 else
                     FileUtils.touch(File.join(tmp_dir, zonefile_path))
@@ -70,6 +73,8 @@ class Exporter
                 end
             end
 
+            File.exists?(abs_slaves_dir = File.join(tmp_dir, SLAVES_DIR)) or FileUtils.mkdir(abs_slaves_dir) 
+
             #--- remove files that older than the export timestamp; these are the
             #    zonefiles from domains that have been removed from the database
             #    (otherwise they'd have been regenerated or 'touched')
@@ -81,9 +86,12 @@ class Exporter
 
             #--- test the changes by parsing the git commit log
             test_changes if @options[:test_changes]
+        ensure
+            STDERR.puts "removing tmp dir" unless @options[:keep_tmp_dir] == true
+            FileUtils.remove_entry_secure tmp_dir unless @options[:keep_tmp_dir] == true
         end
     ensure
-        Domain.connection.execute 'UNLOCK TABLES';
+        Domain.connection.execute('UNLOCK TABLES') unless (@options[:lock_tables] == false)
     end
     
     private
@@ -91,6 +99,7 @@ class Exporter
     def export_named_conf(content, tmp_dir)
         File.open(File.join(tmp_dir, NAMED_CONF_FILE), 'w') do |file|
             file.puts content
+            file.puts
             file.puts CONFIG_START_TAG
             file.puts '# this block is auto generated; do not edit'
             file.puts
@@ -105,33 +114,16 @@ class Exporter
 
     def export_domain(domain, tmp_dir)
         @logger.info "[GloboDns::exporter] generating file \"#{domain.zonefile_path}\""
-        format = build_record_format(domain)
-        File.open(File.join(tmp_dir, domain.zonefile_path), 'w') do |file|
-            export_records(domain.records.order("FIELD(type, #{RECORD_ORDER.map{|x| "'#{x}'"}.join(', ')}), name ASC"), file, format)
-        end
-    end
-
-    def export_records(records, file, format)
-        return if records.nil?
-
-        records = Array[records]                if records.is_a?(Record)
-        records = records.includes(:domain).all if records.is_a?(ActiveRecord::Relation)
-
-        records.collect do |record|
-            file.print record.to_zonefile(format)
-        end
-    end
-
-    def build_record_format(domain)
-        sizes = domain.records.select('MAX(LENGTH(name)) AS name, LENGTH(MAX(ttl)) AS ttl, MAX(LENGTH(type)) AS mtype, LENGTH(MAX(prio)) AS prio').first
-        "%-#{sizes.name}s %-#{sizes.ttl}d IN %-#{sizes.mtype}s %-#{sizes.prio}s %s\n"
+        domain.to_zonefile(file = File.open(File.join(tmp_dir, domain.zonefile_path), 'w'))
+    ensure
+        file.close
     end
 
     def remove_untouched_zonefiles(dir, timestamp)
         Dir.glob(File.join(dir, 'db.*')).each do |file|
             if File.mtime(file) < timestamp
                 @logger.info "[INFO] removing untouched zonefile \"#{file}\""
-                File.rm(file)
+                FileUtils.rm(file)
             end
         end
     end
@@ -150,6 +142,8 @@ class Exporter
                                      "--include=#{VIEWS_FILE}",
                                      "--include=#{ZONES_FILE}",
                                      "--include=#{SLAVES_FILE}",
+                                     "--include=#{REVERSE_FILE}",
+                                     "--include=#{SLAVES_DIR}/",
                                      "--include=#{ZONES_DIR}/",
                                      "--include=#{ZONES_DIR}/*",
                                      "--include=#{REVERSE_DIR}/",
@@ -183,7 +177,7 @@ class Exporter
 
                 reload_output = reload_bind_conf
                 @logger.info "[GloboDns::Exporter][INFO] bind configuration reloaded:\n#{reload_output}"
-                sleep 5
+                # sleep 5 unless @options[:skip_sleep] == true
 
                 # after reloading, read new entries from error log
                 if err_log

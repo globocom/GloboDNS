@@ -4,14 +4,16 @@ module GloboDns
 module Config
 
     def self.load(yaml_string)
-        yml = YAML::load(yaml_string)
+        template = ERB.new(yaml_string)
+        yml = YAML::load(template.result)
         set_constants(yml[Rails.env])
     end
 
     def self.load_from_file(file = Rails.root.join('config', 'globodns.yml'))
-        yml = YAML::load_file(file)
-        set_constants(yml[Rails.env])
+        self.load(IO::read(file))
     end
+
+    protected
 
     def self.set_constants(hash, module_ = self)
         hash.each do |key, value|

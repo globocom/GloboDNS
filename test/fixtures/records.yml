@@ -1,57 +1,46 @@
+# DOMAIN 1
 dom1_soa:
     domain:  dom1
     type:    'SOA'
     name:    '@'
     content: 'ns1.example.com. root1.example.com. 2000010100 10801 3601 604801 7201'
 
-dom2_soa:
-    domain:  dom2
-    type:    'SOA'
-    name:    '@'
-    content: 'ns2.example.com. root2.example.com. 2000010200 10802 3602 604802 7202'
-
-dom3_soa:
-    domain:  dom3
-    type:    'SOA'
-    name:    '@'
-    content: 'ns3.example.com. root3.example.com. 2000010100 10803 3603 604803 7203'
-
-dom4_soa:
-    domain:  dom4
-    type:    'SOA'
-    name:    '@'
-    content: 'ns4.example.com. root4.example.com. 2000010400 10804 3604 604804 7204'
-
-dom5_soa:
-    domain:  dom5
-    type:    'SOA'
-    name:    '@'
-    content: 'ns5.example.com. root5.example.com. 2000010500 10805 3605 604805 7205'
-
 dom1_ns:
     domain:  dom1
     type:    'NS'
     name:    '@'
-    content: '10.0.0.1'
+    content: 'ns'
 
 dom1_mx:
     domain:  dom1
     type:    'MX'
     name:    '@'
     prio:    10
+    content: 'mail'
+
+dom1_a_ns:
+    domain:  dom1
+    type:    'A'
+    name:    'ns'
     content: '10.0.1.1'
+
+dom1_a_mail:
+    domain:  dom1
+    type:    'A'
+    name:    'mail'
+    content: '10.0.1.2'
 
 dom1_a1:
     domain:  dom1
     type:    'A'
     name:    'host1'
-    content: '10.0.2.1'
+    content: '10.0.1.3'
 
 dom1_a2:
-    domain:  dom1,
+    domain:  dom1
     type:    'A'
     name:    'host2'
-    content: '10.0.2.2'
+    content: '10.0.1.4'
 
 dom1_cname1:
     domain:  dom1
@@ -63,8 +52,94 @@ dom1_cname2:
     domain:  dom1
     type:    'CNAME'
     name:    'host2alias'
-    content: 'host2.example.com.'
+    content: 'host2.domain1.example.com.'
 
+# DOMAIN 2
+dom2_soa:
+    domain:  dom2
+    type:    'SOA'
+    name:    '@'
+    content: 'ns2.example.com. root2.example.com. 2000010200 10802 3602 604802 7202'
+
+dom2_ns:
+    domain:  dom2
+    type:    'NS'
+    name:    '@'
+    content: 'ns'
+
+dom2_mx:
+    domain:  dom2
+    type:    'MX'
+    name:    '@'
+    prio:    10
+    content: 'mail'
+
+dom2_a_ns:
+    domain:  dom2
+    type:    'A'
+    name:    'ns'
+    content: '10.0.2.1'
+
+dom2_a_mail:
+    domain:  dom2
+    type:    'A'
+    name:    'mail'
+    content: '10.0.2.2'
+
+dom2_a1:
+    domain:  dom2
+    type:    'A'
+    name:    'host1'
+    content: '10.0.2.3'
+
+dom2_a2:
+    domain:  dom2
+    type:    'A'
+    name:    'host2'
+    content: '10.0.2.4'
+
+# DOMAIN 3
+dom3_soa:
+    domain:  dom3
+    type:    'SOA'
+    name:    '@'
+    content: 'ns3.example.com. root3.example.com. 2000010100 10803 3603 604803 7203'
+
+dom3_ns:
+    domain:  dom3
+    type:    'NS'
+    name:    '@'
+    content: 'ns1.domain1.example.com.'
+
+# DOMAIN 4
+dom4_soa:
+    domain:  dom4
+    type:    'SOA'
+    name:    '@'
+    content: 'ns4.example.com. root4.example.com. 2000010400 10804 3604 604804 7204'
+
+dom4_ns:
+    domain:  dom4
+    type:    'NS'
+    name:    '@'
+    content: 'ns1.domain1.example.com.'
+
+# DOMAIN 5
+dom5_soa:
+    domain:  dom5
+    type:    'SOA'
+    name:    '@'
+    content: 'ns5.example.com. root5.example.com. 2000010500 10805 3605 604805 7205'
+
+dom5_ns:
+    domain:  dom5
+    type:    'NS'
+    name:    '@'
+    content: 'ns1.domain1.example.com.'
+
+# REVERSE 1
+
+# NO DOMAIN
 nodomain_a1:
     type:      'A'
     name:      'nodomain_host1'
@@ -74,4 +149,3 @@ nodomain_cname:
     type:      'CNAME'
     name:      'nodomain_host1alias'
     content:   'nodomain_host1'
-
