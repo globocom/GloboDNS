@@ -22,7 +22,7 @@ class Record < ActiveRecord::Base
     attr_protected :domain_id
     protected_attributes.delete('type') # 'type' is a special inheritance column use by Rails and not accessible by default;
 
-    before_validation :inherit_attributes_from_domain
+    # before_validation :inherit_attributes_from_domain
     # before_save     :update_change_date
     # after_save      :update_soa_serial
 

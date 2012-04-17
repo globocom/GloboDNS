@@ -1,6 +1,6 @@
 $TTL 1D
 @	IN SOA	@ rname.invalid. (
-					0	; serial
+					2012041600	; serial
 					1D	; refresh
 					1H	; retry
 					1W	; expire
@@ -8,4 +8,3 @@ $TTL 1D
 	NS	@
 	A	127.0.0.1
 	AAAA	::1
-	PTR	localhost.

@@ -175,6 +175,8 @@ class Domain < ActiveRecord::Base
     def to_zonefile(output)
         logger.warn "[WARN] called 'to_zonefile' on slave domain (#{self.id})" and return if slave?
 
+        output = File.open(output, 'w') if output.is_a?(String) || output.is_a?(Pathname)
+
         output.puts "$ORIGIN #{self.name.chomp('.')}."
         output.puts "$TTL    #{self.ttl}"
         output.puts
@@ -185,6 +187,8 @@ class Domain < ActiveRecord::Base
             record.update_serial(true) if record.is_a?(SOA)
             record.to_zonefile(output, format)
         end
+    ensure
+        output.close
     end
 
     def records_format

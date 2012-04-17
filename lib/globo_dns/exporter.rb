@@ -14,7 +14,7 @@ class Exporter
 
         Domain.connection.execute("LOCK TABLE #{Domain.table_name} READ, #{Record.table_name} READ") unless (@options[:lock_tables] == false)
 
-        #--- get last commit timestamp and the export/current timestamp
+        # get last commit timestamp and the export/current timestamp
         Dir.chdir(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR))
         @last_commit_date = Time.at(exec('git last commit date', Binaries::GIT, 'log', '-1', '--format="%ct"').to_i)
         @export_timestamp = Time.now
@@ -22,82 +22,43 @@ class Exporter
         tmp_dir = Dir.mktmpdir
         @logger.debug "[GloboDns::exporter] tmp dir: #{tmp_dir}" if @options[:keep_tmp_dir] == true
 
-        begin
-            FileUtils.cp_r(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR, '.'), tmp_dir, :preserve => true)
+        # FileUtils.cp_r does not preserve directory timestamps; use 'cp -a' instead
+        # FileUtils.cp_r(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR, '.'), tmp_dir, :preserve => true)
+        exec('cp -a -p', 'cp', '-a', '-p', File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR, '.'), tmp_dir)
 
-            #--- main configuration file ---
-            if named_conf_content.present?
-                export_named_conf(named_conf_content, tmp_dir)
-            end
+        # main configuration file
+        export_named_conf(named_conf_content, tmp_dir) if named_conf_content.present?
 
-            #--- views
-            File.open(File.join(tmp_dir, VIEWS_FILE), 'w') do |file|
-            end
 
-            #--- regular zone records
-            File.open(File.join(tmp_dir, ZONES_FILE), 'w') do |file|
-                Domain.master.each do |domain|
-                    file.puts domain.to_bind9_conf
-                end
-            end
+        export_views(tmp_dir)
+        export_domain_group(tmp_dir, ZONES_FILE,   ZONES_DIR,   Domain.master)
+        export_domain_group(tmp_dir, REVERSE_FILE, REVERSE_DIR, Domain.reverse)
+        export_domain_group(tmp_dir, SLAVES_FILE,  SLAVES_DIR,  Domain.slave)
 
-            File.exists?(abs_zones_dir = File.join(tmp_dir, ZONES_DIR)) or FileUtils.mkdir(abs_zones_dir) 
-            Domain.master.each do |domain|
-                if domain.records.updated_since(@last_commit_date).exists?
-                    export_domain(domain, tmp_dir)
-                else
-                    FileUtils.touch(File.join(tmp_dir, zonefile_path))
-                end
-            end
 
-            #--- then, reverse zone records
-            File.open(File.join(tmp_dir, REVERSE_FILE), 'w') do |file|
-                Domain.reverse.each do |domain|
-                    file.puts domain.to_bind9_conf
-                end
-            end
+        # remove files that older than the export timestamp; these are the
+        # zonefiles from domains that have been removed from the database
+        # (otherwise they'd have been regenerated or 'touched')
+        # remove_untouched_zonefiles(zones_dir,   @export_timestamp)
+        # remove_untouched_zonefiles(reverse_dir, @export_timestamp)
+        remove_untouched_zonefiles(File.join(tmp_dir, ZONES_DIR), @export_timestamp)
+        remove_untouched_zonefiles(File.join(tmp_dir, REVERSE_DIR), @export_timestamp)
 
-            File.exists?(abs_reverse_dir = File.join(tmp_dir, REVERSE_DIR)) or FileUtils.mkdir(abs_reverse_dir) 
-            Domain.reverse.each do |domain|
-                if domain.records.updated_since(@last_commit_date).exists?
-                    export_domain(domain, tmp_dir)
-                else
-                    FileUtils.touch(File.join(tmp_dir, zonefile_path))
-                end
-            end
 
-            #--- and, finally, the slaves + stubs + forwards
-            File.open(File.join(tmp_dir, SLAVES_FILE), 'w') do |file|
-                Domain.slave.each do |domain|
-                    file.puts domain.to_bind9_conf
-                end
-            end
+        # sync generated files on the tmp dir to the one monitored by bind
+        sync_and_commit(tmp_dir)
 
-            File.exists?(abs_slaves_dir = File.join(tmp_dir, SLAVES_DIR)) or FileUtils.mkdir(abs_slaves_dir) 
-
-            #--- remove files that older than the export timestamp; these are the
-            #    zonefiles from domains that have been removed from the database
-            #    (otherwise they'd have been regenerated or 'touched')
-            remove_untouched_zonefiles(File.join(tmp_dir, ZONES_DIR),   @export_timestamp)
-            remove_untouched_zonefiles(File.join(tmp_dir, REVERSE_DIR), @export_timestamp)
-
-            #--- sync generated files on the tmp dir to the one monitored by bind
-            sync_and_commit(tmp_dir)
-
-            #--- test the changes by parsing the git commit log
-            test_changes if @options[:test_changes]
-        ensure
-            STDERR.puts "removing tmp dir" unless @options[:keep_tmp_dir] == true
-            FileUtils.remove_entry_secure tmp_dir unless @options[:keep_tmp_dir] == true
-        end
+        # test the changes by parsing the git commit log
+        test_changes if @options[:test_changes]
     ensure
+        FileUtils.remove_entry_secure tmp_dir unless tmp_dir.nil? || @options[:keep_tmp_dir] == true
         Domain.connection.execute('UNLOCK TABLES') unless (@options[:lock_tables] == false)
     end
     
     private
 
     def export_named_conf(content, tmp_dir)
-        File.open(File.join(tmp_dir, NAMED_CONF_FILE), 'w') do |file|
+        File.open(named_conf_file = File.join(tmp_dir, NAMED_CONF_FILE), 'w') do |file|
             file.puts content
             file.puts
             file.puts CONFIG_START_TAG
@@ -110,13 +71,45 @@ class Exporter
             file.puts
             file.puts CONFIG_END_TAG
         end
+        File.utime(@export_timestamp, @export_timestamp, named_conf_file)
     end
 
-    def export_domain(domain, tmp_dir)
-        @logger.info "[GloboDns::exporter] generating file \"#{domain.zonefile_path}\""
-        domain.to_zonefile(file = File.open(File.join(tmp_dir, domain.zonefile_path), 'w'))
-    ensure
-        file.close
+    def export_views(tmp_dir)
+        abs_views_file = File.join(tmp_dir, VIEWS_FILE)
+
+        File.open(abs_views_file, 'w') do |io|
+        end
+
+        File.utime(@export_timestamp, @export_timestamp, abs_views_file)
+    end
+
+    def export_domain_group(tmp_dir, file_name, dir_name, domains)
+        abs_file_name = File.join(tmp_dir, file_name)
+        abs_dir_name  = File.join(tmp_dir, dir_name)
+
+        File.exists?(abs_dir_name) or FileUtils.mkdir(abs_dir_name)
+
+        File.open(abs_file_name, 'w') do |io|
+            domains.each do |domain|
+                export_domain(domain, tmp_dir, io)
+            end
+        end
+
+        File.utime(@export_timestamp, @export_timestamp, abs_dir_name)
+        File.utime(@export_timestamp, @export_timestamp, abs_file_name)
+    end
+
+    def export_domain(domain, tmp_dir, zone_conf_file)
+        zone_conf_file.puts domain.to_bind9_conf
+
+        return if domain.slave?
+
+        zone_file_name = File.join(tmp_dir, domain.zonefile_path)
+        if domain.records.updated_since(@last_commit_date).exists?
+            @logger.info "[GloboDns::exporter] generating file \"#{zone_file_name}\""
+            domain.to_zonefile(zone_file_name)
+        end
+        File.utime(@export_timestamp, @export_timestamp, zone_file_name)
     end
 
     def remove_untouched_zonefiles(dir, timestamp)
@@ -135,7 +128,7 @@ class Exporter
                                      '--archive',
                                      '--delete',
                                      '--verbose',
-                                     '--omit-dir-times',
+                                     # '--omit-dir-times',
                                      '--no-group',
                                      '--no-perms',
                                      "--include=#{NAMED_CONF_FILE}",

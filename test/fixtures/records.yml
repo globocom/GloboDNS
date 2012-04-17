@@ -54,6 +54,7 @@ dom1_cname2:
     name:    'host2alias'
     content: 'host2.domain1.example.com.'
 
+
 # DOMAIN 2
 dom2_soa:
     domain:  dom2
@@ -98,6 +99,7 @@ dom2_a2:
     name:    'host2'
     content: '10.0.2.4'
 
+
 # DOMAIN 3
 dom3_soa:
     domain:  dom3
@@ -109,7 +111,8 @@ dom3_ns:
     domain:  dom3
     type:    'NS'
     name:    '@'
-    content: 'ns1.domain1.example.com.'
+    content: 'ns3.example.com.'
+
 
 # DOMAIN 4
 dom4_soa:
@@ -122,7 +125,8 @@ dom4_ns:
     domain:  dom4
     type:    'NS'
     name:    '@'
-    content: 'ns1.domain1.example.com.'
+    content: 'ns4.example.com.'
+
 
 # DOMAIN 5
 dom5_soa:
@@ -135,9 +139,84 @@ dom5_ns:
     domain:  dom5
     type:    'NS'
     name:    '@'
-    content: 'ns1.domain1.example.com.'
+    content: 'ns5.example.com.'
+
 
 # REVERSE 1
+rev1_a_soa:
+    domain:  rev1
+    type:    'SOA'
+    name:    '@'
+    content: 'ns1.example.com. root1.example.com. 2000010100 10801 3601 604801 7201'
+
+rev1_ns:
+    domain:  rev1
+    type:    'NS'
+    name:    '@'
+    content: 'ns1.example.com.'
+
+rev1_a_ns:
+    domain:  rev1
+    type:    'PTR'
+    name:    '1'
+    content: 'ns.domain1.example.com.'
+
+rev1_a_mail:
+    domain:  rev1
+    type:    'PTR'
+    name:    '2'
+    content: 'mail.domain1.example.com.'
+
+rev1_a1:
+    domain:  rev1
+    type:    'PTR'
+    name:    '3'
+    content: 'host1.domain1.example.com.'
+
+rev1_a2:
+    domain:  rev1
+    type:    'PTR'
+    name:    '4'
+    content: 'host2.domain1.example.com.'
+
+
+# REVERSE 2
+rev2_a_soa:
+    domain:  rev2
+    type:    'SOA'
+    name:    '@'
+    content: 'ns2.example.com. root2.example.com. 2000010100 10802 3602 604802 7202'
+
+rev2_ns:
+    domain:  rev2
+    type:    'NS'
+    name:    '@'
+    content: 'ns2.example.com.'
+
+rev2_a_ns:
+    domain:  rev2
+    type:    'PTR'
+    name:    '1'
+    content: 'ns.domain2.example.com.'
+
+rev2_a_mail:
+    domain:  rev2
+    type:    'PTR'
+    name:    '2'
+    content: 'mail.domain2.example.com.'
+
+rev2_a1:
+    domain:  rev2
+    type:    'PTR'
+    name:    '3'
+    content: 'host1.domain2.example.com.'
+
+rev2_a2:
+    domain:  rev2
+    type:    'PTR'
+    name:    '4'
+    content: 'host2.domain2.example.com.'
+
 
 # NO DOMAIN
 nodomain_a1:

@@ -1,0 +1,9 @@
+$ORIGIN 8.0.10.in-addr.arpa.
+$TTL    86408
+
+@  IN SOA  ns8.example.com. root8.example.com. 2012030100 10808 3608 604808 7208
+@  IN NS   ns8.example.com.
+1  IN PTR  new-ns.new-domain8.example.com.
+2  IN PTR  new-mail.new-domain8.example.com.
+3  IN PTR  new-host1.new-domain8.example.com.
+4  IN PTR  new-host2.new-domain8.example.com.

@@ -52,7 +52,6 @@ class SOA < Record
     # updates the serial number to the next logical one. Format of the generated
     # serial is YYYYMMDDNN, where NN is the number of the change for the day
     def update_serial(save = false)
-        puts "[updating serial] (domain: #{self.domain.name})"
         current_date = Time.now.strftime('%Y%m%d')
         if self.serial.to_s.start_with?(current_date)
             self.serial += 1

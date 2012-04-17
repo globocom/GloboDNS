@@ -29,3 +29,13 @@ dom6slave:
     ttl:    86406
     master: '10.0.6.1'
 
+rev1:
+    name:   '1.0.10.in-addr.arpa'
+    type:   <%= Domain::TYPE_MASTER %>
+    ttL:    86401
+
+rev2:
+    name:   '2.0.10.in-addr.arpa'
+    type:   <%= Domain::TYPE_MASTER %>
+    ttL:    86402
+

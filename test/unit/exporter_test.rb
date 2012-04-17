@@ -23,6 +23,7 @@ class ExporterTest < ActiveSupport::TestCase
 
         change_named_conf
         change_db
+        def Time.now; Time.local(2012, 3, 1, 18, 0, 0); end
         export
         compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'final'))
     end
@@ -33,11 +34,14 @@ class ExporterTest < ActiveSupport::TestCase
         begin
             spawn_named
             puts "[INFO] calling export_all"
-            @exporter.export_all(mock_named_conf_content, @options)
+            @exporter.export_all(mock_named_conf_content, @options.merge(:set_timestamp => Time.now))
             puts "[INFO] finished export_all"
         rescue Exception => e
-            STDERR.puts e, e.backtrace.join("\n")
+            STDERR.puts "[ERROR] #{e}", e.backtrace.join("\n")
+            STDERR.puts "[ERROR] named output:", @named_output.read if @named_output
         ensure
+            @named_output.close
+            @named_input.close
             kill_named
         end
     end
@@ -51,13 +55,12 @@ class ExporterTest < ActiveSupport::TestCase
     end
 
     def spawn_named
-        puts "starting named"
-        @named_pid = spawn(Binaries::SUDO, Binaries::NAMED, '-g', '-p', BIND_PORT, '-f', '-c', BIND_CONFIG_FILE, '-t', BIND_CHROOT_DIR, '-u', BIND_USER, {:out => STDOUT, :err => STDERR})
+        @named_output, @named_input = IO::pipe
+        @named_pid = spawn(Binaries::SUDO, Binaries::NAMED, '-g', '-p', BIND_PORT, '-f', '-c', BIND_CONFIG_FILE, '-t', BIND_CHROOT_DIR, '-u', BIND_USER, [:out, :err] => @named_input)
         puts "named pid: #{@named_pid}"
     end
 
     def kill_named
-        puts "killing process #{@named_pid}"
         exec('kill named', Binaries::SUDO, 'kill', @named_pid.to_s)
         Process.wait(@named_pid, Process::WNOHANG)
     end
@@ -68,11 +71,13 @@ class ExporterTest < ActiveSupport::TestCase
         FileUtils.mkdir(named_dir)
         FileUtils.cp(mock_named_conf_file, named_dir)
         Dir.chdir(named_dir) do
-            puts exec('git init', Binaries::GIT, 'init')
+            timestamp = Time.utc(2012, 1, 1, 0, 0, 0)
+            exec('git init', Binaries::GIT, 'init')
             FileUtils.touch('.keep')
-            puts exec('git add .keep', Binaries::GIT, 'add', '.keep')
-            puts exec('git status', Binaries::GIT, 'status')
-            puts exec('git initial commit', Binaries::GIT, 'commit', '--date=2012-01-01 00:00:00 UTC', '-m', 'Initial commit')
+            exec('git add .keep', Binaries::GIT, 'add', '.keep')
+            exec('git status', Binaries::GIT, 'status')
+            exec('git initial commit', Binaries::GIT, 'commit', "--date=#{timestamp}", '-m', 'Initial commit')
+            File.utime(timestamp, timestamp, *(Dir.glob('**/*', File::FNM_DOTMATCH).reject{|file| file == '..' || file[-3, 3] == '/..' || file[-2, 2] == '/.' }))
         end
     end
 
@@ -100,14 +105,17 @@ class ExporterTest < ActiveSupport::TestCase
         assert records(:dom1_ns).update_attributes(:content => 'new-ns')
         assert records(:dom1_mx).update_attributes(:name => 'new-mx', :prio => 123)
         assert records(:dom1_a_ns).update_attributes(:name => 'new-ns')
-        assert records(:dom1_a1).update_attributes(:name => 'new-host1', :ttl  => 10001)
-        assert records(:dom1_cname1).update_attributes(:name => 'new-cname1',  :content => 'anyname.example.com.')
+        assert records(:dom1_a1).update_attributes(:name => 'new-host1', :ttl => 86411)
+        assert records(:dom1_cname1).update_attributes(:name => 'new-cname1', :content => 'anyname.example.com.')
+        assert records(:rev1_a_ns).update_attributes(:content => 'new-ns.domain1.example.com.')
+        assert records(:rev1_a1).update_attributes(:content => 'new-host1.domain1.example.com.')
 
         # create a few records on existing domains
-        assert domains(:dom1).a_records.new(:name => 'new-host3', :ttl => 10001, :content => '10.0.1.103').save
-        assert domains(:dom3).a_records.new(:name => 'new-host1', :ttl => 10021, :content => '10.0.3.101').save
+        assert domains(:dom1).a_records.new(:name => 'new-host3', :ttl => 86412, :content => '10.0.1.5').save
+        assert domains(:dom3).a_records.new(:name => 'new-host1', :ttl => 86431, :content => '10.0.3.1').save
         assert domains(:dom3).cname_records.new(:name => 'new-host1alias', :content => 'new-host1').save
         assert domains(:dom3).txt_records.new(:name => 'new-txt', :content => 'meaningless content').save
+        assert domains(:rev1).ptr_records.new(:name => '5', :content => 'new-host3.domain1.example.com.').save
 
         # delete a few records from existing domains
         assert records(:dom2_mx).destroy
@@ -123,16 +131,29 @@ class ExporterTest < ActiveSupport::TestCase
         # create a new slave domain
         assert Domain.new(:name => 'new-slavedomain7.example.com', :type => Domain::TYPE_SLAVE, :master => '10.0.7.1', :ttl => 86407).save
 
-        # and finally, create a new master domain with new records
-        assert (new_master = Domain.create(:name => 'new-domain8.example.com', :type => Domain::TYPE_MASTER, :ttl => 86408, :primary_ns => 'ns1.new-domain8.example.com.', :contact => 'contact.new-domain8.example.com.', :refresh => 10808, :retry => 3608, :expire => 604808, :minimum => 7208)).save
+        # create a new master domain with new records
+        assert (new_master = Domain.create(:name => 'new-domain8.example.com', :type => Domain::TYPE_MASTER, :ttl => 86408, :primary_ns => 'ns8.example.com.', :contact => 'root8.example.com.', :refresh => 10808, :retry => 3608, :expire => 604808, :minimum => 7208)).save
         assert new_master.ns_records.new(:name => '@', :content => 'new-ns').save
-        assert new_master.mx_records.new(:name => '@', :content => 'new-mx', :prio => 11).save
+        assert new_master.mx_records.new(:name => '@', :content => 'new-mail', :prio => 18).save
         assert new_master.a_records.new(:name => 'new-ns', :content => '10.0.8.1').save
-        assert new_master.a_records.new(:name => 'new-mx', :content => '10.0.8.2').save
+        assert new_master.a_records.new(:name => 'new-mail', :content => '10.0.8.2').save
         assert new_master.a_records.new(:name => 'new-host1', :content => '10.0.8.3').save
         assert new_master.a_records.new(:name => 'new-host2', :content => '10.0.8.4').save
+        assert new_master.a_records.new(:name => 'new-host2-anothername', :content => '10.0.8.4').save
         assert new_master.cname_records.new(:name => 'new-host1alias', :content => 'new-host1').save
         assert new_master.cname_records.new(:name => 'new_host2alias', :content => 'new-host2.new-domain8.example.com.').save
-        assert new_master.txt_records.new(:name => 'new-txt', :content => 'sample content for txt record').save
+        assert new_master.txt_records.new(:name => 'new-txt', :ttl => 86418, :content => 'sample content for txt record').save
+
+        # create the reverse domains for the new domains and records
+        assert (new_reverse = Domain.create(:name => '3.0.10.in-addr.arpa', :type => Domain::TYPE_MASTER, :ttl => 86403, :primary_ns => 'ns3.example.com.', :contact => 'root3.example.com.', :refresh => 10803, :retry => 3603, :expire => 604803, :minimum => 7203)).save
+        assert new_reverse.ns_records.new(:name => '@', :content => 'ns3.example.com.').save
+        assert new_reverse.ptr_records.new(:name => '1', :content => 'new-host1.domain3.example.com.').save
+
+        assert (new_reverse = Domain.create(:name => '8.0.10.in-addr.arpa', :type => Domain::TYPE_MASTER, :ttl => 86408, :primary_ns => 'ns8.example.com.', :contact => 'root8.example.com.', :refresh => 10808, :retry => 3608, :expire => 604808, :minimum => 7208)).save
+        assert new_reverse.ns_records.new(:name => '@', :content => 'ns8.example.com.').save
+        assert new_reverse.ptr_records.new(:name => '1', :content => 'new-ns.new-domain8.example.com.').save
+        assert new_reverse.ptr_records.new(:name => '2', :content => 'new-mail.new-domain8.example.com.').save
+        assert new_reverse.ptr_records.new(:name => '3', :content => 'new-host1.new-domain8.example.com.').save
+        assert new_reverse.ptr_records.new(:name => '4', :content => 'new-host2.new-domain8.example.com.').save
     end
 end
