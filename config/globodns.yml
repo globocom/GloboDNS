@@ -1,4 +1,4 @@
-development:
+development: &devconf
     bind_user:         'bind'
     # bind_host:       'localhost'
     # bind_port:       '53'
@@ -23,7 +23,9 @@ development:
 
     binaries:
         bind:          '/usr/sbin/named'
+        named:         '/usr/sbin/named'
         rndc:          '/usr/sbin/rndc'
+        checkconf:     '/usr/sbin/named-checkconf'
         git:           '/usr/bin/git'
         zone2sql:      '/usr/bin/zone2sql'
         rsync:         '/usr/bin/rsync'
@@ -54,11 +56,12 @@ test:
         bind:          '/usr/sbin/named'
         named:         '/usr/sbin/named'
         rndc:          '/usr/sbin/rndc'
+        checkconf:     '/usr/sbin/named-checkconf'
         git:           '/usr/bin/git'
         zone2sql:      '/usr/bin/zone2sql'
         rsync:         '/usr/bin/rsync'
         sudo:          '/usr/bin/sudo'
         chroot:        '/usr/sbin/chroot'
 
-production:
+production: *devconf
 

@@ -49,7 +49,7 @@ class DomainsControllerTest < ActionController::TestCase
         assert domain.soa_record.retry      == params[:retry]
         assert domain.soa_record.expire     == params[:expire]
         assert domain.soa_record.minimum    == params[:minimum]
-        assert domain.soa_record.content    =~ /#{params[:primary_ns]} #{params[:contact]} #{Time.now.strftime('%Y%m%d')}\d\d #{params[:refresh]} #{params[:retry]} #{params[:expire]} #{params[:minimum]}/
+        assert domain.soa_record.content    =~ /#{params[:primary_ns]} #{params[:contact]} 0 #{params[:refresh]} #{params[:retry]} #{params[:expire]} #{params[:minimum]}/
     end
 
     test 'update' do
@@ -79,7 +79,7 @@ class DomainsControllerTest < ActionController::TestCase
         assert domain.soa_record.retry      == params[:retry]
         assert domain.soa_record.expire     == params[:expire]
         assert domain.soa_record.minimum    == params[:minimum]
-        assert domain.soa_record.content    =~ /#{params[:primary_ns]} #{params[:contact]} #{Time.now.strftime('%Y%m%d')}\d\d #{params[:refresh]} #{params[:retry]} #{params[:expire]} #{params[:minimum]}/
+        assert domain.soa_record.content    =~ /#{params[:primary_ns]} #{params[:contact]} 0 #{params[:refresh]} #{params[:retry]} #{params[:expire]} #{params[:minimum]}/
     end
 
     test 'destroy' do

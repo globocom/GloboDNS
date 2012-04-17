@@ -9,27 +9,27 @@ class RecordsControllerTest < ActionController::TestCase
 
     test 'index' do
         n_domains = Domain.find(domains(:dom1)).records.where('type != ?', 'SOA').count
-        assert n_domains == 5 # with soa
+        assert n_domains == 8 # with soa
 
         xhr :get, :index, {:domain_id => domains(:dom1).id, :per_page => 99999}
+        assert_response :success
+        assert_not_nil  assigns(:records)
+        assert          assigns(:records).size == 8
+        assert_select   'table#record-table tbody tr.show-record', 8
+
+        xhr :get, :index, {:domain_id => domains(:dom1).id, :per_page => 5}
         assert_response :success
         assert_not_nil  assigns(:records)
         assert          assigns(:records).size == 5
         assert_select   'table#record-table tbody tr.show-record', 5
 
-        xhr :get, :index, {:domain_id => domains(:dom1).id, :per_page => 3}
+        xhr :get, :index, {:domain_id => domains(:dom1).id, :per_page => 5, :page => 2}
         assert_response :success
         assert_not_nil  assigns(:records)
         assert          assigns(:records).size == 3
         assert_select   'table#record-table tbody tr.show-record', 3
 
-        xhr :get, :index, {:domain_id => domains(:dom1).id, :per_page => 3, :page => 2}
-        assert_response :success
-        assert_not_nil  assigns(:records)
-        assert          assigns(:records).size == 2
-        assert_select   'table#record-table tbody tr.show-record', 2
-
-        xhr :get, :index, {:domain_id => domains(:dom1).id, :per_page => 3, :page => 3}
+        xhr :get, :index, {:domain_id => domains(:dom1).id, :per_page => 5, :page => 3}
         assert_response :success
         assert_not_nil  assigns(:records)
         assert_empty    assigns(:records)
@@ -64,7 +64,7 @@ class RecordsControllerTest < ActionController::TestCase
         assert         record.name    == params[:name]
         assert         record.type    == params[:type]
         assert         record.content == params[:content]
-        assert         record.ttl     == domains(:dom1).ttl
+        assert_nil     record.ttl
         assert         record.prio.blank?
         assert         Record.count == (n_records + 1)
     end

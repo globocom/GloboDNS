@@ -24,16 +24,18 @@ class Exporter
 
         # FileUtils.cp_r does not preserve directory timestamps; use 'cp -a' instead
         # FileUtils.cp_r(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR, '.'), tmp_dir, :preserve => true)
-        exec('cp -a -p', 'cp', '-a', '-p', File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR, '.'), tmp_dir)
+        exec('cp -a -p', 'cp', '-a', '-p', File.join(BIND_CHROOT_DIR, '.'), tmp_dir)
+        tmp_named_dir = File.join(tmp_dir, BIND_CONFIG_DIR)
+        puts "tmp named dir: #{tmp_named_dir}"
 
         # main configuration file
-        export_named_conf(named_conf_content, tmp_dir) if named_conf_content.present?
+        export_named_conf(named_conf_content, tmp_named_dir) if named_conf_content.present?
 
 
-        export_views(tmp_dir)
-        export_domain_group(tmp_dir, ZONES_FILE,   ZONES_DIR,   Domain.master)
-        export_domain_group(tmp_dir, REVERSE_FILE, REVERSE_DIR, Domain.reverse)
-        export_domain_group(tmp_dir, SLAVES_FILE,  SLAVES_DIR,  Domain.slave)
+        export_views(tmp_named_dir)
+        export_domain_group(tmp_named_dir, ZONES_FILE,   ZONES_DIR,   Domain.master)
+        export_domain_group(tmp_named_dir, REVERSE_FILE, REVERSE_DIR, Domain.reverse)
+        export_domain_group(tmp_named_dir, SLAVES_FILE,  SLAVES_DIR,  Domain.slave)
 
 
         # remove files that older than the export timestamp; these are the
@@ -41,12 +43,16 @@ class Exporter
         # (otherwise they'd have been regenerated or 'touched')
         # remove_untouched_zonefiles(zones_dir,   @export_timestamp)
         # remove_untouched_zonefiles(reverse_dir, @export_timestamp)
-        remove_untouched_zonefiles(File.join(tmp_dir, ZONES_DIR), @export_timestamp)
-        remove_untouched_zonefiles(File.join(tmp_dir, REVERSE_DIR), @export_timestamp)
+        remove_untouched_zonefiles(File.join(tmp_named_dir, ZONES_DIR), @export_timestamp)
+        remove_untouched_zonefiles(File.join(tmp_named_dir, REVERSE_DIR), @export_timestamp)
+
+
+        # validate configuration with 'named-checkconf'
+        run_checkconf(tmp_dir)
 
 
         # sync generated files on the tmp dir to the one monitored by bind
-        sync_and_commit(tmp_dir)
+        sync_and_commit(tmp_named_dir)
 
         # test the changes by parsing the git commit log
         test_changes if @options[:test_changes]
@@ -57,8 +63,8 @@ class Exporter
     
     private
 
-    def export_named_conf(content, tmp_dir)
-        File.open(named_conf_file = File.join(tmp_dir, NAMED_CONF_FILE), 'w') do |file|
+    def export_named_conf(content, tmp_named_dir)
+        File.open(named_conf_file = File.join(tmp_named_dir, NAMED_CONF_FILE), 'w') do |file|
             file.puts content
             file.puts
             file.puts CONFIG_START_TAG
@@ -74,8 +80,8 @@ class Exporter
         File.utime(@export_timestamp, @export_timestamp, named_conf_file)
     end
 
-    def export_views(tmp_dir)
-        abs_views_file = File.join(tmp_dir, VIEWS_FILE)
+    def export_views(tmp_named_dir)
+        abs_views_file = File.join(tmp_named_dir, VIEWS_FILE)
 
         File.open(abs_views_file, 'w') do |io|
         end
@@ -83,15 +89,15 @@ class Exporter
         File.utime(@export_timestamp, @export_timestamp, abs_views_file)
     end
 
-    def export_domain_group(tmp_dir, file_name, dir_name, domains)
-        abs_file_name = File.join(tmp_dir, file_name)
-        abs_dir_name  = File.join(tmp_dir, dir_name)
+    def export_domain_group(tmp_named_dir, file_name, dir_name, domains)
+        abs_file_name = File.join(tmp_named_dir, file_name)
+        abs_dir_name  = File.join(tmp_named_dir, dir_name)
 
         File.exists?(abs_dir_name) or FileUtils.mkdir(abs_dir_name)
 
         File.open(abs_file_name, 'w') do |io|
             domains.each do |domain|
-                export_domain(domain, tmp_dir, io)
+                export_domain(domain, tmp_named_dir, io)
             end
         end
 
@@ -99,12 +105,12 @@ class Exporter
         File.utime(@export_timestamp, @export_timestamp, abs_file_name)
     end
 
-    def export_domain(domain, tmp_dir, zone_conf_file)
+    def export_domain(domain, tmp_named_dir, zone_conf_file)
         zone_conf_file.puts domain.to_bind9_conf
 
         return if domain.slave?
 
-        zone_file_name = File.join(tmp_dir, domain.zonefile_path)
+        zone_file_name = File.join(tmp_named_dir, domain.zonefile_path)
         if domain.records.updated_since(@last_commit_date).exists?
             @logger.info "[GloboDns::exporter] generating file \"#{zone_file_name}\""
             domain.to_zonefile(zone_file_name)
@@ -121,7 +127,11 @@ class Exporter
         end
     end
 
-    def sync_and_commit(tmp_dir)
+    def run_checkconf(tmp_dir)
+        exec('named-checkconf', Binaries::SUDO, Binaries::CHECKCONF, '-z', '-t', tmp_dir, BIND_CONFIG_FILE)
+    end
+
+    def sync_and_commit(tmp_named_dir)
         #--- sync to Bind9's data dir
         rsync_output = exec('rsync', Binaries::RSYNC,
                                      '--checksum',
@@ -142,7 +152,7 @@ class Exporter
                                      "--include=#{REVERSE_DIR}/",
                                      "--include=#{REVERSE_DIR}/*",
                                      '--exclude=*',
-                                     File.join(tmp_dir, ''),
+                                     File.join(tmp_named_dir, ''),
                                      File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR, ''))
         @logger.debug "[GloboDns::Exporter][DEBUG] rsync:\n#{rsync_output}"
 

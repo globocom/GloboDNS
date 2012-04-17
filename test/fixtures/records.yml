@@ -3,7 +3,7 @@ dom1_soa:
     domain:  dom1
     type:    'SOA'
     name:    '@'
-    content: 'ns1.example.com. root1.example.com. 2000010100 10801 3601 604801 7201'
+    content: 'ns1.example.com. root1.example.com. 0 10801 3601 604801 7201'
 
 dom1_ns:
     domain:  dom1
@@ -60,7 +60,7 @@ dom2_soa:
     domain:  dom2
     type:    'SOA'
     name:    '@'
-    content: 'ns2.example.com. root2.example.com. 2000010200 10802 3602 604802 7202'
+    content: 'ns2.example.com. root2.example.com. 0 10802 3602 604802 7202'
 
 dom2_ns:
     domain:  dom2
@@ -105,7 +105,7 @@ dom3_soa:
     domain:  dom3
     type:    'SOA'
     name:    '@'
-    content: 'ns3.example.com. root3.example.com. 2000010100 10803 3603 604803 7203'
+    content: 'ns3.example.com. root3.example.com. 0 10803 3603 604803 7203'
 
 dom3_ns:
     domain:  dom3
@@ -119,7 +119,7 @@ dom4_soa:
     domain:  dom4
     type:    'SOA'
     name:    '@'
-    content: 'ns4.example.com. root4.example.com. 2000010400 10804 3604 604804 7204'
+    content: 'ns4.example.com. root4.example.com. 0 10804 3604 604804 7204'
 
 dom4_ns:
     domain:  dom4
@@ -133,7 +133,7 @@ dom5_soa:
     domain:  dom5
     type:    'SOA'
     name:    '@'
-    content: 'ns5.example.com. root5.example.com. 2000010500 10805 3605 604805 7205'
+    content: 'ns5.example.com. root5.example.com. 0 10805 3605 604805 7205'
 
 dom5_ns:
     domain:  dom5
@@ -147,7 +147,7 @@ rev1_a_soa:
     domain:  rev1
     type:    'SOA'
     name:    '@'
-    content: 'ns1.example.com. root1.example.com. 2000010100 10801 3601 604801 7201'
+    content: 'ns1.example.com. root1.example.com. 0 10801 3601 604801 7201'
 
 rev1_ns:
     domain:  rev1
@@ -185,7 +185,7 @@ rev2_a_soa:
     domain:  rev2
     type:    'SOA'
     name:    '@'
-    content: 'ns2.example.com. root2.example.com. 2000010100 10802 3602 604802 7202'
+    content: 'ns2.example.com. root2.example.com. 0 10802 3602 604802 7202'
 
 rev2_ns:
     domain:  rev2
