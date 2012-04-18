@@ -1,4 +1,4 @@
-require File.expand_path('../../config/environment', __FILE__)
+require File.expand_path('../../../config/environment', __FILE__)
 
 module GloboDns
 class Importer
@@ -29,9 +29,11 @@ class Importer
             end
         end
 
+        set_timestamps
+
         unless options[:use_fqdn] == false
             set_fqdn
-            strip_domain  unless options[:strip_domain_name] == false
+            strip_domain_name unless options[:strip_domain_name] == false
             set_at_symbol unless options[:set_at_symbol]     == false
         end
 
@@ -41,6 +43,12 @@ class Importer
     end
 
     private
+
+    def set_timestamps
+        now = Time.now
+        Domain.update_all('created_at' => now, 'updated_at' => now)
+        Record.update_all('created_at' => now, 'updated_at' => now)
+    end
 
     def set_fqdn
         Record.joins(:domain).update_all(["#{Record.table_name}.name = CONCAT(#{Record.table_name}.name, '.')"], ["(SUBSTRING(#{Record.table_name}.name, - LENGTH(#{Domain.table_name}.name)) = #{Domain.table_name}.name) AND (SUBSTRING(#{Record.table_name}.name, -1) <> '.') AND (SUBSTRING(#{Domain.table_name}.name, -1) <> '.')"])
