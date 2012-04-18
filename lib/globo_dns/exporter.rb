@@ -16,17 +16,23 @@ class Exporter
 
         # get last commit timestamp and the export/current timestamp
         Dir.chdir(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR))
-        @last_commit_date = Time.at(exec('git last commit date', Binaries::GIT, 'log', '-1', '--format="%ct"').to_i)
+        @last_commit_date = Time.at(exec('git last commit date', Binaries::GIT, 'log', '-1', '--format=%ct').to_i)
         @export_timestamp = Time.now
 
         tmp_dir = Dir.mktmpdir
         @logger.debug "[GloboDns::exporter] tmp dir: #{tmp_dir}" if @options[:keep_tmp_dir] == true
+        File.chmod(02770, tmp_dir)
+        FileUtils.chown(nil, BIND_GROUP, tmp_dir)
+        File.umask(0007)
+
 
         # FileUtils.cp_r does not preserve directory timestamps; use 'cp -a' instead
         # FileUtils.cp_r(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR, '.'), tmp_dir, :preserve => true)
-        exec('cp -a -p', 'cp', '-a', '-p', File.join(BIND_CHROOT_DIR, '.'), tmp_dir)
+        # exec('rsync chroot', Binaries::SUDO, '-u', BIND_USER, 'rsync', '-a', '--exclude', '.git/', File.join(BIND_CHROOT_DIR, '.'), tmp_dir)
+        # top_level_dir = BIND_CONFIG_DIR.sub(/(#{File::SEPARATOR}.*?)#{File::SEPARATOR}.*/, '\1/') 
+        exec('rsync chroot', 'rsync', '-v', '-a', '--exclude', 'session.key', '--exclude', '.git/', File.join(BIND_CHROOT_DIR, '.'), tmp_dir)
+
         tmp_named_dir = File.join(tmp_dir, BIND_CONFIG_DIR)
-        puts "tmp named dir: #{tmp_named_dir}"
 
         # main configuration file
         export_named_conf(named_conf_content, tmp_named_dir) if named_conf_content.present?
@@ -57,7 +63,7 @@ class Exporter
         # test the changes by parsing the git commit log
         test_changes if @options[:test_changes]
     ensure
-        FileUtils.remove_entry_secure tmp_dir unless tmp_dir.nil? || @options[:keep_tmp_dir] == true
+        # FileUtils.remove_entry_secure tmp_dir unless tmp_dir.nil? || @options[:keep_tmp_dir] == true
         Domain.connection.execute('UNLOCK TABLES') unless (@options[:lock_tables] == false)
     end
     
@@ -111,8 +117,7 @@ class Exporter
         return if domain.slave?
 
         zone_file_name = File.join(tmp_named_dir, domain.zonefile_path)
-        if domain.records.updated_since(@last_commit_date).exists?
-            @logger.info "[GloboDns::exporter] generating file \"#{zone_file_name}\""
+        if domain.updated_since?(@last_commit_date) || domain.records.updated_since(@last_commit_date).exists?
             domain.to_zonefile(zone_file_name)
         end
         File.utime(@export_timestamp, @export_timestamp, zone_file_name)
@@ -128,32 +133,34 @@ class Exporter
     end
 
     def run_checkconf(tmp_dir)
-        exec('named-checkconf', Binaries::SUDO, Binaries::CHECKCONF, '-z', '-t', tmp_dir, BIND_CONFIG_FILE)
+        # exec('named-checkconf', Binaries::SUDO, Binaries::CHECKCONF, '-z', '-t', tmp_dir, BIND_CONFIG_FILE)
+        exec_as_root('named-checkconf', Binaries::CHECKCONF, '-z', '-t', tmp_dir, BIND_CONFIG_FILE)
     end
 
     def sync_and_commit(tmp_named_dir)
         #--- sync to Bind9's data dir
-        rsync_output = exec('rsync', Binaries::RSYNC,
-                                     '--checksum',
-                                     '--archive',
-                                     '--delete',
-                                     '--verbose',
-                                     # '--omit-dir-times',
-                                     '--no-group',
-                                     '--no-perms',
-                                     "--include=#{NAMED_CONF_FILE}",
-                                     "--include=#{VIEWS_FILE}",
-                                     "--include=#{ZONES_FILE}",
-                                     "--include=#{SLAVES_FILE}",
-                                     "--include=#{REVERSE_FILE}",
-                                     "--include=#{SLAVES_DIR}/",
-                                     "--include=#{ZONES_DIR}/",
-                                     "--include=#{ZONES_DIR}/*",
-                                     "--include=#{REVERSE_DIR}/",
-                                     "--include=#{REVERSE_DIR}/*",
-                                     '--exclude=*',
-                                     File.join(tmp_named_dir, ''),
-                                     File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR, ''))
+        rsync_output = exec_as_bind('rsync',
+                                    Binaries::RSYNC,
+                                    '--checksum',
+                                    '--archive',
+                                    '--delete',
+                                    '--verbose',
+                                    # '--omit-dir-times',
+                                    '--no-group',
+                                    '--no-perms',
+                                    "--include=#{NAMED_CONF_FILE}",
+                                    "--include=#{VIEWS_FILE}",
+                                    "--include=#{ZONES_FILE}",
+                                    "--include=#{SLAVES_FILE}",
+                                    "--include=#{REVERSE_FILE}",
+                                    "--include=#{SLAVES_DIR}/",
+                                    "--include=#{ZONES_DIR}/",
+                                    "--include=#{ZONES_DIR}/*",
+                                    "--include=#{REVERSE_DIR}/",
+                                    "--include=#{REVERSE_DIR}/*",
+                                    '--exclude=*',
+                                    File.join(tmp_named_dir, ''),
+                                    File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR, ''))
         @logger.debug "[GloboDns::Exporter][DEBUG] rsync:\n#{rsync_output}"
 
         #--- commit changes to the git repository
@@ -164,11 +171,11 @@ class Exporter
         @logger.info "[GloboDns::Exporter][INFO] git repository ORIG_HEAD: #{orig_head}"
 
         begin
-            exec('git add', Binaries::GIT, 'add', '-A')
+            exec_as_bind('git add', Binaries::GIT, 'add', '-A')
 
             git_status_output = exec('git commit', Binaries::GIT, 'status')
             unless git_status_output =~ /nothing to commit \(working directory clean\)/
-                commit_output = exec('git commit', Binaries::GIT, 'commit', '-m', '"[GloboDns::exporter]"')
+                commit_output = exec_as_bind('git commit', Binaries::GIT, 'commit', '-m', '"[GloboDns::exporter]"')
                 @logger.info "[GloboDns::Exporter][INFO] changes committed:\n#{commit_output}"
 
                 # setup file handle to read and report error messages from bind's 'error log'
@@ -191,13 +198,13 @@ class Exporter
                 test_changes if @options[:test_changes] && @options[:abort_on_test_failure]
             end
         rescue Exception => e
-            @logger.error e.to_s + e.backtrace.join("\n")
-            STDERR.puts   e, e.backtrace
-            if @options[:reset_repository_on_failure]
-                exec('git reset', Binaries::GIT,  'reset', '--hard', orig_head) # try to rollback changes
-                reload_bind_conf
+            @logger.error(e.to_s + e.backtrace.join("\n"))
+            unless @options[:reset_repository_on_failure] == false
+                @logger.info('[GloboDns::Exporter][INFO] resetting git repository')
+                exec_as_bind('git reset', Binaries::GIT,  'reset', '--hard', orig_head) # try to rollback changes
+                reload_bind_conf rescue nil
             end
-            exit 1
+            raise e
         end
     end
 

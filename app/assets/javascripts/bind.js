@@ -9,14 +9,17 @@ $(document).ready(function() {
 		$('textarea#named_conf').val(data);
 		return false;
 	}).live('ajax:error', function (evt, xhr, statusStr, error) {
-		alert("[ERROR] export failed");
+		alert("[ERROR] reload failed");
 	});
 
 	$('.bind9-export-form').live('ajax:success', function (evt, data, statusStr, xhr) {
-		$('.export-output pre').remove()
-		$('.export-output').append(data)
+		$('.export-output').html(data)
 		$('.export-output').show();
 	}).live('ajax:error', function (evt, xhr, statusStr, error) {
-		alert("[ERROR] export failed");
+		if (xhr.status == 422) { // :unprocessable_entity
+			$('.export-output').html(xhr.responseText)
+			$('.export-output').show();
+		} else
+			alert("[ERROR] export failed");
 	});
 });

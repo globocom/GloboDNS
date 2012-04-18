@@ -84,6 +84,10 @@ class Domain < ActiveRecord::Base
         self.name.end_with?('.in-addr.arpa')
     end
 
+    def updated_since?(timestamp)
+        self.updated_at > timestamp
+    end
+
     # return the records, excluding the SOA record
     def records_without_soa
         records.includes(:domain).where('type != ?', 'SOA')

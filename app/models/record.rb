@@ -25,6 +25,7 @@ class Record < ActiveRecord::Base
     # before_validation :inherit_attributes_from_domain
     # before_save     :update_change_date
     # after_save      :update_soa_serial
+    after_destroy :update_domain_timestamp
 
     scope :sorted,        order('name ASC')
     scope :without_soa,   where('type != ?', 'SOA')
@@ -160,6 +161,10 @@ class Record < ActiveRecord::Base
     end
 
     private
+
+    def update_domain_timestamp
+        self.domain.touch
+    end
 
     # append the domain name to the +name+ field if missing
     # def append_domain_name!

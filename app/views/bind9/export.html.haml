@@ -1,1 +1,3 @@
+%div.flash-notice{:class => (response.status == Rack::Utils::status_code(:ok) ? '' : 'hidden') }= t(:message_export_successful)
+%div.flash-error{:class  => (response.status != Rack::Utils::status_code(:ok) ? '' : 'hidden') }= t(:message_export_failure)
 %pre~ @output

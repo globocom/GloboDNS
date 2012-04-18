@@ -8,6 +8,7 @@
 //= require domains
 //= require domain_templates
 //= require users
+//= require bind
 //= require_self
 
 $(document).ready(function() {

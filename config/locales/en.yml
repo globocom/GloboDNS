@@ -508,6 +508,8 @@ en:
   desc_export_output: 'Export output:'
   title_bind_test: Test
   desc_bind_test: Test the latest exported changes
+  message_export_successful: Export successful
+  message_export_failure: Export failed
 
 
 ### Controllers

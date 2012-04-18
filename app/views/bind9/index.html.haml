@@ -5,10 +5,9 @@
     %div.actions
       = button_tag(t(:generic_reload),   :type => 'reset', :class => 'reload-bind-config-button ui-icon-refresh', 'data-method' => :get, 'data-remote' => true, :href => bind9_config_path)
       = button_tag(t(:generic_export),   :class => 'export-bind-button ui-icon-download-alt')
-      = button_tag(t(:label_export_all), :class => 'export-all-bind-button ui-icon-download-alt')
+      / button_tag(t(:label_export_all), :class => 'export-all-bind-button ui-icon-download-alt')
 
 %div.export-output.hidden
-  %h2= t(:desc_export_output)
 
 %h1= t(:title_bind_test)
 %div.bind-test

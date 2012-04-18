@@ -235,6 +235,13 @@ $(document).ready(function() {
 		return false;
 	});
 
+	$('#new-record-form input').live('keypress', function (evt) {
+		if (evt.which === 13) {
+			$('.create-record-button').click();
+			return false;
+		}
+	});
+
 	$('.cancel-new-record-button').live('click', function () {
 		$('.new-record-button').show();
 		$('.new-record-form-container').hide();

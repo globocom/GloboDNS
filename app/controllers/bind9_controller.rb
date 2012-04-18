@@ -18,9 +18,22 @@ class Bind9Controller < ApplicationController
     end
 
     def export
-        GloboDns::Exporter.new.export_all(params[:named_conf], :logger => Logger.new(sio = StringIO.new('', 'w')), :test_changes => false)
-        respond_with(@output = sio.string) do |format|
-            format.html { render :layout => !request.xhr? }
+        begin
+            GloboDns::Exporter.new.export_all(params[:named_conf], :logger => Logger.new(sio = StringIO.new('', 'w')), :test_changes => false)
+            @output = sio.string
+            status = :ok
+        rescue Exception => e
+            @output = e.to_s
+            logger.info "[ERROR] export failed: #{e}\n#{sio.string}"
+            logger.info "backtrace:\n#{e.backtrace.join("\n")}"
+            flash[:error] = true
+            status = :unprocessable_entity
+        end
+
+        respond_to do |format|
+            format.html { render :status => status, :layout => false } if request.xhr?
+            format.json { render :status => status,
+                                 :json   => { ((status == :ok) ? 'output' : 'error') => @output } }
         end
     end
 

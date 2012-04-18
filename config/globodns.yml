@@ -1,5 +1,6 @@
 development: &devconf
     bind_user:         'bind'
+    bind_group:        'bind'
     # bind_host:       'localhost'
     # bind_port:       '53'
     bind_config_file:  '/etc/named.conf'
@@ -15,6 +16,7 @@ development: &devconf
     zones_file:        'zones.conf'
     reverse_dir:       'reverse'
     reverse_file:      'reverse.conf'
+    slaves_dir:        'slaves'
     slaves_file:       'slaves.conf'
     views_file:        'views.conf'
 

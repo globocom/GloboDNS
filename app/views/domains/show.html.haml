@@ -39,12 +39,12 @@
 
 - unless @domain.slave?
   #domain-records
+    %h1= t(:title_records)
     #records-search-bar
       = form_tag(domain_records_path(@domain), :remote => true, :method => :get, :id => 'records-search-form') do
         = text_field_tag :query, ''
         %span.search-icon
-
-    %h1= t(:title_records)
+    %div.clearer
     = render :partial => 'records/list', :object => @records, :as => :records
 
     = button_tag t(:label_add_record), :class => 'new-record-button ui-icon-plus'
