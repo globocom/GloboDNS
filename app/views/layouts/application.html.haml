@@ -15,7 +15,7 @@
         - if current_user
           #search-bar
             = form_tag(domains_path, { :method => :get }) do
-              = text_field_tag :query, ''
+              = text_field_tag :query, params[:query] || ''
               %span.search-icon
         %ul
           %li= link_to((t :layout_menu_home), root_url)

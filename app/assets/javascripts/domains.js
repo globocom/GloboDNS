@@ -254,4 +254,15 @@ $(document).ready(function() {
 	});
 	$('#new-record-form select#record_type').change();
 
+	// ---------------- Reverse checkbox -------------------
+	$('#show-reverse-domains-checkbox').live('change', function () {
+		if (console) console.log("checkbox changed: " + $(this).attr("checked"));
+		$(this).data('params', {reverse: $(this).attr('checked') ? true : false });
+		$.rails.handleRemote($(this));
+		return false;
+	}).live('ajax:success', function (evt, data, statusStr, xhr) {
+		$('.domains-table-container').replaceWith(data);
+	}).live('ajax:error', function () {
+		alert("[ERROR] unable to retrieve domains");
+	});
 });

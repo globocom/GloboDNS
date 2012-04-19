@@ -325,6 +325,48 @@ table#domains-table td {
 table#domains-table tr.even {
     background-color: #f7f7f7;
 }
+.domains-selector-buttons {
+	float: right;
+    margin: -1em 0 2em 0;
+}
+.domains-selector-buttons input[type="checkbox"] {
+	visibility: hidden;
+}
+.domains-selector-buttons label {
+	cursor: pointer;
+	display: inline-block;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+    height: 2.5em;
+    padding: .3em .55em .2em .65em;
+    font-weight: bold;
+    font-size: 10pt;
+    border-top:    1px solid #ccc;
+    border-left:   1px solid #ccc;
+    border-bottom: 1px solid #aaa;
+    border-right:  1px solid #aaa;
+    background: -moz-linear-gradient(top, #f7f7f7, #e7e7e7);
+    background: -webkit-linear-gradient(top, #f7f7f7, #e7e7e7);
+    color: #444;
+	text-shadow: 1px 1px 1px white;
+}
+.domains-selector-buttons label[class^="ui-icon-"]:before {
+	padding-right: 0;
+}
+.domains-selector-buttons input[type="checkbox"]:checked ~ label {
+    border-top:    1px solid #888;
+    border-left:   1px solid #888;
+    border-bottom: 1px solid #ccc;
+    border-right:  1px solid #ccc;
+    background: -moz-linear-gradient(top, #d7d7d7, #e7e7e7);
+    background: -webkit-linear-gradient(top, #d7d7d7, #e7e7e7);
+}
 
 table#show-domain td, table#edit-domain td, table#new-domain td {
     height: 2em;

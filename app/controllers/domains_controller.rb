@@ -3,7 +3,9 @@ class DomainsController < ApplicationController
     responders :flash
 
     def index
-        @domains = Domain.scoped
+        session[:show_reverse_domains] = (params[:reverse] == 'true') if params.has_key?(:reverse)
+        logger.info "show reverse domains: #{session[:show_reverse_domains]}"
+        @domains = session[:show_reverse_domains] ? Domain.scoped : Domain.nonreverse
         @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
         @domains = @domains.matching(params[:query]) if params[:query].present?
         respond_with(@domains) do |format|
