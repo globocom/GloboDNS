@@ -30,7 +30,7 @@
           %td= f.text_field :ttl
           %td= help_icon('help-domain-ttl')
         %tr#domain-templates
-          %td= f.label :domain_template, t(:label_domain_domain_template)
+          %td= f.label :domain_template_id, t(:label_domain_domain_template)
           %td
             - if DomainTemplate.with_soa.count > 0
               = collection_select(:domain, :domain_template_id, DomainTemplate.with_soa.all, :id, :name, :include_blank => true)
@@ -40,35 +40,35 @@
                 = t(:label_domain_for_eazy_management)
           %td &nbsp;
       %tbody#no-template-input
-        %tr
+        %tr.slave.master
           %td= f.label :type, t(:label_domain_type)
           %td= f.select :type, ['MASTER','SLAVE']
           %td= help_icon('help-type')
-        %tr#master-address
+        %tr#master-address.slave
           %td= f.label :master, t(:label_domain_master_address)
           %td= f.text_field :master
           %td= help_icon('help-master')
-        %tr
+        %tr.master
           %td= f.label :primary_ns, t(:label_domain_primary_name_server)
           %td= f.text_field :primary_ns
           %td= help_icon('help-primary-ns')
-        %tr
+        %tr.master
           %td= f.label :contact, t(:label_domain_contact)
           %td= f.text_field :contact
           %td= help_icon('help-contact')
-        %tr
+        %tr.master
           %td= f.label :refresh, t(:label_domain_refresh)
           %td= f.text_field :refresh
           %td= help_icon('help-refresh')
-        %tr
+        %tr.master
           %td= f.label :retry, t(:label_domain_retry)
           %td= f.text_field :retry
           %td= help_icon('help-retry')
-        %tr
+        %tr.master
           %td= f.label :expire, t(:label_domain_expire)
           %td= f.text_field :expire
           %td= help_icon('help-expire')
-        %tr
+        %tr.master
           %td= f.label :minimum, t(:label_domain_minimum)
           %td= f.text_field :minimum
           %td= help_icon('help-minimum')

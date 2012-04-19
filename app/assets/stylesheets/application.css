@@ -292,6 +292,10 @@ input[type="submit"]:hover, input[type="button"]:hover, button:hover {
     background: -moz-linear-gradient(top, #ffffff, #efefef);
     background: -webkit-linear-gradient(top, #ffffff, #efefef);
 }
+input[type="submit"]::-moz-focus-inner, input[type="button"]:focus {
+	border: 0;
+	outline: none;
+}
 textarea#named_conf {
     width: 99%;
     height: 25em;
@@ -343,7 +347,6 @@ table#domains-table tr.even {
 	user-select: none;
     -moz-border-radius: 2px;
     -webkit-border-radius: 2px;
-    height: 2.5em;
     padding: .3em .55em .2em .65em;
     font-weight: bold;
     font-size: 10pt;

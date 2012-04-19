@@ -51,19 +51,24 @@ $(document).ready(function() {
 		$('table#domains-table tr:nth-child(odd) td').addClass("odd").removeClass("even");
 	}
 
-	$('table#new-domain select#domain_template_id').live('change', function (evt) {
+	$('table#new-domain select#domain_domain_template_id').live('change', function (evt) {
 		if ($(this).val() == '')
 			$('tbody#no-template-input').show();
 		else
 			$('tbody#no-template-input').hide();
+		$(this).blur();
 	});
-	$('table#new-domain select#domain_template_id').change();
+	$('table#new-domain select#domain_domain_template_id').change();
 
 	$('table#new-domain select#domain_type').live('change', function (evt) {
-		if ($(this).val() == 'MASTER')
-			$('table#new-domain input#domain_master').closest('tr').hide();
-		else if ($(this).val() == 'SLAVE')
-			$('table#new-domain input#domain_master').closest('tr').show();
+		if ($(this).val() == 'MASTER') {
+			$('table#new-domain tr.slave').hide();
+			$('table#new-domain tr.master').show();
+		} else if ($(this).val() == 'SLAVE') {
+			$('table#new-domain tr.master').hide();
+			$('table#new-domain tr.slave').show();
+		}
+		$(this).blur();
 	});
 	$('table#new-domain select#domain_type').change();
 
@@ -251,6 +256,7 @@ $(document).ready(function() {
 	$('#new-record-form select#record_type').live('change', function () {
 		var val = $(this).val();
 		$('#new-record-form input#record_prio').closest('tr').toggle((val == 'MX' || val == 'SRV'));
+		$(this).blur();
 	});
 	$('#new-record-form select#record_type').change();
 

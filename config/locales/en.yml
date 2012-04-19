@@ -290,6 +290,7 @@ en:
   title_new_domain: "New Domain"
   label_domain_more_soa_info: "More information on SOA records"
   link_to_soa_help: "ch8/soa.html"
+  label_domain_domain_template: Template
 
 # Macros_steps _macro_step
   confirm_macro_step_delete: "Are you sure you want to remove this step?"
