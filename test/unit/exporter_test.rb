@@ -12,18 +12,16 @@ class ExporterTest < ActiveSupport::TestCase
 
     test 'export' do
         create_mock_repository
-        def Time.now; Time.local(2012, 3, 1, 12, 0, 0); end # set fake time before export
+        set_now Time.local(2012, 3, 1, 12, 0, 0)
         export
         compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'initial'))
 
         puts "------------------------------------------------------------"
-        puts "------------------------------------------------------------"
-        puts "------------------------------------------------------------"
-        puts "------------------------------------------------------------"
 
         change_named_conf
+        set_now Time.local(2012, 3, 1, 17, 0, 0)
         change_db
-        def Time.now; Time.local(2012, 3, 1, 18, 0, 0); end
+        set_now Time.local(2012, 3, 1, 18, 0, 0)
         export
         compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'final'))
     end
@@ -33,9 +31,7 @@ class ExporterTest < ActiveSupport::TestCase
     def export
         begin
             spawn_named
-            puts "[INFO] calling export_all"
             @exporter.export_all(mock_named_conf_content, @options.merge(:set_timestamp => Time.now))
-            puts "[INFO] finished export_all"
         rescue Exception => e
             STDERR.puts "[ERROR] #{e}", e.backtrace.join("\n")
             STDERR.puts "[ERROR] named output:", @named_output.read if @named_output
@@ -57,7 +53,6 @@ class ExporterTest < ActiveSupport::TestCase
     def spawn_named
         @named_output, @named_input = IO::pipe
         @named_pid = spawn(Binaries::SUDO, Binaries::NAMED, '-g', '-p', BIND_PORT, '-f', '-c', BIND_CONFIG_FILE, '-t', BIND_CHROOT_DIR, '-u', BIND_USER, [:out, :err] => @named_input)
-        puts "named pid: #{@named_pid}"
     end
 
     def kill_named
@@ -155,5 +150,12 @@ class ExporterTest < ActiveSupport::TestCase
         assert new_reverse.ptr_records.new(:name => '2', :content => 'new-mail.new-domain8.example.com.').save
         assert new_reverse.ptr_records.new(:name => '3', :content => 'new-host1.new-domain8.example.com.').save
         assert new_reverse.ptr_records.new(:name => '4', :content => 'new-host2.new-domain8.example.com.').save
+    end
+
+    def set_now(now)
+        Time.instance_variable_set('@__now', now)
+        def Time.now
+            Time.instance_variable_get('@__now')
+        end
     end
 end

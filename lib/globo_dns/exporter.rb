@@ -16,8 +16,10 @@ class Exporter
 
         # get last commit timestamp and the export/current timestamp
         Dir.chdir(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR))
-        @last_commit_date = Time.at(exec('git last commit date', Binaries::GIT, 'log', '-1', '--format=%ct').to_i)
+        @last_commit_date = Time.at(exec('git last commit date', Binaries::GIT, 'log', '-1', '--format=%at').to_i)
         @export_timestamp = Time.now
+        @touch_timestamp  = @export_timestamp + 1 # we add 1 second to avoid minor subsecond discrepancies
+                                                  # when comparing each file's mtime with the @export_times
 
         tmp_dir = Dir.mktmpdir
         @logger.debug "[GloboDns::exporter] tmp dir: #{tmp_dir}" if @options[:keep_tmp_dir] == true
@@ -83,7 +85,7 @@ class Exporter
             file.puts
             file.puts CONFIG_END_TAG
         end
-        File.utime(@export_timestamp, @export_timestamp, named_conf_file)
+        File.utime(@touch_timestamp, @touch_timestamp, named_conf_file)
     end
 
     def export_views(tmp_named_dir)
@@ -92,7 +94,7 @@ class Exporter
         File.open(abs_views_file, 'w') do |io|
         end
 
-        File.utime(@export_timestamp, @export_timestamp, abs_views_file)
+        File.utime(@touch_timestamp, @touch_timestamp, abs_views_file)
     end
 
     def export_domain_group(tmp_named_dir, file_name, dir_name, domains)
@@ -107,8 +109,8 @@ class Exporter
             end
         end
 
-        File.utime(@export_timestamp, @export_timestamp, abs_dir_name)
-        File.utime(@export_timestamp, @export_timestamp, abs_file_name)
+        File.utime(@touch_timestamp, @touch_timestamp, abs_dir_name)
+        File.utime(@touch_timestamp, @touch_timestamp, abs_file_name)
     end
 
     def export_domain(domain, tmp_named_dir, zone_conf_file)
@@ -118,17 +120,18 @@ class Exporter
 
         zone_file_name = File.join(tmp_named_dir, domain.zonefile_path)
         if domain.updated_since?(@last_commit_date) || domain.records.updated_since(@last_commit_date).exists?
+            @logger.info "[INFO] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated?: #{domain.records.updated_since(@last_commit_date).first})"
             domain.to_zonefile(zone_file_name)
         else
             @logger.info "[INFO] skipping domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date})"
         end
-        File.utime(@export_timestamp, @export_timestamp, zone_file_name)
+        File.utime(@touch_timestamp, @touch_timestamp, zone_file_name)
     end
 
-    def remove_untouched_zonefiles(dir, timestamp)
+    def remove_untouched_zonefiles(dir, export_timestamp)
         Dir.glob(File.join(dir, 'db.*')).each do |file|
-            if File.mtime(file) < timestamp
-                @logger.info "[INFO] removing untouched zonefile \"#{file}\""
+            if File.mtime(file) < export_timestamp
+                @logger.info "[INFO] removing untouched zonefile \"#{file}\" (mtime (#{File.mtime(file)}) < export ts (#{export_timestamp}))"
                 FileUtils.rm(file)
             end
         end
@@ -181,7 +184,7 @@ class Exporter
             return if  git_status_output =~ /nothing to commit \(working directory clean\)/
 
             #--- commit the changes
-            commit_output = exec_as_bind('git commit', Binaries::GIT, 'commit', '-m', '"[GloboDns::exporter]"')
+            commit_output = exec_as_bind('git commit', Binaries::GIT, 'commit', "--date=#{@export_timestamp}", '-m', '"[GloboDns::exporter]"')
             @logger.info "[GloboDns::Exporter][INFO] changes committed:\n#{commit_output}"
 
             # setup file handle to read and report error messages from bind's 'error log'
