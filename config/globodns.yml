@@ -36,6 +36,7 @@ development: &devconf
 
 test:
     bind_user:         <%= ENV['USER'] %>
+    bind_group:        'bind'
     bind_host:         'localhost'
     bind_port:         '5353'
     bind_config_file:  '/etc/named.conf'
