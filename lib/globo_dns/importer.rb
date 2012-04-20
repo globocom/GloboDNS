@@ -30,6 +30,7 @@ class Importer
         end
 
         set_timestamps
+        set_type
 
         unless options[:use_fqdn] == false
             set_fqdn
@@ -48,6 +49,10 @@ class Importer
         now = Time.now
         Domain.update_all('created_at' => now, 'updated_at' => now)
         Record.update_all('created_at' => now, 'updated_at' => now)
+    end
+
+    def set_type
+        Domain.update_all({'type' => Domain::TYPE_MASTER}, 'type' => 'NATIVE')
     end
 
     def set_fqdn
