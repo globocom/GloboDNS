@@ -107,9 +107,19 @@ class Exporter
 
         File.exists?(abs_dir_name) or FileUtils.mkdir(abs_dir_name)
 
-        File.open(abs_file_name, 'w') do |io|
+        File.open(abs_file_name, 'w') do |file|
+            # dump zonefile of updated domains
+            domains.updated_since(@last_commit_date).each do |domain|
+                @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated?: #{domain.records.updated_since(@last_commit_date).first})"
+                domain.to_zonefile(File.join(tmp_named_dir, domain.zonefile_path)) unless domain.slave?
+            end
+
+            # write entries to index file (<domain_type>.conf) and update 'mtime'
+            # of *all* non-slave domains, so that we may use the mtime as a criteria
+            # to identify the zonefiles that have been removed from BIND's config
             domains.each do |domain|
-                export_domain(domain, tmp_named_dir, io)
+                file.puts domain.to_bind9_conf
+                File.utime(@touch_timestamp, @touch_timestamp, File.join(tmp_named_dir, domain.zonefile_path)) unless domain.slave?
             end
         end
 
@@ -117,25 +127,10 @@ class Exporter
         File.utime(@touch_timestamp, @touch_timestamp, abs_file_name)
     end
 
-    def export_domain(domain, tmp_named_dir, zone_conf_file)
-        zone_conf_file.puts domain.to_bind9_conf
-
-        return if domain.slave?
-
-        zone_file_name = File.join(tmp_named_dir, domain.zonefile_path)
-        if domain.updated_since?(@last_commit_date) || domain.records.updated_since(@last_commit_date).exists?
-            @logger.info "[INFO] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated?: #{domain.records.updated_since(@last_commit_date).first})"
-            domain.to_zonefile(zone_file_name)
-        else
-            @logger.info "[INFO] skipping domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date})"
-        end
-        File.utime(@touch_timestamp, @touch_timestamp, zone_file_name)
-    end
-
     def remove_untouched_zonefiles(dir, export_timestamp)
         Dir.glob(File.join(dir, 'db.*')).each do |file|
             if File.mtime(file) < export_timestamp
-                @logger.info "[INFO] removing untouched zonefile \"#{file}\" (mtime (#{File.mtime(file)}) < export ts (#{export_timestamp}))"
+                @logger.debug "[DEBUG] removing untouched zonefile \"#{file}\" (mtime (#{File.mtime(file)}) < export ts (#{export_timestamp}))"
                 FileUtils.rm(file)
             end
         end

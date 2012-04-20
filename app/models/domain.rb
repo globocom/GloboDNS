@@ -64,13 +64,13 @@ class Domain < ActiveRecord::Base
     #attr_accessible :type
 
     # scopes
-    # scope :user,        lambda { |user| user.admin? ? nil : where(:user_id => user.id) }
-    scope :master,        where("#{self.table_name}.type != ?", 'SLAVE').where("#{self.table_name}.name NOT LIKE ?", '%in-addr.arpa')
-    scope :slave,         where("#{self.table_name}.type  = ?", 'SLAVE')
-    scope :reverse,       where("#{self.table_name}.type != ?", 'SLAVE').where("#{self.table_name}.name LIKE ?",     '%in-addr.arpa')
-    scope :nonreverse,    where("#{self.table_name}.name NOT LIKE ?",     '%in-addr.arpa')
-    scope :matching,      lambda { |query|     where("#{self.table_name}.name LIKE ?", "%#{query}%") }
-    scope :updated_since, lambda { |timestamp| where(:id => Record.updated_since(timestamp).select(:domain_id).uniq) }
+    scope :master,        where("#{self.table_name}.type != ?", TYPE_SLAVE).where("#{self.table_name}.name NOT LIKE ?", '%in-addr.arpa')
+    scope :slave,         where("#{self.table_name}.type  = ?", TYPE_SLAVE)
+    scope :nonslave,      where("#{self.table_name}.type != ?", TYPE_SLAVE)
+    scope :reverse,       where("#{self.table_name}.type != ?", TYPE_SLAVE).where("#{self.table_name}.name LIKE ?", '%in-addr.arpa')
+    scope :nonreverse,    where("#{self.table_name}.name NOT LIKE ?", '%in-addr.arpa')
+    scope :matching,      lambda { |query| where("#{self.table_name}.name LIKE ?", "%#{query}%") }
+    scope :updated_since, lambda { |timestamp| Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }
     default_scope         order("#{self.table_name}.name")
 
     def soa_record
