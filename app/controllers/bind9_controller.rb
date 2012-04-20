@@ -14,9 +14,6 @@ class Bind9Controller < ApplicationController
         end
     end
 
-    def update_config
-    end
-
     def export
         begin
             GloboDns::Exporter.new.export_all(params[:named_conf], :logger => Logger.new(sio = StringIO.new('', 'w')), :test_changes => false)
@@ -24,9 +21,8 @@ class Bind9Controller < ApplicationController
             status = :ok
         rescue Exception => e
             @output = e.to_s
-            logger.info "[ERROR] export failed: #{e}\n#{sio.string}"
-            logger.info "backtrace:\n#{e.backtrace.join("\n")}"
-            flash[:error] = true
+            logger.error "[ERROR] export failed: #{e}\n#{sio ? sio.string : ''}"
+            logger.error "backtrace:\n#{e.backtrace.join("\n")}"
             status = :unprocessable_entity
         end
 
@@ -45,6 +41,6 @@ class Bind9Controller < ApplicationController
     private
 
     def get_current_config
-        @current_config = IO.read(File.join(BIND_CHROOT_DIR, BIND_CONFIG_FILE)).sub(/#{GloboDns::Exporter::CONFIG_START_TAG}.*#{GloboDns::Exporter::CONFIG_END_TAG}\n/m, '')
+        @current_config = IO.read(File.join(BIND_CHROOT_DIR, BIND_CONFIG_FILE)).sub(/\n*#{GloboDns::Exporter::CONFIG_START_TAG}.*#{GloboDns::Exporter::CONFIG_END_TAG}\n*/m, "\n")
     end
 end

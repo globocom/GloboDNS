@@ -12,7 +12,10 @@ $(document).ready(function() {
 		alert("[ERROR] reload failed");
 	});
 
-	$('.bind9-export-form').live('ajax:success', function (evt, data, statusStr, xhr) {
+	$('.bind9-export-form').live('ajax:beforeSend', function (xhr, settings) {
+		$('.export-output').hide();
+		$('.export-output').html();
+	}).live('ajax:success', function (evt, data, statusStr, xhr) {
 		$('.export-output').html(data)
 		$('.export-output').show();
 	}).live('ajax:error', function (evt, xhr, statusStr, error) {

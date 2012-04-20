@@ -72,6 +72,10 @@ class Exporter
     private
 
     def export_named_conf(content, tmp_named_dir)
+        content.gsub!("\r\n", "\n")
+        content.sub!(/\A[\s\n]+/, '')
+        content.sub!(/[\s\n]*\Z/, "\n")
+
         File.open(named_conf_file = File.join(tmp_named_dir, NAMED_CONF_FILE), 'w') do |file|
             file.puts content
             file.puts
