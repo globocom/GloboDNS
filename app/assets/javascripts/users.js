@@ -28,11 +28,12 @@ $(document).ready(function() {
         $('table#users-table tbody').append(data);
         $('.new-user-form-container ul.errors').remove();
         fixUsersTableZebraStriping();
-    }).live('ajax:error', function (evt, xhr, statusStr, error) {
-        if (xhr.status == 422) // :unprocessable_entity
-            $('.new-user-form-container').replaceWith(xhr.responseText);
-        else
-            alert("[ERROR] unable to create User");
+	}).live('ajax:error', function (evt, xhr, statusStr, error) {
+		if (xhr.status == 422) { // :unprocessable_entity
+			$('.new-user-form-container ul.errors').remove();
+			$('.new-user-form-container').prepend(xhr.responseText);
+		} else
+			alert("[ERROR] unable to create Domain");
     });
 
     $('.edit-user-button').live('click', function () {
@@ -44,8 +45,6 @@ $(document).ready(function() {
     });
 
     $('.update-user-button').live('click', function () {
-        if (console) console.log("[LIVE CLICK]");
-
         // copy inputs from phony form to real form
         var form = $(this).closest('tr').prev().prev().find('form.update-user-form');
         $(this).closest('tr').find('input').each(function (idx, input) {

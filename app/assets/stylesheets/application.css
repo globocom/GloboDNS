@@ -188,18 +188,23 @@ ul.errors li {
     background: -webkit-linear-gradient(top, #f7f7f7, #e7e7e7);
     border: 1px solid #ccc;
 }
-.flash-notice, .flash-info {
+.flash-ajax {
+	position: fixed;
+	top: 10px;
+	left: 50%;
+	margin: 0 auto;
+	width: 600px;
+	margin-left: -300px;
+    box-shadow: 0px 0px 4px #888;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+}
+.flash-notice, .flash-info, .flash-ajax-notice, .flash-ajax-info {
     color: #2a2;
 }
-.flash-alert, .flash-error, .flash-warning {
+.flash-alert, .flash-error, .flash-warning, .flash-ajax-error {
     color: #a22;
 }
-
-ul.errors li {
-    padding: .25em 0;
-}
-
-
 .small {
     font-size: 90%;
 }

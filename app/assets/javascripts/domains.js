@@ -36,64 +36,67 @@ $(document).ready(function() {
 	});
 
 	$('.new-domain-form').live('ajax:success', function (evt, data, statusStr, xhr) {
-		$('table#domains-table').append(data);
 		$('.new-domain-form-container ul.errors').remove();
+		$('table#domains-table').append(data);
 		fixDomainsTableZebraStriping();
 	}).live('ajax:error', function (evt, xhr, statusStr, error) {
-		if (xhr.status == 422) // :unprocessable_entity
-			$('.new-domain-form-container').replaceWith(xhr.responseText);
-		else
+		if (xhr.status == 422) { // :unprocessable_entity
+			$('.new-domain-form-container ul.errors').remove();
+			$('.new-domain-form-container').prepend(xhr.responseText);
+		} else
 			alert("[ERROR] unable to create Domain");
 	});
 
 	var fixDomainsTableZebraStriping = function () {
-		$('table#domains-table tr:nth-child(even) td').addClass("even").removeClass("odd");
-		$('table#domains-table tr:nth-child(odd) td').addClass("odd").removeClass("even");
+		$('table#domains-table tr:nth-child(even)').addClass("even").removeClass("odd");
+		$('table#domains-table tr:nth-child(odd)').addClass("odd").removeClass("even");
 	}
 
-	$('table#new-domain select#domain_domain_template_id').live('change', function (evt) {
-		if ($(this).val() == '')
-			$('tbody#no-template-input').show();
-		else
-			$('tbody#no-template-input').hide();
-		$(this).blur();
-	});
-	$('table#new-domain select#domain_domain_template_id').change();
-
-	$('table#new-domain select#domain_type').live('change', function (evt) {
-		if ($(this).val() == 'MASTER') {
-			$('table#new-domain tr.slave').hide();
-			$('table#new-domain tr.master').show();
-		} else if ($(this).val() == 'SLAVE') {
-			$('table#new-domain tr.master').hide();
-			$('table#new-domain tr.slave').show();
+	$('select#domain_domain_template_id').live('change', function (evt) {
+		if ($(this).val() == '') {
+			$(this).closest('tbody').find('tr.template').hide();
+			$(this).closest('tbody').find('tr.notemplate').show();
+		} else {
+			$(this).closest('tbody').find('tr.notemplate').hide();
+			$(this).closest('tbody').find('tr.template').show();
 		}
 		$(this).blur();
 	});
-	$('table#new-domain select#domain_type').change();
 
+	$('select#domain_authority_type').live('change', function (evt) {
+		if ($(this).val() == 'M') {
+			$(this).closest('tbody').find('tr.slave').hide();
+			$(this).closest('tbody').find('tr.master').show();
+		} else if ($(this).val() == 'S') {
+			$(this).closest('tbody').find('tr.master').hide();
+			$(this).closest('tbody').find('tr.slave').show();
+		}
+		$(this).blur();
+	});
+	$('select#domain_authority_type').change();
+	$('select#domain_domain_template_id').change(); // # the template selection has precedence, and thus should be executed lated
 
 
 	// ----------------- domains#show -----------------
 	// ------------------- Domain -------------------
 	$('.edit-domain-button').click(function () {
-		$('#show-domain-container').hide();
-		$('#edit-domain-container').show();
+		$('.show-domain-container').hide();
+		$('.edit-domain-container').show();
 		$(this).hide();
 		return false;
 	});
 
-	$('table#edit-domain select#domain_type').live('change', function (evt) {
-		if ($(this).val() == 'MASTER')
-			$('table#edit-domain input#domain_master').closest('tr').hide();
-		else if ($(this).val() == 'SLAVE')
-			$('table#edit-domain input#domain_master').closest('tr').show();
-	});
-	$('table#edit-domain select#domain_type').change();
+	// $('select#domain_authority_type').live('change', function (evt) {
+	// 	if ($(this).val() == 'MASTER')
+	// 		$('table#edit-domain input#domain_master').closest('tr').hide();
+	// 	else if ($(this).val() == 'SLAVE')
+	// 		$('table#edit-domain input#domain_master').closest('tr').show();
+	// });
+	// $('table#edit-domain select#domain_authority_type').change();
 
 	$('.cancel-update-domain-button').live('click', function () {
-		$('#edit-domain-container').hide();
-		$('#show-domain-container').show();
+		$('.edit-domain-container').hide();
+		$('.show-domain-container').show();
 		$('.edit-domain-button').show();
 		return false;
 	});
@@ -111,28 +114,31 @@ $(document).ready(function() {
 	});
 
 	$('.update-domain-form').live('ajax:success', function (evt, data, statusStr, xhr) {
-		$('#edit-domain-container').remove();
-		$('#show-domain-container').replaceWith(data);
+		$('.edit-domain-container').remove();
+		$('.show-domain-container').replaceWith(data);
 		$('.edit-domain-button').show();
-		$('table#edit-domain select#domain_type').change();
-	}).live('ajax:error', function () {
-		$('.edit-domain-button').show();
-		alert("[ERROR] unable to save Domain");
+		$('table#edit-domain select#domain_authority_type').change();
+	}).live('ajax:error', function (evt, xhr, statusStr, error) {
+		if (xhr.status == 422) { // :unprocessable_entity
+			$('.edit-domain-container ul.errors').remove();
+			$('.edit-domain-container').prepend(xhr.responseText);
+		} else
+			alert("[ERROR] unable to create Domain");
 	});
 
 
 
 	// ------------------- SOA Record -------------------
 	$('.edit-soa-record-button').click(function () {
-		$('#show-soa-container').hide();
-		$('#edit-soa-container').show();
+		$('.show-soa-container').hide();
+		$('.edit-soa-container').show();
 		$(this).hide();
 		return false;
 	});
 
 	$('.cancel-update-soa-record-button').live('click', function () {
-		$('#edit-soa-container').hide();
-		$('#show-soa-container').show();
+		$('.edit-soa-container').hide();
+		$('.show-soa-container').show();
 		$('.edit-soa-record-button').show();
 		return false;
 	});
@@ -150,12 +156,15 @@ $(document).ready(function() {
 	});
 
 	$('.update-soa-record-form').live('ajax:success', function (evt, data, statusStr, xhr) {
-		$('#edit-soa-container').remove();
-		$('#show-soa-container').replaceWith(data);
+		$('.edit-soa-container').remove();
+		$('.show-soa-container').replaceWith(data);
 		$('.edit-soa-record-button').show();
-	}).live('ajax:error', function () {
-		$('.edit-soa-record-button').show();
-		alert("[ERROR] unable to save SOA Record");
+	}).live('ajax:error', function (evt, xhr, statusStr, error) {
+		if (xhr.status == 422) { // :unprocessable_entity
+			$('.edit-soa-container ul.errors').remove();
+			$('.edit-soa-container').prepend(xhr.responseText);
+		} else
+			alert("[ERROR] unable to create Domain");
 	});
 
 	// ------------------- Records table -------------------
@@ -228,10 +237,15 @@ $(document).ready(function() {
 
 	// ---------------- New Record form -------------------
 	$('#new-record-form').live('ajax:success', function (evt, data, statusSTr, xhr) {
+		$('.new-record-form-container ul.errors').remove();
 		$('table#record-table tbody').append(data);
 		fixRecordTableZebraStriping();
-	}).live('ajax:error', function () {
-		alert("[ERROR] unable to create new Record");
+	}).live('ajax:error', function (evt, xhr, statusStr, error) {
+		if (xhr.status == 422) { // :unprocessable_entity
+			$('.new-record-form-container ul.errors').remove();
+			$('.new-record-form-container').prepend(xhr.responseText);
+		} else
+			alert("[ERROR] unable to create Domain");
 	});
 
 	$('.new-record-button').live('click', function () {

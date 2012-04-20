@@ -1,4 +1,4 @@
-%div#show-domain-container{:class => domain.errors.empty? ? '' : 'hidden'}
+%div.show-domain-container{:class => domain.errors.empty? ? '' : 'hidden'}
   %table#show-domain
     %tr
       %td= label_tag :name, t(:label_domain_name)
@@ -10,14 +10,15 @@
       %tr
         %td= label_tag :master, t(:label_domain_master_server)
         %td= domain.master
-    %tr
-      %td= label_tag :ttl, t(:label_domain_ttl)
-      %td= domain.ttl
+    - else
+      %tr
+        %td= label_tag :ttl, t(:label_domain_ttl)
+        %td= domain.ttl
     %tr
       %td= label_tag :notes, t(:label_domain_notes)
       %td= domain.notes
 
-%div#edit-domain-container{:class => domain.errors.empty? ? 'hidden' : ''}
+%div.edit-domain-container{:class => domain.errors.empty? ? 'hidden' : ''}
   = form_for(domain, :remote => true, :html => {:class => 'update-domain-form'}) do |f|
 
     - if domain && domain.errors.any?

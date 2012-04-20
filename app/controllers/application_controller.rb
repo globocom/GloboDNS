@@ -1,19 +1,20 @@
 class ApplicationController < ActionController::Base
-  protect_from_forgery
+    protect_from_forgery
 
-  # All pages require a login...
-  before_filter :authenticate_user!
+    before_filter :authenticate_user!  # all pages require a login
+    after_filter  :flash_headers
 
-  # Stub
-  def current_token
-    nil
-  end
-  helper_method :current_token
+    def flash_headers
+        return unless request.xhr?
 
-  # Stub
-  def token_user?
-    !!current_token
-  end
+        if flash[:error].present?
+            response.headers['x-flash']      = flash[:error]
+            response.headers['x-flash-type'] = 'error'
+        elsif flash[:notice].present?
+            response.headers['x-flash']      = flash[:notice]
+            response.headers['x-flash-type'] = 'notice'
+        end
 
-  helper_method :token_user?
+        flash.discard
+    end
 end

@@ -34,9 +34,10 @@ class UsersController < ApplicationController
     def create
         @user = User.new(params[:user])
         @user.save
+
         respond_with(@user) do |format|
-            format.html { render :partial => @user, :status => :ok } if request.xhr? && @user.valid?
-            format.html { render :partial => 'new', :status => :unprocessable_entity, :object => @user, :as => :user } if request.xhr? && !@user.valid?
+            format.html { render :status  => @user.valid? ? :ok     : :unprocessable_entity,
+                                 :partial => @user.valid? ? @user : 'errors' } if request.xhr?
         end
     end
 
@@ -47,8 +48,9 @@ class UsersController < ApplicationController
         end
         @user = User.find(params[:id])
         @user.update_attributes(params[:user])
+
         respond_with(@user) do |format|
-            format.html { render :status  => @user.valid? ? :ok   : :unprocessable_entity,
+            format.html { render :status  => @user.valid? ? :ok     : :unprocessable_entity,
                                  :partial => @user.valid? ? @user : 'errors' } if request.xhr?
         end
     end

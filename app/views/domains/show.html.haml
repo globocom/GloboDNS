@@ -31,13 +31,13 @@
   = link_to('', domain_path(@domain), :class => 'delete-domain-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :confirm => t(:confirm_domain_delete, :domain => @domain.name))
 = render :partial => 'form', :object => @domain, :as => :domain
 
-#domain-soa
-  %h1
-    = t(:title_soa_record)
-    = link_to('', '#', :class => 'edit-soa-record-button ui-icon-edit', :title => t(:generic_edit))
-  = render :partial => @domain.soa_record
+- if @domain.master?
+  #domain-soa
+    %h1
+      = t(:title_soa_record)
+      = link_to('', '#', :class => 'edit-soa-record-button ui-icon-edit', :title => t(:generic_edit))
+    = render :partial => @domain.soa_record
 
-- unless @domain.slave?
   #domain-records
     %h1= t(:title_records)
     #records-search-bar

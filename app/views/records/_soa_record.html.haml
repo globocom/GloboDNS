@@ -1,4 +1,4 @@
-%div#show-soa-container{:class => soa_record.errors.empty? ? '' : 'hidden' }
+%div.show-soa-container{:class => soa_record.errors.empty? ? '' : 'hidden' }
   %table#show-soa-record
     %tr
       %td= label_tag :primary_ns, t(:label_domain_primary_name_server)
@@ -19,7 +19,7 @@
       %td= label_tag :minimum, t(:label_domain_minimum)
       %td= soa_record.minimum
 
-%div#edit-soa-container{:class => soa_record.errors.empty? ? 'hidden' : '' }
+%div.edit-soa-container{:class => soa_record.errors.empty? ? 'hidden' : '' }
   = form_for(soa_record, :as => 'record', :url => record_path(soa_record), :remote => true, :method => :put, :html => {:class => 'update-soa-record-form'}) do |f|
 
     - if soa_record && soa_record.errors.any?

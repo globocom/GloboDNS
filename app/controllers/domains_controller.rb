@@ -33,23 +33,23 @@ class DomainsController < ApplicationController
     end
 
     def create
-        @domain = Domain.new(params[:domain])
-
         if params[:domain][:domain_template_id].present? || params[:domain][:domain_template_name].present?
             @domain_template   = DomainTemplate.where('id'   => params[:domain][:domain_template_id]).first   if params[:domain][:domain_template_id]
             @domain_template ||= DomainTemplate.where('name' => params[:domain][:domain_template_name]).first if params[:domain][:domain_template_name]
             if @domain_template
-                @domain = @domain_template.build(@domain.name)
+                @domain = @domain_template.build(params[:domain][:name])
             else
                 @domain.errors.add(:domain_template, 'Domain Template not found')
             end
+        else
+            @domain = Domain.new(params[:domain].except(:domain_template_id, :domain_template_name))
         end
 
         @domain.save
 
         respond_with(@domain) do |format|
-            format.html { render :partial => @domain, :status => :ok } if request.xhr? && @domain.valid?
-            format.html { render :partial => 'new',   :status => :unprocessable_entity, :object => @domain, :as => :domain } if request.xhr? && !@domain.valid?
+            format.html { render :status  => @domain.valid? ? :ok     : :unprocessable_entity,
+                                 :partial => @domain.valid? ? @domain : 'errors' } if request.xhr?
         end
     end
 
@@ -57,7 +57,9 @@ class DomainsController < ApplicationController
         @domain = Domain.find(params[:id])
         @domain.update_attributes(params[:domain])
         respond_with(@domain) do |format|
-            format.html { render :partial => 'form', :object => @domain, :as => :domain if request.xhr? }
+            format.html { render :status  => @domain.valid? ? :ok     : :unprocessable_entity,
+                                 :partial => @domain.valid? ? 'form'  : 'errors',
+                                 :object  => @domain, :as => :domain } if request.xhr?
         end
     end
 
@@ -68,6 +70,6 @@ class DomainsController < ApplicationController
     end
 
     def update_note
-        resource.update_attribute( :notes, params[:domain][:notes] )
+        resource.update_attribute(:notes, params[:domain][:notes])
     end
 end
