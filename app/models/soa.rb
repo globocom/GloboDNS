@@ -60,7 +60,9 @@ class SOA < Record
         end
         if save
             set_content
-            self.update_attribute(:content, self.content)
+            self.transaction do
+                self.update_column(:content, self.content)
+            end
         end
     end
 
