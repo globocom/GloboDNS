@@ -83,7 +83,7 @@ class ExporterTest < ActiveSupport::TestCase
 
     def compare_named_files(reference_dir)
         export_dir  = File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR)
-        diff_output = exec('diff -r', 'diff', '-r', '-x', '.git', reference_dir, export_dir)
+        diff_output = exec('diff -r', 'diff', '-r', '-x', '.keep', '-x', '.git', reference_dir, export_dir)
         assert diff_output.blank?
     end
 
