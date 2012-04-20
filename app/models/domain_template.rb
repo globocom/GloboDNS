@@ -15,9 +15,9 @@ class DomainTemplate < ActiveRecord::Base
     end
 
     # scopes
-    scope :user, lambda { |user| user.admin? ? nil : where(:user_id => user.id) }
     scope :with_soa, joins(:record_templates).where('record_templates.record_type = ?', 'SOA')
     default_scope order('name')
+    # scope :user, lambda { |user| user.admin? ? nil : where(:user_id => user.id) }
 
     def soa_record_template
         @soa_record_template ||= begin
@@ -28,16 +28,14 @@ class DomainTemplate < ActiveRecord::Base
     end
 
     # Build a new domain using +self+ as a template. +domain+ should be valid domain
-    # name. Pass the optional +user+ object along to have the new one owned by the
-    # user, otherwise it's for admins only.
+    # name.
     #
     # This method will throw exceptions as it encounters errors, and will use a
     # transaction to complete/rollback the operation.
-    def build(domain_name, user = nil)
-        domain = Domain.new(:name => domain_name,
-                            :ttl  => self.ttl,
-                            :type => 'MASTER',
-                            :user => user.is_a?(User) ? user : nil)
+    def build(domain_name)
+        domain = Domain.new(:name           => domain_name,
+                            :ttl            => self.ttl,
+                            :authority_type => Domain::MASTER)
 
         record_templates.dup.each do |template|
             record = template.build(domain_name)

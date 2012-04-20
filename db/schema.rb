@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 5) do
+ActiveRecord::Schema.define(:version => 20120420202106) do
 
   create_table "audits", :force => true do |t|
     t.integer  "auditable_id"
@@ -46,13 +46,14 @@ ActiveRecord::Schema.define(:version => 5) do
     t.string   "name"
     t.string   "master"
     t.integer  "last_check"
-    t.string   "type",            :null => false
     t.integer  "notified_serial"
     t.string   "account"
-    t.integer  "ttl",             :null => false
+    t.integer  "ttl"
     t.text     "notes"
-    t.datetime "created_at",      :null => false
-    t.datetime "updated_at",      :null => false
+    t.datetime "created_at",                   :null => false
+    t.datetime "updated_at",                   :null => false
+    t.string   "authority_type",  :limit => 1, :null => false
+    t.string   "addressing_type", :limit => 1, :null => false
   end
 
   add_index "domains", ["name"], :name => "index_domains_on_name"

@@ -8,7 +8,7 @@
     #help-retry=t :help_domain_retry
     #help-expire=t :help_domain_expire
     #help-minimum=t :help_domain_minimum
-    #help-type=t :help_domain_type
+    #help-authority-type=t :help_domain_authority_type
     #help-master=t :help_domain_master
 
   %p= t(:label_create_new_domain_note)
@@ -39,11 +39,10 @@
                 = link_to(t(:label_create_domain_templates), new_domain_template_path)
                 = t(:label_domain_for_eazy_management)
           %td &nbsp;
-      %tbody#no-template-input
         %tr.slave.master
-          %td= f.label :type, t(:label_domain_type)
-          %td= f.select :type, ['MASTER','SLAVE']
-          %td= help_icon('help-type')
+          %td= f.label :authority_type, t(:label_domain_authority_type)
+          %td= f.collection_select :authority_type, Domain::AUTHORITY_TYPES, :first, :last
+          %td= help_icon('help-authority-type')
         %tr#master-address.slave
           %td= f.label :master, t(:label_domain_master_address)
           %td= f.text_field :master

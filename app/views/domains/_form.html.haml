@@ -4,8 +4,8 @@
       %td= label_tag :name, t(:label_domain_name)
       %td= domain.name
     %tr
-      %td= label_tag :type, t(:label_domain_type)
-      %td= domain.type.humanize
+      %td= label_tag :type, t(:label_domain_authority_type)
+      %td= domain.authority_type_str
     - if domain.slave?
       %tr
         %td= label_tag :master, t(:label_domain_master_server)
@@ -26,27 +26,29 @@
           %li= msg
 
     %table#edit-domain
-      %tr
-        %td= f.label :name, t(:label_domain_name)
-        %td= f.text_field :name
-        %td= help_icon('help-domain-name')
-      %tr
-        %td= f.label :type, t(:label_domain_type)
-        %td= f.select :type, [t(:label_domain_type_master), t(:label_domain_type_slave)]
-        %td= help_icon('help-domain-type')
-      %tr
-        %td= f.label :master, t(:label_domain_master_server)
-        %td= f.text_field :master
-        %td= help_icon('help-domain-master')
-      %tr
-        %td= f.label :ttl, t(:label_domain_ttl)
-        %td= f.text_field :ttl
-        %td= help_icon('help-domain-ttl')
-      %tr
-        %td.notes= f.label :notes, t(:label_domain_notes)
-        %td= f.text_area :notes
-        %td= help_icon('help-domain-notes')
-      %tr.actions
-        %td{:colspan => 3}
-          = button_tag(t(:generic_cancel), :class => 'cancel-update-domain-button ui-icon-ban-circle')
-          = f.button(t(:generic_save),   :class => 'update-domain-button ui-icon-download-alt')
+      %tbody
+        %tr.master.slave
+          %td= f.label :name, t(:label_domain_name)
+          %td= f.text_field :name
+          %td= help_icon('help-domain-name')
+        %tr.master.slave.hidden
+          %td.hidden= f.label :authority_type, t(:label_domain_authority_type)
+          %td.hidden= f.collection_select :authority_type, Domain::AUTHORITY_TYPES, :first, :last
+          %td.hidden= help_icon('help-domain-type')
+        %tr.slave
+          %td= f.label :master, t(:label_domain_master_server)
+          %td= f.text_field :master
+          %td= help_icon('help-domain-master')
+        %tr.master
+          %td= f.label :ttl, t(:label_domain_ttl)
+          %td= f.text_field :ttl
+          %td= help_icon('help-domain-ttl')
+        %tr.master.slave
+          %td.notes= f.label :notes, t(:label_domain_notes)
+          %td~ f.text_area :notes
+          %td= help_icon('help-domain-notes')
+      %tfoot
+        %tr.actions
+          %td{:colspan => 3}
+            = button_tag(t(:generic_cancel), :class => 'cancel-update-domain-button ui-icon-ban-circle')
+            = f.button(t(:generic_save),   :class => 'update-domain-button ui-icon-download-alt')

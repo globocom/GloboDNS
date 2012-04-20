@@ -25,12 +25,13 @@ class Importer
                    '--transactions',
                    "--named-conf=#{BIND_CONFIG_FILE}"]) do |io|
             while buffer = io.gets
+                buffer.gsub!('domains (name,type)', 'domains (name,authority_type)')
                 ActiveRecord::Base.connection.execute buffer
             end
         end
 
         set_timestamps
-        set_type
+        set_types
 
         unless options[:use_fqdn] == false
             set_fqdn
@@ -51,8 +52,10 @@ class Importer
         Record.update_all('created_at' => now, 'updated_at' => now)
     end
 
-    def set_type
-        Domain.update_all({'type' => Domain::TYPE_MASTER}, 'type' => 'NATIVE')
+    def set_types
+        Domain.update_all({'authority_type'  => Domain::MASTER},  'authority_type' => 'N')
+        Domain.update_all({'addressing_type' => Domain::REVERSE}, ['name LIKE ?', "%#{Domain::REVERSE_DOMAIN_SUFFIX}"])
+        Domain.update_all({'addressing_type' => Domain::NORMAL},  ['name NOT LIKE ?', "%#{Domain::REVERSE_DOMAIN_SUFFIX}"])
     end
 
     def set_fqdn
