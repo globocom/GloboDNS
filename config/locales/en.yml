@@ -126,6 +126,7 @@ en:
   layout_menu_users: "Users"
   layout_menu_reports: "Reports"
   layout_menu_bind: "BIND"
+  layout_menu_views: "Views"
   layout_menu_logout: "Logout"
 
 # Sign in
@@ -209,6 +210,7 @@ en:
   label_domain_authority_type: "Type"
   label_domain_master_address: "Master Address"
   label_domain_ttl: "Default TTL"
+  label_domain_view: "View"
   label_domain_zone_template: "Domain Template"
   label_create_zone_templates: "Create Domain Templates"
   label_zone_for_eazy_management: "for easier management of new domains"
@@ -513,6 +515,13 @@ en:
   message_export_successful: Export successful
   message_export_failure: Export failed
 
+# Views
+  title_views: Views
+  label_view_name: Name
+  label_view_clients: Clients
+  label_view_destinations: Destinations
+  label_add_view: Add View
+  confirm_view_delete: "Are you sure?"
 
 ### Controllers
 

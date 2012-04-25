@@ -1,0 +1,26 @@
+%div.new-view-form-container{ :class => view.errors.any? ? '' : 'hidden' }
+  = form_for(view, :remote => true, :html => {:class => 'new-view-form'}) do |f|
+    - if view && view.errors.any?
+      %ul.errors 
+      - view.errors.full_messages.each do |msg|
+        %li= msg
+
+    %table#new-view
+      %tbody
+        %tr
+          %td= f.label :login, t(:label_view_name)
+          %td= f.text_field :name
+          %td  &nbsp;
+        %tr
+          %td= f.label :clients, t(:label_view_clients)
+          %td= f.text_field :clients
+          %td  &nbsp;
+        %tr
+          %td= f.label :destinations, t(:label_view_destinations)
+          %td= f.text_field :destinations
+          %td  &nbsp;
+      %tfoot
+        %tr.actions
+          %td{:colspan => 3}
+            = button_tag(t(:generic_cancel), :class => 'cancel-new-view-button ui-icon-ban-circle')
+            = f.button(t(:generic_create),   :class => 'create-view-button ui-icon-download-alt')

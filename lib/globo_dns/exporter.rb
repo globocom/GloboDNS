@@ -41,9 +41,9 @@ class Exporter
 
 
         export_views(tmp_named_dir)
-        export_domain_group(tmp_named_dir, ZONES_FILE,   ZONES_DIR,   Domain.master)
-        export_domain_group(tmp_named_dir, REVERSE_FILE, REVERSE_DIR, Domain.reverse)
-        export_domain_group(tmp_named_dir, SLAVES_FILE,  SLAVES_DIR,  Domain.slave)
+        export_domain_group(tmp_named_dir, ZONES_FILE,   ZONES_DIR,   Domain.noview.master)
+        export_domain_group(tmp_named_dir, REVERSE_FILE, REVERSE_DIR, Domain.noview._reverse)
+        export_domain_group(tmp_named_dir, SLAVES_FILE,  SLAVES_DIR,  Domain.noview.slave)
 
 
         # remove files that older than the export timestamp; these are the
@@ -83,9 +83,12 @@ class Exporter
             file.puts '# this block is auto generated; do not edit'
             file.puts
             file.puts "include \"#{File.join(BIND_CONFIG_DIR, VIEWS_FILE)}\";"
-            file.puts "include \"#{File.join(BIND_CONFIG_DIR, ZONES_FILE)}\";"
-            file.puts "include \"#{File.join(BIND_CONFIG_DIR, SLAVES_FILE)}\";"
-            file.puts "include \"#{File.join(BIND_CONFIG_DIR, REVERSE_FILE)}\";"
+            file.puts
+            file.puts "view \"__any\" {"
+            file.puts "    include \"#{File.join(BIND_CONFIG_DIR, ZONES_FILE)}\";"
+            file.puts "    include \"#{File.join(BIND_CONFIG_DIR, SLAVES_FILE)}\";"
+            file.puts "    include \"#{File.join(BIND_CONFIG_DIR, REVERSE_FILE)}\";"
+            file.puts "};"
             file.puts
             file.puts CONFIG_END_TAG
         end
@@ -95,13 +98,21 @@ class Exporter
     def export_views(tmp_named_dir)
         abs_views_file = File.join(tmp_named_dir, VIEWS_FILE)
 
-        File.open(abs_views_file, 'w') do |io|
+        File.open(abs_views_file, 'w') do |file|
+            View.all.each do |view|
+                file.puts view.to_bind9_conf
+                export_domain_group(tmp_named_dir, view.zones_file,   view.zones_dir,   view.domains.master)
+                export_domain_group(tmp_named_dir, view.slaves_file,  view.slaves_dir,  view.domains.slave)
+                export_domain_group(tmp_named_dir, view.reverse_file, view.reverse_dir, view.domains._reverse)
+            end
         end
 
         File.utime(@touch_timestamp, @touch_timestamp, abs_views_file)
     end
 
     def export_domain_group(tmp_named_dir, file_name, dir_name, domains)
+        puts "exporting to #{file_name}; # of domains: #{domains.count}"
+
         abs_file_name = File.join(tmp_named_dir, file_name)
         abs_dir_name  = File.join(tmp_named_dir, dir_name)
 
@@ -162,14 +173,12 @@ class Exporter
                                         '--no-perms',
                                         "--include=#{NAMED_CONF_FILE}",
                                         "--include=#{VIEWS_FILE}",
-                                        "--include=#{ZONES_FILE}",
-                                        "--include=#{SLAVES_FILE}",
-                                        "--include=#{REVERSE_FILE}",
-                                        "--include=#{SLAVES_DIR}/",
-                                        "--include=#{ZONES_DIR}/",
-                                        "--include=#{ZONES_DIR}/*",
-                                        "--include=#{REVERSE_DIR}/",
-                                        "--include=#{REVERSE_DIR}/*",
+                                        "--include=*#{ZONES_FILE}",
+                                        "--include=*#{SLAVES_FILE}",
+                                        "--include=*#{REVERSE_FILE}",
+                                        "--include=*#{ZONES_DIR}/***",
+                                        "--include=*#{SLAVES_DIR}/***",
+                                        "--include=*#{REVERSE_DIR}/***",
                                         '--exclude=*',
                                         File.join(tmp_named_dir, ''),
                                         File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR, ''))

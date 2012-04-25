@@ -8,6 +8,7 @@
 //= require domains
 //= require domain_templates
 //= require users
+//= require views
 //= require bind
 //= require_self
 

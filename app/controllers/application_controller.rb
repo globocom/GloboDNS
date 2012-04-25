@@ -4,6 +4,18 @@ class ApplicationController < ActionController::Base
     before_filter :authenticate_user!  # all pages require a login
     after_filter  :flash_headers
 
+    def admin?
+        current_user.admin? or render_401
+    end
+
+    def operator?
+        current_user.operator? or render_401
+    end
+
+    def viewer?
+        current_user.viewer? or render_401
+    end
+
     def flash_headers
         return unless request.xhr?
 
@@ -16,5 +28,28 @@ class ApplicationController < ActionController::Base
         end
 
         flash.discard
+    end
+
+    protected
+
+    def render_401
+        respond_to do |format|
+            format.html { render :status => :not_authorized, :file => File.join(Rails.root, 'public', '401.html'), :layout => nil }
+            format.json { render :status => :forbidden,      :json => {:error => 'NOT AUTHORIZED'} }
+        end
+    end
+
+    def render_403
+        respond_to do |format|
+            format.html { render :status => :forbidden, :file => File.join(Rails.root, 'public', '403.html'), :layout => nil }
+            format.json { render :status => :forbidden, :json => {:error => 'FORBIDDEN'} }
+        end
+    end
+
+    def render_404
+        respond_to do |format|
+            format.html { render :status => :forbidden, :file => File.join(Rails.root, 'public', '404.html'), :layout => nil }
+            format.json { render :status => :not_found, :json => { :error => 'NOT FOUND' } }
+        end
     end
 end

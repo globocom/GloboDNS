@@ -1,0 +1,10 @@
+view1:
+    name: viewone
+    clients: '10.0.1.0/24'
+    destinations:
+
+view2:
+    name: viewtwo
+    clients:
+    destinations: '10.0.2.0/24'
+

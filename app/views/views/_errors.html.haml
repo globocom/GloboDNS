@@ -1,0 +1,5 @@
+- view ||= @view
+- if view && view.errors.any?
+  %ul.errors
+    - view.errors.full_messages.each do |msg|
+      %li= msg

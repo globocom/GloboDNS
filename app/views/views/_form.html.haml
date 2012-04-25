@@ -1,0 +1,26 @@
+%div{:style => "display: none"}
+
+= form_for(@view) do |f|
+  - if @view && @view.errors.any?
+    %ul 
+    - @view.errors.full_messages.each do |msg|
+      %li= msg
+
+  %table
+    %tr
+      %td= t :label_view_name
+      %td= f.text_field :name
+      %td  &nbsp;
+    %tr
+      %td= t :label_view_clients
+      %td= f.text_field :clients
+      %td  &nbsp;
+    %tr
+      %td= t :label_view_destinations
+      %td= f.text_field :destinations
+      %td  &nbsp;
+    %tr.actions
+      %td{:colspan => 3}
+        = link_to(t(:generic_cancel), views_path, :class => 'ui-button ui-icon-cancel')
+        = submit_tag t(:generic_save)
+

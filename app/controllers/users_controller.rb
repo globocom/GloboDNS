@@ -2,11 +2,7 @@ class UsersController < ApplicationController
     respond_to :html
     responders :flash
 
-    before_filter do
-        unless current_user.admin?
-            redirect_to root_url
-        end
-    end
+    # before_filter :admin?, :except => [:sign_in, :sign_out]
 
     def index
         @users = User.scoped

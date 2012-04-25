@@ -1,0 +1,18 @@
+%h1= t(:title_view_detail_for, :view => @view.name)
+
+%table.grid
+  %tbody
+    %tr
+      %td= t :label_view_name
+      %td= @view.name
+    %tr
+      %td= t :label_view_clients
+      %td= @view.clients
+    %tr
+      %td= t :label_view_destinations
+      %td= @view.destinations
+  %tfoot
+    %tr.actions
+      %td{:colspan => 2}
+        = button_tag(t(:generic_cancel), :class => 'cancel--view-button ui-icon-ban-circle')
+        = f.button(t(:generic_save),   :class => 'update-view-button ui-icon-download-alt')

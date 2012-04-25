@@ -557,6 +557,51 @@ table#new-record-template td label {
     padding-right: 2em;
 }
 
+table#views-table {
+    width: 100%;
+    margin-bottom: 2em;
+    border-bottom: 1px solid #efefef;
+    border-collapse: collapse;
+}
+table#views-table th {
+    text-align: left;
+}
+table#views-table th, table#views-table td {
+    padding: .5em 0;
+}
+table#views-table tr.even {
+    background-color: #f7f7f7;
+}
+table#views-table td.actions {
+    text-align: right;
+}
+table#views-table td.actions a {
+    color: #444;
+    font-size: 120%;
+}
+table#views-table td.name {
+    width: 20%;
+}
+table#views-table td.name input {
+    width: 7em;
+}
+table#views-table td.clients, table#views-table td.destinations {
+    width: 35%;
+}
+table#views-table td.clients input, table#views-table td.destinations input {
+    width: 10em;
+}
+table#views-table td.actions {
+    width: 10%;
+}
+table#views-table tr.edit-view td {
+    padding: 0;
+}
+table#new-view td label {
+    padding-right: 1em;
+}
+
+
 .fieldWithErrors input {
     border: 1px solid #F66;
 }
@@ -578,6 +623,13 @@ input.nb, textarea.nb {
     border: 1px solid #ccc;
     color: #3f3f3f;
     font: Monospace;
+}
+
+.hidden-by-domain-template {
+	display: none;
+}
+.hidden-by-authority-type {
+	display: none;
 }
 
 ul.start {

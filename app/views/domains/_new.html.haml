@@ -43,6 +43,10 @@
           %td= f.label :master, t(:label_domain_master_address)
           %td= f.text_field :master
           %td= help_icon('help-master')
+        %tr.notemplate.master.slave
+          %td= f.label :view, t(:label_domain_view)
+          %td= f.collection_select :view_id, View.all, :id, :name, :include_blank => true
+          %td= help_icon('help-domain-view')
         %tr.notemplate.master
           %td= f.label :ttl, t(:label_domain_ttl)
           %td= f.text_field :ttl

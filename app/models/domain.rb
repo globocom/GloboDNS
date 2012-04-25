@@ -40,18 +40,19 @@ class Domain < ActiveRecord::Base
     has_associated_audits
 
     # associations
-    has_many :records, :dependent => :destroy, :inverse_of => :domain
-    has_one  :soa_record,    :class_name => 'SOA'
-    has_many :ns_records,    :class_name => 'NS'
-    has_many :mx_records,    :class_name => 'MX'
-    has_many :a_records,     :class_name => 'A'
-    has_many :txt_records,   :class_name => 'TXT'
-    has_many :cname_records, :class_name => 'CNAME'
-    has_one  :loc_record,    :class_name => 'LOC'
-    has_many :aaaa_records,  :class_name => 'AAAA'
-    has_many :spf_records,   :class_name => 'SPF'
-    has_many :srv_records,   :class_name => 'SRV'
-    has_many :ptr_records,   :class_name => 'PTR'
+    belongs_to :view
+    has_many   :records, :dependent => :destroy, :inverse_of => :domain
+    has_one    :soa_record,    :class_name => 'SOA'
+    has_many   :ns_records,    :class_name => 'NS'
+    has_many   :mx_records,    :class_name => 'MX'
+    has_many   :a_records,     :class_name => 'A'
+    has_many   :txt_records,   :class_name => 'TXT'
+    has_many   :cname_records, :class_name => 'CNAME'
+    has_one    :loc_record,    :class_name => 'LOC'
+    has_many   :aaaa_records,  :class_name => 'AAAA'
+    has_many   :spf_records,   :class_name => 'SPF'
+    has_many   :srv_records,   :class_name => 'SRV'
+    has_many   :ptr_records,   :class_name => 'PTR'
 
     # validations
     validates_presence_of   :name
@@ -68,13 +69,15 @@ class Domain < ActiveRecord::Base
     after_save        :save_soa_record
 
     # scopes
-    scope :master,        where("#{self.table_name}.authority_type == ?",  MASTER).where("#{self.table_name}.name NOT LIKE ?", '%in-addr.arpa')
-    scope :slave,         where("#{self.table_name}.authority_type == ?",  SLAVE)
-    scope :reverse,       where("#{self.table_name}.addressing_type == ?", REVERSE)
-    scope :nonreverse,    where("#{self.table_name}.addressing_type != ?", REVERSE)
+    default_scope         order("#{self.table_name}.name")
+    scope :master,        where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", NORMAL)
+    scope :slave,         where("#{self.table_name}.authority_type   = ?", SLAVE)
+    scope :reverse,       where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", REVERSE)
+    scope :nonreverse,    where("#{self.table_name}.addressing_type = ?",  NORMAL)
     scope :matching,      lambda { |query| where("#{self.table_name}.name LIKE ?", "%#{query}%") }
     scope :updated_since, lambda { |timestamp| Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }
-    default_scope         order("#{self.table_name}.name")
+    scope :noview,        where("#{self.table_name}.view_id IS NULL")
+    scope :_reverse,      reverse # 'reverse' is an Array method; having an alias is useful when using the scope on associations
 
     # instantiate soa_record association on domain creation (this is required as
     # we delegate several attributes to the 'soa_record' association and want to
@@ -91,6 +94,10 @@ class Domain < ActiveRecord::Base
     # return the records, excluding the SOA record
     def records_without_soa
         records.includes(:domain).where('type != ?', 'SOA')
+    end
+
+    def addressing_type
+        read_attribute('addressing_type').presence || set_addressing_type
     end
 
     # expand our validations to include SOA details
@@ -120,12 +127,13 @@ class Domain < ActiveRecord::Base
 
     # ------------- 'BIND9 export' utility methods --------------
     def zonefile_path
+
         dir = if self.slave?
-                  GloboDns::Config::SLAVES_DIR
+                  self.view ? self.view.slaves_dir  : GloboDns::Config::SLAVES_DIR
               elsif self.reverse?
-                  GloboDns::Config::REVERSE_DIR
+                  self.view ? self.view.reverse_dir : GloboDns::Config::REVERSE_DIR
               else
-                  GloboDns::Config::ZONES_DIR
+                  self.view ? self.view.zones_dir   : GloboDns::Config::ZONES_DIR
               end
 
         File.join(dir, 'db.' + self.name)
@@ -135,12 +143,12 @@ class Domain < ActiveRecord::Base
         File.join(GloboDns::Config::BIND_CONFIG_DIR, zonefile_path)
     end
 
-    def to_bind9_conf
-        str  = "zone \"#{self.name}\" {\n"
-        str << "    type    #{self.slave? ? 'slave' : 'master'};\n"
-        str << "    file    \"#{zonefile_absolute_path}\";\n"
-        str << "    masters { #{self.master}; };\n" if self.slave?
-        str << "};\n\n"
+    def to_bind9_conf(indent = '')
+        str  = "#{indent}zone \"#{self.name}\" {\n"
+        str << "#{indent}    type    #{self.slave? ? 'slave' : 'master'};\n"
+        str << "#{indent}    file    \"#{zonefile_absolute_path}\";\n"
+        str << "#{indent}    masters { #{self.master}; };\n" if self.slave?
+        str << "#{indent}};\n\n"
         str
     end
 

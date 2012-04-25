@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120420202106) do
+ActiveRecord::Schema.define(:version => 20120424170903) do
 
   create_table "audits", :force => true do |t|
     t.integer  "auditable_id"
@@ -39,6 +39,7 @@ ActiveRecord::Schema.define(:version => 20120420202106) do
     t.integer  "ttl",        :null => false
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
+    t.integer  "view_id"
   end
 
   create_table "domains", :force => true do |t|
@@ -54,6 +55,7 @@ ActiveRecord::Schema.define(:version => 20120420202106) do
     t.datetime "updated_at",                   :null => false
     t.string   "authority_type",  :limit => 1, :null => false
     t.string   "addressing_type", :limit => 1, :null => false
+    t.integer  "view_id"
   end
 
   add_index "domains", ["name"], :name => "index_domains_on_name"
@@ -100,6 +102,14 @@ ActiveRecord::Schema.define(:version => 20120420202106) do
     t.datetime "created_at",                           :null => false
     t.datetime "updated_at",                           :null => false
     t.string   "authentication_token", :limit => 1024
+  end
+
+  create_table "views", :force => true do |t|
+    t.string   "name",         :limit => 32,   :null => false
+    t.string   "clients",      :limit => 1024
+    t.string   "destinations", :limit => 1024
+    t.datetime "created_at",                   :null => false
+    t.datetime "updated_at",                   :null => false
   end
 
 end

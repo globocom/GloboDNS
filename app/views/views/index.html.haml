@@ -1,0 +1,8 @@
+#div{ :style => 'display: none' }
+  #new-view= t(:help_view_add)
+
+%h1= t(:title_views)
+= render :partial => 'list', :object => @views, :as => :views
+
+= button_tag t(:label_add_view).titleize, :class => 'new-view-button ui-icon-plus'
+= render :partial => 'new', :object => View.new, :as => :view

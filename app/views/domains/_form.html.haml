@@ -6,6 +6,9 @@
     %tr
       %td= label_tag :type, t(:label_domain_authority_type)
       %td= domain.authority_type_str
+    %tr
+      %td= label_tag :view, t(:label_domain_view)
+      %td= domain.view.try(:name)
     - if domain.slave?
       %tr
         %td= label_tag :master, t(:label_domain_master_server)
@@ -36,6 +39,10 @@
           %td.hidden= f.label :authority_type, t(:label_domain_authority_type)
           %td.hidden= f.collection_select :authority_type, Domain::AUTHORITY_TYPES, :first, :last
           %td.hidden= help_icon('help-domain-type')
+        %tr.master.slave
+          %td= f.label :view, t(:label_domain_view)
+          %td= f.collection_select :view_id, View.all, :id, :name, :include_blank => true
+          %td= help_icon('help-domain-view')
         %tr.slave
           %td= f.label :master, t(:label_domain_master_server)
           %td= f.text_field :master

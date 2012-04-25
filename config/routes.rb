@@ -5,16 +5,12 @@ GloboDns::Application.routes.draw do
         resources :records, :shallow => true
     end
 
-    resources :users do
-        delete :purge, :on => :member
-    end
-
     resources :domain_templates do
         resources :record_templates, :shallow => true
     end
 
-    match '/search(/:action)'       => 'search#results', :as => :search, :via => :get
-    match '/audits(/:action(/:id))' => 'audits#index',   :as => :audits, :via => :get
+    resources :views
+    resources :users
 
     scope 'bind9', :as => 'bind9', :controller => 'bind9' do
         get  '',       :action => 'index'
@@ -22,6 +18,9 @@ GloboDns::Application.routes.draw do
         post 'export'
         post 'test'
     end
+
+    # match '/search(/:action)'       => 'search#results', :as => :search, :via => :get
+    match '/audits(/:action(/:id))' => 'audits#index',   :as => :audits, :via => :get
 
     root :to => 'dashboard#index'
 end

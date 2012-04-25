@@ -218,6 +218,35 @@ rev2_a2:
     content: 'host2.domain2.example.com.'
 
 
+# VIEW1 - DOMAIN1
+dom1view1_soa:
+    domain:  dom1view1
+    type:    'SOA'
+    name:    '@'
+    content: 'ns1.example.com. root1.example.com. 0 10811 3611 604811 7211'
+
+dom1view1_ns:
+    domain:  dom1view1
+    type:    'NS'
+    name:    '@'
+    content: 'ns1.example.com.'
+
+
+# VIEW1 - DOMAIN2
+dom2view1_soa:
+    domain:  dom2view1
+    type:    'SOA'
+    name:    '@'
+    content: 'ns1.example.com. root1.example.com. 0 10811 3611 604811 7211'
+
+dom2view1_ns:
+    domain:  dom2view1
+    type:    'NS'
+    name:    '@'
+    content: 'ns1.example.com.'
+
+
+
 # NO DOMAIN
 nodomain_a1:
     type:      'A'

@@ -1,41 +1,70 @@
 dom1:
-    name: 'domain1.example.com'
-    type: <%= Domain::TYPE_MASTER %>
-    ttl:  86401
+    name:            'domain1.example.com'
+    authority_type:  <%= Domain::MASTER %>
+    addressing_type: <%= Domain::NORMAL %> 
+    ttl:             86401
 
 dom2:
-    name: 'domain2.example.com'
-    type: <%= Domain::TYPE_MASTER %>
-    ttl:  86402
+    name:            'domain2.example.com'
+    authority_type:  <%= Domain::MASTER %>
+    addressing_type: <%= Domain::NORMAL %> 
+    ttl:             86402
 
 dom3:
-    name: 'domain3.example.com'
-    type: <%= Domain::TYPE_MASTER %>
-    ttl:  86403
+    name:            'domain3.example.com'
+    authority_type:  <%= Domain::MASTER %>
+    addressing_type: <%= Domain::NORMAL %> 
+    ttl:             86403
 
 dom4:
-    name: 'domain4.example.com'
-    type: <%= Domain::TYPE_MASTER %>
-    ttl:  86404
+    name:            'domain4.example.com'
+    authority_type:  <%= Domain::MASTER %>
+    addressing_type: <%= Domain::NORMAL %> 
+    ttl:             86404
 
 dom5:
-    name: 'domain5.example.com'
-    type: <%= Domain::TYPE_MASTER %>
-    ttl:  86405
+    name:            'domain5.example.com'
+    authority_type:  <%= Domain::MASTER %>
+    addressing_type: <%= Domain::NORMAL %> 
+    ttl:             86405
 
 dom6slave:
-    name:   'slavedomain6.example.com'
-    type:   <%= Domain::TYPE_SLAVE %>
-    ttl:    86406
-    master: '10.0.6.1'
+    name:            'slavedomain6.example.com'
+    authority_type:  <%= Domain::SLAVE %>
+    addressing_type: <%= Domain::NORMAL %> 
+    ttl:             86406
+    master:          '10.0.6.1'
 
 rev1:
-    name:   '1.0.10.in-addr.arpa'
-    type:   <%= Domain::TYPE_MASTER %>
-    ttL:    86401
+    name:            '1.0.10.in-addr.arpa'
+    authority_type:  <%= Domain::MASTER %>
+    addressing_type: <%= Domain::REVERSE %> 
+    ttL:             86401
 
 rev2:
-    name:   '2.0.10.in-addr.arpa'
-    type:   <%= Domain::TYPE_MASTER %>
-    ttL:    86402
+    name:            '2.0.10.in-addr.arpa'
+    authority_type:  <%= Domain::MASTER %>
+    addressing_type: <%= Domain::REVERSE %> 
+    ttL:             86402
+
+dom1view1:
+    name:            'domain1.view1.example.com'
+    view:            view1
+    authority_type:  <%= Domain::MASTER %>
+    addressing_type: <%= Domain::NORMAL %> 
+    ttl:             86411
+
+dom2view1:
+    name:            'domain2.view1.example.com'
+    view:            view1
+    authority_type:  <%= Domain::MASTER %>
+    addressing_type: <%= Domain::NORMAL %> 
+    ttl:             86412
+
+dom1view2:
+    name:            'domain1.view2.example.com'
+    view:            view2
+    authority_type:  <%= Domain::SLAVE %>
+    addressing_type: <%= Domain::NORMAL %> 
+    master:          '10.1.1.1'
 

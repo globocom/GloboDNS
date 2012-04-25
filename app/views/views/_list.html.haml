@@ -1,0 +1,12 @@
+%div.views-table-container
+  %table#views-table
+    %thead
+      %tr
+        %th= t(:label_view_name)
+        %th= t(:label_view_clients)
+        %th= t(:label_view_destinations)
+        %th  &nbsp;
+    %tbody
+      = render :partial => 'view', :collection => views
+  = will_paginate views, :id => 'views-table-pagination', :previous_label => '«'.html_safe, :next_label => '»'.html_safe
+

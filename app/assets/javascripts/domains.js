@@ -54,27 +54,28 @@ $(document).ready(function() {
 
 	$('select#domain_domain_template_id').live('change', function (evt) {
 		if ($(this).val() == '') {
-			$(this).closest('tbody').find('tr.template').hide();
-			$(this).closest('tbody').find('tr.notemplate').show();
+			$(this).closest('tbody').find('tr.template').addClass('hidden-by-domain-template');
+			$(this).closest('tbody').find('tr.notemplate').removeClass('hidden-by-domain-template');
 		} else {
-			$(this).closest('tbody').find('tr.notemplate').hide();
-			$(this).closest('tbody').find('tr.template').show();
+			$(this).closest('tbody').find('tr.notemplate').addClass('hidden-by-domain-template');
+			$(this).closest('tbody').find('tr.template').removeClass('hidden-by-domain-template');
 		}
 		$(this).blur();
 	});
+	$('select#domain_domain_template_id').change();
 
 	$('select#domain_authority_type').live('change', function (evt) {
 		if ($(this).val() == 'M') {
-			$(this).closest('tbody').find('tr.slave').hide();
-			$(this).closest('tbody').find('tr.master').show();
+			$(this).closest('tbody').find('tr.slave').addClass('hidden-by-authority-type');
+			$(this).closest('tbody').find('tr.master').removeClass('hidden-by-authority-type');
 		} else if ($(this).val() == 'S') {
-			$(this).closest('tbody').find('tr.master').hide();
-			$(this).closest('tbody').find('tr.slave').show();
+			$(this).closest('tbody').find('tr.master').addClass('hidden-by-authority-type');
+			$(this).closest('tbody').find('tr.slave').removeClass('hidden-by-authority-type');
 		}
 		$(this).blur();
 	});
 	$('select#domain_authority_type').change();
-	$('select#domain_domain_template_id').change(); // # the template selection has precedence, and thus should be executed lated
+
 
 
 	// ----------------- domains#show -----------------
@@ -231,8 +232,8 @@ $(document).ready(function() {
 	});
 
 	var fixRecordTableZebraStriping = function () {
-		$('table#record-table tr.show-record:nth-child(6n), table#record-table tr.edit-record:nth-child(6n+1)').addClass("odd").removeClass("even");
-		$('table#record-table tr.show-record:nth-child(6n+3), table#record-table tr.edit-record:nth-child(6n+4)').addClass("even").removeClass("odd");
+		$('table#record-table tr.show-record:nth-child(even), table#record-table tr.edit-record:nth-child(odd)').addClass("even").removeClass("odd");
+		$('table#record-table tr.show-record:nth-child(odd), table#record-table tr.edit-record:nth-child(even)').addClass("odd").removeClass("even");
 	}
 
 	// ---------------- New Record form -------------------
