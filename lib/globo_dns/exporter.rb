@@ -111,8 +111,6 @@ class Exporter
     end
 
     def export_domain_group(tmp_named_dir, file_name, dir_name, domains)
-        puts "exporting to #{file_name}; # of domains: #{domains.count}"
-
         abs_file_name = File.join(tmp_named_dir, file_name)
         abs_dir_name  = File.join(tmp_named_dir, dir_name)
 

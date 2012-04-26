@@ -1,0 +1,7 @@
+$ORIGIN 3.1.10.in-addr.arpa.
+$TTL    86413
+
+@  IN SOA  ns3.example.com. root3.example.com. 2012030100 10813 3613 604813 7213
+@  IN NS   ns3.example.com.
+1  IN PTR  host1.domain3.view1.example.com.
+2  IN PTR  host2.domain3.view1.example.com.

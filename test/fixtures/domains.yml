@@ -47,21 +47,21 @@ rev2:
     addressing_type: <%= Domain::REVERSE %> 
     ttL:             86402
 
-dom1view1:
+view1_dom1:
     name:            'domain1.view1.example.com'
     view:            view1
     authority_type:  <%= Domain::MASTER %>
     addressing_type: <%= Domain::NORMAL %> 
     ttl:             86411
 
-dom2view1:
+view1_dom2:
     name:            'domain2.view1.example.com'
     view:            view1
     authority_type:  <%= Domain::MASTER %>
     addressing_type: <%= Domain::NORMAL %> 
     ttl:             86412
 
-dom1view2:
+view2_dom1:
     name:            'domain1.view2.example.com'
     view:            view2
     authority_type:  <%= Domain::SLAVE %>

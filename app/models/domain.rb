@@ -65,7 +65,7 @@ class Domain < ActiveRecord::Base
     validates_format_of     :master,     :if => :slave?, :allow_blank => true, :with => /\A(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\z/
 
     # callbacks
-    before_validation :set_addressing_type
+    # before_validation :set_addressing_type
     after_save        :save_soa_record
 
     # scopes
@@ -96,6 +96,12 @@ class Domain < ActiveRecord::Base
         records.includes(:domain).where('type != ?', 'SOA')
     end
 
+    def name=(value)
+        rv = write_attribute('name', value)
+        set_addressing_type
+        rv
+    end
+
     def addressing_type
         read_attribute('addressing_type').presence || set_addressing_type
     end
@@ -113,10 +119,6 @@ class Domain < ActiveRecord::Base
                 errors.add_to_base e
             end
         end
-    end
-
-    def set_addressing_type
-        name.ends_with?(REVERSE_DOMAIN_SUFFIX) ? self.reverse! : self.normal!
     end
 
     # setup an SOA if we have the requirements
@@ -169,6 +171,12 @@ class Domain < ActiveRecord::Base
         end
     ensure
         output.close
+    end
+
+    private
+
+    def set_addressing_type
+        name.ends_with?(REVERSE_DOMAIN_SUFFIX) ? self.reverse! : self.normal!
     end
 
     def records_format

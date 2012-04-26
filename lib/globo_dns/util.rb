@@ -3,11 +3,19 @@ require 'resolv'
 module GloboDns
 module Util
 
+    def logger=(value)
+        @logger = value
+    end
+
+    def logger
+        @logger ||= Rails.logger
+    end
+
     # similar to 'Kernel::system', but captures the STDOUT using IO::popen and
     # raises and exception if the return code is not '0' (success)
     def exec(command_id, *args)
         output = nil
-        puts "[GloboDns::Util::exec] #{args.join(' ')}"
+        logger.debug "[GloboDns::Util::exec] #{args.join(' ')}"
         IO::popen(args) do |io|
             output = io.read
         end
