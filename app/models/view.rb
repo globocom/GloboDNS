@@ -3,6 +3,10 @@ class View < ActiveRecord::Base
 
     validates_presence_of :name
 
+    def updated_since?(timestamp)
+        self.updated_at > timestamp
+    end
+
     def zones_dir
         self.name + '-' + GloboDns::Config::ZONES_DIR
     end

@@ -28,7 +28,7 @@ dom5:
     addressing_type: <%= Domain::NORMAL %> 
     ttl:             86405
 
-dom6slave:
+dom6:
     name:            'slavedomain6.example.com'
     authority_type:  <%= Domain::SLAVE %>
     addressing_type: <%= Domain::NORMAL %> 
@@ -45,7 +45,7 @@ rev2:
     name:            '2.0.10.in-addr.arpa'
     authority_type:  <%= Domain::MASTER %>
     addressing_type: <%= Domain::REVERSE %> 
-    ttL:             86402
+    ttl:             86402
 
 view1_dom1:
     name:            'domain1.view1.example.com'

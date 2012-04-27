@@ -28,9 +28,16 @@ class SOA < Record
     # this allows us to have these convenience attributes act like any other
     # column in terms of validations
     SOA_FIELDS.each do |soa_entry|
-        attr_accessor soa_entry
-        attr_reader   soa_entry + '_was'
+        attr_reader soa_entry
+        attr_reader soa_entry + '_was'
+
         define_method "#{soa_entry}_before_type_cast" do
+            instance_variable_get("@#{soa_entry}")
+        end
+
+        define_method "#{soa_entry}=" do |value|
+            instance_variable_set("@#{soa_entry}", value)
+            set_content
             instance_variable_get("@#{soa_entry}")
         end
     end

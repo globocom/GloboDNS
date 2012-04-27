@@ -11,6 +11,12 @@ class ExporterTest < ActiveSupport::TestCase
 
         set_now Time.local(2012, 3, 1, 12, 0, 0)
 
+        # manually set timestamps of existing records to 'before' the initial export date
+        yesterday = Time.now - 1.day
+        assert View.update_all({'created_at' => yesterday, 'updated_at' => yesterday}).is_a?(Numeric)
+        assert Domain.update_all({'created_at' => yesterday, 'updated_at' => yesterday}).is_a?(Numeric)
+        assert Record.update_all({'created_at' => yesterday, 'updated_at' => yesterday}).is_a?(Numeric)
+
         create_mock_repository
     end
 
@@ -25,6 +31,112 @@ class ExporterTest < ActiveSupport::TestCase
     test 'initial' do
         export
         compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'initial'))
+    end
+
+    test 'serial' do
+        export
+
+        # update a few records and domains
+        set_now Time.local(2012, 3, 2, 12, 0, 0)
+        assert records(:dom1_ns).touch
+        assert records(:dom1_cname2).touch
+        assert records(:dom2_soa).update_attribute('minimum', 7212)
+        assert domains(:dom5).update_attribute('ttl', 86415)
+        assert views(:view1).touch
+        export
+        compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'serial1'))
+
+        # update the time stamp to a few hours later so that we're still in the same day;
+        set_now Time.local(2012, 3, 2, 18, 0, 0)
+        assert records(:dom1_a1).touch
+        assert records(:dom1_cname1).update_attribute('name', 'host1cname')
+        assert records(:dom3_ns).update_attribute('content', 'updated-ns3.example.com.')
+        assert domains(:dom4).touch
+        assert domains(:view1_dom2).update_attribute('ttl', 86422)
+        export
+        compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'serial2'))
+    end
+
+    test 'create domain' do
+        export
+        set_now Time.local(2012, 3, 2, 12, 0, 0)
+
+        # master
+        assert (master = Domain.new(:name => 'domain7.example.com', :authority_type => Domain::MASTER, :ttl => 86407, :primary_ns => 'ns7.example.com.', :contact => 'root7.example.com.', :refresh => 10807, :retry => 3607, :expire => 604807, :minimum => 7207)).save
+        assert master.ns_records.new(:name => '@', :content => 'ns').save
+        assert master.mx_records.new(:name => '@', :content => 'mail', :prio => 17).save
+        assert master.a_records.new(:name => 'ns', :content => '10.0.7.1').save
+        assert master.a_records.new(:name => 'mail', :content => '10.0.7.2').save
+        assert master.a_records.new(:name => 'host1', :content => '10.0.7.3').save
+        assert master.a_records.new(:name => 'host2', :content => '10.0.7.4').save
+        assert master.a_records.new(:name => 'host2other', :content => '10.0.7.4').save
+        assert master.cname_records.new(:name => 'host1alias', :content => 'host1').save
+        assert master.cname_records.new(:name => 'host2alias', :content => 'host2.domain7.example.com.').save
+        assert master.txt_records.new(:name => 'txt', :ttl => 86417, :content => 'sample content for txt record').save
+
+        # slave
+        assert Domain.new(:name => 'domain8.example.com', :authority_type => Domain::SLAVE, :master => '10.0.8.1', :ttl => 86408).save
+
+        # reverse
+        assert (new_reverse = Domain.new(:name => '7.0.10.in-addr.arpa', :authority_type => Domain::MASTER, :ttl => 86407, :primary_ns => 'ns7.example.com.', :contact => 'root7.example.com.', :refresh => 10807, :retry => 3607, :expire => 604807, :minimum => 7207)).save
+        assert new_reverse.ns_records.new(:name => '@', :content => 'ns7.example.com.').save
+        assert new_reverse.ptr_records.new(:name => '1', :content => 'ns.domain7.example.com.').save
+        assert new_reverse.ptr_records.new(:name => '2', :content => 'mail.domain7.example.com.').save
+        assert new_reverse.ptr_records.new(:name => '3', :content => 'host1.domain7.example.com.').save
+        assert new_reverse.ptr_records.new(:name => '4', :content => 'host2.domain7.example.com.').save
+
+        export
+        compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'create_domain'))
+    end
+
+    test 'delete domain' do
+        export
+        set_now Time.local(2012, 3, 2, 12, 0, 0)
+
+        set_now Time.local(2012, 3, 2, 12, 0, 0)
+        assert domains(:dom1).destroy
+        assert domains(:dom6).destroy
+        assert domains(:rev1).destroy
+
+        export
+        compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'delete_domain'))
+    end
+
+    test 'update_domain' do
+        export
+        set_now Time.local(2012, 3, 2, 12, 0, 0)
+
+        # create records
+        assert domains(:dom1).a_records.new(:name => 'new-host3', :ttl => 86411, :content => '10.0.1.5').save
+        assert domains(:dom3).a_records.new(:name => 'new-host1', :ttl => 86413, :content => '10.0.3.1').save
+        assert domains(:dom3).cname_records.new(:name => 'new-host1alias', :content => 'new-host1').save
+        assert domains(:dom3).txt_records.new(:name => 'new-txt', :content => 'meaningless content').save
+        assert domains(:rev1).ptr_records.new(:name => '5', :content => 'new-host3.domain1.example.com.').save
+        assert domains(:rev1).ptr_records.new(:name => '6', :content => 'nohost.nowhere.com.').save
+
+        # delete records
+        assert records(:dom1_a2).destroy
+        assert records(:dom2_mx).destroy
+        assert records(:dom2_a1).destroy
+        assert records(:dom2_a2).destroy
+
+        # update records
+        assert records(:dom1_ns).update_attributes(:content => 'new-ns')
+        assert records(:dom1_mx).update_attributes(:content => 'new-mx', :prio => 21)
+        assert records(:dom1_a_ns).update_attributes(:name => 'new-ns')
+        assert records(:dom1_a1).update_attributes(:name => 'new-host1', :ttl => 86421)
+        assert records(:dom1_cname1).update_attributes(:name => 'new-cname1', :content => 'new-host1')
+        assert records(:rev1_a_ns).update_attributes(:content => 'new-ns.domain1.example.com.')
+        assert records(:rev1_a1).update_attributes(:content => 'new-host1.domain1.example.com.')
+        assert records(:rev1_a2).update_attributes(:content => 'invalid2.domain1.example.com.')
+
+        # update domain attributes
+        assert domains(:dom4).update_attributes(:name => 'new-domain4.example.com')
+        assert domains(:dom5).update_attributes(:ttl => 86415)
+        assert domains(:dom6).update_attributes(:master => '10.0.6.2')
+
+        export
+        compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'update_domain'))
     end
 
     test 'create view' do
@@ -49,7 +161,7 @@ class ExporterTest < ActiveSupport::TestCase
         compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'delete_view'))
     end
 
-    test 'change view' do
+    test 'update view' do
         view = views(:view1)
         assert view.update_attribute('name', 'newviewone')
 
@@ -75,23 +187,7 @@ class ExporterTest < ActiveSupport::TestCase
         assert domain1.mx_records.new(:name => '@', :content => 'host4', :prio => 10).save
 
         export
-        compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'change_view'))
-    end
-
-    test 'change domains' do
-        skip "need to sync with views and break apart the 'change_db' method, like it's done for views"
-        set_now Time.local(2012, 3, 1, 12, 0, 0)
-        export
-        compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'initial'))
-
-        puts "------------------------------------------------------------"
-
-        change_named_conf
-        set_now Time.local(2012, 3, 1, 17, 0, 0)
-        change_db
-        set_now Time.local(2012, 3, 1, 18, 0, 0)
-        export
-        compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'final'))
+        compare_named_files(File.join(Rails.root, 'test', 'mock', 'named_expected', 'update_view'))
     end
 
     private
@@ -151,73 +247,11 @@ class ExporterTest < ActiveSupport::TestCase
     end
 
     def change_named_conf
-        @mock_named_conf_content = 
+        @mock_named_conf_content =
             "# starting test comment\n" +
             @mock_named_conf_content.sub(/^(logging {)/, "# internal test comment\n\\1").
                                      gsub(/^\s*#.*\n/, '') +
             "# ending test comment\n"
-    end
-
-    def change_db
-        # tweak timestamps of existing records
-        now       = Time.now - 1.day
-        yesterday = now - 1.day
-        assert Record.update_all({'created_at' => yesterday, 'updated_at' => yesterday}).is_a?(Fixnum)
-
-        # update the attributes of a few records
-        assert records(:dom1_ns).update_attributes(:content => 'new-ns')
-        assert records(:dom1_mx).update_attributes(:name => 'new-mx', :prio => 123)
-        assert records(:dom1_a_ns).update_attributes(:name => 'new-ns')
-        assert records(:dom1_a1).update_attributes(:name => 'new-host1', :ttl => 86411)
-        assert records(:dom1_cname1).update_attributes(:name => 'new-cname1', :content => 'anyname.example.com.')
-        assert records(:rev1_a_ns).update_attributes(:content => 'new-ns.domain1.example.com.')
-        assert records(:rev1_a1).update_attributes(:content => 'new-host1.domain1.example.com.')
-
-        # create a few records on existing domains
-        assert domains(:dom1).a_records.new(:name => 'new-host3', :ttl => 86412, :content => '10.0.1.5').save
-        assert domains(:dom3).a_records.new(:name => 'new-host1', :ttl => 86431, :content => '10.0.3.1').save
-        assert domains(:dom3).cname_records.new(:name => 'new-host1alias', :content => 'new-host1').save
-        assert domains(:dom3).txt_records.new(:name => 'new-txt', :content => 'meaningless content').save
-        assert domains(:rev1).ptr_records.new(:name => '5', :content => 'new-host3.domain1.example.com.').save
-
-        # delete a few records from existing domains
-        assert records(:dom2_mx).destroy
-        assert records(:dom2_a1).destroy
-        assert records(:dom2_a2).destroy
-
-        # update a few domains
-        assert domains(:dom4).update_attributes(:name => 'new-domain4.example.com', :ttl => 86004)
-
-        # delete a domain
-        assert domains(:dom5).destroy
-
-        # create a new slave domain
-        assert Domain.new(:name => 'new-slavedomain7.example.com', :authority_type => Domain::SLAVE, :master => '10.0.7.1', :ttl => 86407).save
-
-        # create a new master domain with new records
-        assert (new_master = Domain.new(:name => 'new-domain8.example.com', :authority_type => Domain::MASTER, :ttl => 86408, :primary_ns => 'ns8.example.com.', :contact => 'root8.example.com.', :refresh => 10808, :retry => 3608, :expire => 604808, :minimum => 7208)).save
-        assert new_master.ns_records.new(:name => '@', :content => 'new-ns').save
-        assert new_master.mx_records.new(:name => '@', :content => 'new-mail', :prio => 18).save
-        assert new_master.a_records.new(:name => 'new-ns', :content => '10.0.8.1').save
-        assert new_master.a_records.new(:name => 'new-mail', :content => '10.0.8.2').save
-        assert new_master.a_records.new(:name => 'new-host1', :content => '10.0.8.3').save
-        assert new_master.a_records.new(:name => 'new-host2', :content => '10.0.8.4').save
-        assert new_master.a_records.new(:name => 'new-host2-anothername', :content => '10.0.8.4').save
-        assert new_master.cname_records.new(:name => 'new-host1alias', :content => 'new-host1').save
-        assert new_master.cname_records.new(:name => 'new_host2alias', :content => 'new-host2.new-domain8.example.com.').save
-        assert new_master.txt_records.new(:name => 'new-txt', :ttl => 86418, :content => 'sample content for txt record').save
-
-        # create the reverse domains for the new domains and records
-        assert (new_reverse = Domain.new(:name => '3.0.10.in-addr.arpa', :authority_type => Domain::MASTER, :ttl => 86403, :primary_ns => 'ns3.example.com.', :contact => 'root3.example.com.', :refresh => 10803, :retry => 3603, :expire => 604803, :minimum => 7203)).save
-        assert new_reverse.ns_records.new(:name => '@', :content => 'ns3.example.com.').save
-        assert new_reverse.ptr_records.new(:name => '1', :content => 'new-host1.domain3.example.com.').save
-
-        assert (new_reverse = Domain.new(:name => '8.0.10.in-addr.arpa', :authority_type => Domain::MASTER, :ttl => 86408, :primary_ns => 'ns8.example.com.', :contact => 'root8.example.com.', :refresh => 10808, :retry => 3608, :expire => 604808, :minimum => 7208)).save
-        assert new_reverse.ns_records.new(:name => '@', :content => 'ns8.example.com.').save
-        assert new_reverse.ptr_records.new(:name => '1', :content => 'new-ns.new-domain8.example.com.').save
-        assert new_reverse.ptr_records.new(:name => '2', :content => 'new-mail.new-domain8.example.com.').save
-        assert new_reverse.ptr_records.new(:name => '3', :content => 'new-host1.new-domain8.example.com.').save
-        assert new_reverse.ptr_records.new(:name => '4', :content => 'new-host2.new-domain8.example.com.').save
     end
 
     def set_now(now)

@@ -101,16 +101,16 @@ class Exporter
         File.open(abs_views_file, 'w') do |file|
             View.all.each do |view|
                 file.puts view.to_bind9_conf
-                export_domain_group(tmp_named_dir, view.zones_file,   view.zones_dir,   view.domains.master)
-                export_domain_group(tmp_named_dir, view.slaves_file,  view.slaves_dir,  view.domains.slave)
-                export_domain_group(tmp_named_dir, view.reverse_file, view.reverse_dir, view.domains._reverse)
+                export_domain_group(tmp_named_dir, view.zones_file,   view.zones_dir,   view.domains.master,   view.updated_since?(@last_commit_date))
+                export_domain_group(tmp_named_dir, view.slaves_file,  view.slaves_dir,  view.domains.slave,    view.updated_since?(@last_commit_date))
+                export_domain_group(tmp_named_dir, view.reverse_file, view.reverse_dir, view.domains._reverse, view.updated_since?(@last_commit_date))
             end
         end
 
         File.utime(@touch_timestamp, @touch_timestamp, abs_views_file)
     end
 
-    def export_domain_group(tmp_named_dir, file_name, dir_name, domains)
+    def export_domain_group(tmp_named_dir, file_name, dir_name, domains, export_all_domains = false)
         abs_file_name = File.join(tmp_named_dir, file_name)
         abs_dir_name  = File.join(tmp_named_dir, dir_name)
 
@@ -118,7 +118,8 @@ class Exporter
 
         File.open(abs_file_name, 'w') do |file|
             # dump zonefile of updated domains
-            domains.updated_since(@last_commit_date).each do |domain|
+            updated_domains = export_all_domains ? domains : domains.updated_since(@last_commit_date)
+            updated_domains.each do |domain|
                 @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated?: #{domain.records.updated_since(@last_commit_date).first})"
                 domain.to_zonefile(File.join(tmp_named_dir, domain.zonefile_path)) unless domain.slave?
             end
