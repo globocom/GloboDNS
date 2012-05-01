@@ -26,7 +26,8 @@
               %li= link_to((t :layout_menu_templates), domain_templates_path)
               %li= link_to((t :layout_menu_logs), audits_path)
               %li= link_to((t :layout_menu_users), users_path)
-            %li= link_to((t :layout_menu_bind), bind9_path)
+            - if current_user.admin? || current_user.operator?
+              %li= link_to((t :layout_menu_bind), bind9_path)
             %li= link_to((t :layout_menu_logout), destroy_user_session_path, :method => :delete)
       %hr
       .body

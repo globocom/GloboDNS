@@ -4,6 +4,8 @@ class ApplicationController < ActionController::Base
     before_filter :authenticate_user!  # all pages require a login
     after_filter  :flash_headers
 
+    helper_method :admin?, :operator?, :admin_or_operator?, :viewer?
+
     def admin?
         current_user.admin? or render_401
     end
@@ -12,9 +14,15 @@ class ApplicationController < ActionController::Base
         current_user.operator? or render_401
     end
 
+    def admin_or_operator?
+        (current_user.admin? || current_user.operator?) or render_401
+    end
+
     def viewer?
         current_user.viewer? or render_401
     end
+
+    protected
 
     def flash_headers
         return unless request.xhr?
@@ -29,8 +37,6 @@ class ApplicationController < ActionController::Base
 
         flash.discard
     end
-
-    protected
 
     def render_401
         respond_to do |format|

@@ -9,23 +9,8 @@
 
 class Domain < ActiveRecord::Base
     # define helper constants and methods to handle domain types
-    def self.define_types(symbols, attribute)
-        define_method((attribute.to_s + '_str').to_sym) { self.class.const_get(attribute.to_s.pluralize.upcase.to_sym)[self.send(attribute)] }
-
-        symbols.inject(Hash.new) do |hash, type_sym|
-            type_str    = type_sym.to_s
-            value       = type_str[0]
-            hash[value] = type_str
-
-            const_set(type_sym, value)
-            define_method(type_str.downcase + '?') { self.send(attribute) == value }
-            define_method(type_str.downcase + '!') { self.send((attribute.to_s + '=').to_sym, value) }
-
-            hash
-        end.freeze
-    end
-    AUTHORITY_TYPES  = define_types([:MASTER, :SLAVE],   :authority_type)
-    ADDRESSING_TYPES = define_types([:REVERSE, :NORMAL], :addressing_type)
+    AUTHORITY_TYPES  = define_enum([:MASTER, :SLAVE],   :authority_type)
+    ADDRESSING_TYPES = define_enum([:REVERSE, :NORMAL], :addressing_type)
 
     REVERSE_DOMAIN_SUFFIX = '.in-addr.arpa'
 

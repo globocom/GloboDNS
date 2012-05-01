@@ -2,6 +2,8 @@ class DomainsController < ApplicationController
     respond_to :html, :json
     responders :flash
 
+    before_filter :admin_or_operator?, :except => [:index, :show]
+
     def index
         session[:show_reverse_domains] = (params[:reverse] == 'true') if params.has_key?(:reverse)
         logger.info "show reverse domains: #{session[:show_reverse_domains]}"
@@ -67,9 +69,5 @@ class DomainsController < ApplicationController
         @domain = Domain.find(params[:id])
         @domain.destroy
         respond_with(@domain)
-    end
-
-    def update_note
-        resource.update_attribute(:notes, params[:domain][:notes])
     end
 end

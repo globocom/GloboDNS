@@ -2,6 +2,8 @@ class DomainTemplatesController < ApplicationController
     respond_to :html, :json
     responders :flash
 
+    before_filter :admin?
+
     def index
         @domain_templates = DomainTemplate.scoped
         @domain_templates = @domain_templates.includes(:record_templates).paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?

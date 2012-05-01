@@ -9,5 +9,6 @@
 %h1= t(:title_domains_list)
 = render :partial => 'list', :object => @domains, :as => :domains
 
-= button_tag t(:label_add_domain).titleize, :class => 'new-domain-button ui-icon-plus'
-= render :partial => 'new', :object => Domain.new, :as => :domain
+- if current_user.admin? || current_user.operator?
+  = button_tag t(:label_add_domain).titleize, :class => 'new-domain-button ui-icon-plus'
+  = render :partial => 'new', :object => Domain.new, :as => :domain

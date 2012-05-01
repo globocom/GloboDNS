@@ -1,7 +1,8 @@
 class RecordTemplatesController < ApplicationController
-
     respond_to :html, :json
     responders :flash
+
+    before_filter :admin?
 
     def index
         @record_templates = RecordTemplate.where(:domain_template_id => params[:domain_template_id])

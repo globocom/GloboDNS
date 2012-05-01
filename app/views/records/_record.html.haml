@@ -11,11 +11,11 @@
   %td.prio=    record.prio
   %td.content= record.content
   %td.actions
-    - unless record.domain.slave?
+    - if current_user.admin? || current_user.operator?
       = link_to '', '#', :class => 'edit-record-button ui-icon-edit', :title => t(:generic_edit)
       = link_to '', record_path(record), :remote => true, :method => :delete, :confirm => t(:confirm_domain_delete_record), :class => 'delete-record-button ui-icon-trash', :title => t(:generic_delete)
 
-- unless record.domain.slave?
+- if current_user.admin? || current_user.operator?
   %tr[ record, :edit ]{:style => 'display: none;', :class => "#{even_odd} edit-record"}
     = form_for(record, :as => 'record', :url => record_path(record)) do |f|
       %td.name=    f.text_field :shortname

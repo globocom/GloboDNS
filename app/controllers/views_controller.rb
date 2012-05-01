@@ -1,5 +1,5 @@
 class ViewsController < ApplicationController
-    respond_to :html
+    respond_to :html, :json
     responders :flash
 
     before_filter :admin?

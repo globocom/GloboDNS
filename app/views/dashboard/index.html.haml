@@ -1,5 +1,6 @@
 %h1= t(:label_lastest_domains)
 = render :partial => '/domains/list', :object => @latest_domains, :as => :domains
 
-%h1= t(:label_new_domain).titleize
-= render :partial => '/domains/new', :object => Domain.new, :as => :domain, :locals => {:show_form => true}
+- if current_user.admin? || current_user.operator?
+  %h1= t(:label_new_domain).titleize
+  = render :partial => '/domains/new', :object => Domain.new, :as => :domain, :locals => {:show_form => true}

@@ -5,11 +5,13 @@
 # Obtained from http://www.zytrax.com/books/dns/ch8/soa.html
 
 class SOA < Record
+    # the portions of the +content+ column that make up our SOA fields
+    SOA_FIELDS = %w{primary_ns contact serial refresh retry expire minimum}
+    ACCESSIBLE_SOA_FIELDS = SOA_FIELDS - ['serial']
 
     validates_presence_of     :primary_ns, :content, :serial, :refresh, :retry, :expire, :minimum
     validates_numericality_of :serial, :refresh, :retry, :expire, :allow_blank => true, :greater_than_or_equal_to => 0
-    # validates_numericality_of :minimum, :allow_blank => true, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 10800
-    validates_numericality_of :minimum, :allow_blank => true, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 21600
+    validates_numericality_of :minimum, :allow_blank => true, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 21600 # 10800
     validates_uniqueness_of   :domain_id, :on => :update
     validates                 :contact, :presence => true, :hostname => true
     validates                 :name,    :presence => true, :hostname => true
@@ -20,10 +22,7 @@ class SOA < Record
     before_validation :set_content
     after_initialize  :update_convenience_accessors
 
-    attr_accessible :name, :ttl, :prio, :content, :primary_ns, :contact, :refresh, :retry, :expire, :minimum
-
-    # the portions of the +content+ column that make up our SOA fields
-    SOA_FIELDS = %w{primary_ns contact serial refresh retry expire minimum}
+    attr_accessible :name, :ttl, :prio, :content, *ACCESSIBLE_SOA_FIELDS
 
     # this allows us to have these convenience attributes act like any other
     # column in terms of validations
@@ -36,6 +35,7 @@ class SOA < Record
         end
 
         define_method "#{soa_entry}=" do |value|
+            puts "setting #{soa_entry} as #{value}"
             instance_variable_set("@#{soa_entry}", value)
             set_content
             instance_variable_get("@#{soa_entry}")
@@ -104,7 +104,7 @@ class SOA < Record
 
     # update our convenience accessors when the object has changed
     def update_convenience_accessors
-        return if self.content.blank?
+        return if self.content.blank? || ACCESSIBLE_SOA_FIELDS.select{ |field| send(field).blank? }.empty?
 
         soa_fields = self.content.split(/\s+/)
         raise Exception.new("Invalid SOA Record content attribute: #{self.content}") unless soa_fields.size == SOA_FIELDS.size

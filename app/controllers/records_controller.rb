@@ -1,6 +1,8 @@
 class RecordsController < ApplicationController
     respond_to :html, :json
     responders :flash
+
+    before_filter :admin_or_operator?, :except => [:index, :show]
     
     DEFAULT_PAGE_SIZE = 10
 
@@ -52,11 +54,5 @@ class RecordsController < ApplicationController
         respond_with(@record) do |format|
             format.html { head :no_content if request.xhr? }
         end
-    end
-
-    # Non-CRUD methods
-    def update_soa
-        @domain = parent
-        @domain.soa_record.update_attributes( params[:soa] )
     end
 end

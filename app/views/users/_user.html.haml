@@ -8,7 +8,7 @@
   %td.login=   user.login
   %td.email=   user.email
   %td.password &nbsp;
-  %td.role=    User::ROLES[user.role]
+  %td.role=    user.role_str
   %td.actions
     = link_to '', '#', :class => 'edit-user-button ui-icon-edit', :title => t(:generic_edit)
     = link_to '', user_path(user), :remote => true, :method => :delete, :confirm => t(:confirm_user_delete), :class => 'delete-user-button ui-icon-trash', :title => t(:generic_delete)

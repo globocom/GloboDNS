@@ -2,6 +2,9 @@ class Bind9Controller < ApplicationController
     include GloboDns::Config
 
     respond_to :html, :json
+    responders :flash
+
+    before_filter :admin_or_operator?
 
     def index
         get_current_config

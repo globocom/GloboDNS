@@ -21,42 +21,43 @@
       %td= label_tag :notes, t(:label_domain_notes)
       %td= domain.notes
 
-%div.edit-domain-container{:class => domain.errors.empty? ? 'hidden' : ''}
-  = form_for(domain, :remote => true, :html => {:class => 'update-domain-form'}) do |f|
+- if current_user.admin? || current_user.operator?
+  %div.edit-domain-container{:class => domain.errors.empty? ? 'hidden' : ''}
+    = form_for(domain, :remote => true, :html => {:class => 'update-domain-form'}) do |f|
 
-    - if domain && domain.errors.any?
-      %ul.errors
-        - domain.errors.full_messages.each do |msg|
-          %li= msg
+      - if domain && domain.errors.any?
+        %ul.errors
+          - domain.errors.full_messages.each do |msg|
+            %li= msg
 
-    %table#edit-domain
-      %tbody
-        %tr.master.slave
-          %td= f.label :name, t(:label_domain_name)
-          %td= f.text_field :name
-          %td= help_icon('help-domain-name')
-        %tr.master.slave.hidden
-          %td.hidden= f.label :authority_type, t(:label_domain_authority_type)
-          %td.hidden= f.collection_select :authority_type, Domain::AUTHORITY_TYPES, :first, :last
-          %td.hidden= help_icon('help-domain-type')
-        %tr.master.slave
-          %td= f.label :view, t(:label_domain_view)
-          %td= f.collection_select :view_id, View.all, :id, :name, :include_blank => true
-          %td= help_icon('help-domain-view')
-        %tr.slave
-          %td= f.label :master, t(:label_domain_master_server)
-          %td= f.text_field :master
-          %td= help_icon('help-domain-master')
-        %tr.master
-          %td= f.label :ttl, t(:label_domain_ttl)
-          %td= f.text_field :ttl
-          %td= help_icon('help-domain-ttl')
-        %tr.master.slave
-          %td.notes= f.label :notes, t(:label_domain_notes)
-          %td~ f.text_area :notes
-          %td= help_icon('help-domain-notes')
-      %tfoot
-        %tr.actions
-          %td{:colspan => 3}
-            = button_tag(t(:generic_cancel), :class => 'cancel-update-domain-button ui-icon-ban-circle')
-            = f.button(t(:generic_save),   :class => 'update-domain-button ui-icon-download-alt')
+      %table#edit-domain
+        %tbody
+          %tr.master.slave
+            %td= f.label :name, t(:label_domain_name)
+            %td= f.text_field :name
+            %td= help_icon('help-domain-name')
+          %tr.master.slave.hidden
+            %td.hidden= f.label :authority_type, t(:label_domain_authority_type)
+            %td.hidden= f.collection_select :authority_type, Domain::AUTHORITY_TYPES, :first, :last
+            %td.hidden= help_icon('help-domain-type')
+          %tr.master.slave
+            %td= f.label :view, t(:label_domain_view)
+            %td= f.collection_select :view_id, View.all, :id, :name, :include_blank => true
+            %td= help_icon('help-domain-view')
+          %tr.slave
+            %td= f.label :master, t(:label_domain_master_server)
+            %td= f.text_field :master
+            %td= help_icon('help-domain-master')
+          %tr.master
+            %td= f.label :ttl, t(:label_domain_ttl)
+            %td= f.text_field :ttl
+            %td= help_icon('help-domain-ttl')
+          %tr.master.slave
+            %td.notes= f.label :notes, t(:label_domain_notes)
+            %td~ f.text_area :notes
+            %td= help_icon('help-domain-notes')
+        %tfoot
+          %tr.actions
+            %td{:colspan => 3}
+              = button_tag(t(:generic_cancel), :class => 'cancel-update-domain-button ui-icon-ban-circle')
+              = f.button(t(:generic_save),   :class => 'update-domain-button ui-icon-download-alt')

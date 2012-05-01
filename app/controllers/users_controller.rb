@@ -1,8 +1,8 @@
 class UsersController < ApplicationController
-    respond_to :html
+    respond_to :html, :json
     responders :flash
 
-    # before_filter :admin?, :except => [:sign_in, :sign_out]
+    before_filter :admin?
 
     def index
         @users = User.scoped
