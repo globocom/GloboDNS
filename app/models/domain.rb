@@ -41,7 +41,7 @@ class Domain < ActiveRecord::Base
 
     # validations
     validates_presence_of   :name
-    validates_uniqueness_of :name
+    validates_uniqueness_of :name, :scope => :view_id
     validates_inclusion_of  :authority_type,  :in => AUTHORITY_TYPES.keys,  :message => "must be one of #{AUTHORITY_TYPES.keys.join(', ')}"
     validates_inclusion_of  :addressing_type, :in => ADDRESSING_TYPES.keys, :message => "must be one of #{ADDRESSING_TYPES.keys.join(', ')}"
     validates_presence_of   :ttl,        :if => :master?
