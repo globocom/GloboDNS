@@ -12,7 +12,7 @@ class Exporter
         @options     = options
         @logger      = @options.delete(:logger) || Rails.logger
 
-        Domain.connection.execute("LOCK TABLE #{Domain.table_name} READ, #{Record.table_name} READ") unless (@options[:lock_tables] == false)
+        Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ") unless (@options[:lock_tables] == false)
 
         # get last commit timestamp and the export/current timestamp
         Dir.chdir(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR))
