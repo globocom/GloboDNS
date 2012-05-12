@@ -1,7 +1,8 @@
 - even_odd = cycle('odd', 'even')
 %tr{:class => even_odd}
   %td
-    = link_to domain.name, domain_path(domain)
+    = link_to domain.view_id ? "#{domain.name} (#{domain.view.name})" : domain.name, domain_path(domain)
+
   /%td
   /  = link_to info_icon('table_edit.png', 'zone-edit'), edit_domain_path(domain)
   /  = link_to info_icon('report_magnify.png', 'audits'), audits_path(:action => :domain, :id => domain)
