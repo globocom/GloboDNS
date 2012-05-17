@@ -148,7 +148,7 @@ class Exporter
 
     def run_checkconf(tmp_dir)
         # exec('named-checkconf', Binaries::SUDO, Binaries::CHECKCONF, '-z', '-t', tmp_dir, BIND_CONFIG_FILE)
-        exec_as_root('named-checkconf', Binaries::CHECKCONF, '-z', '-t', tmp_dir, BIND_CONFIG_FILE)
+        exec_as_root('named-checkconf', Binaries::CHECKCONF, '-z', '-t', tmp_dir, BIND_CONFIG_FILE).gsub(/^zone .*?: loaded serial\s+\d+\n/, '')
     end
 
     def sync_and_commit(tmp_named_dir)

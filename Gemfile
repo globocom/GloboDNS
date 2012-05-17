@@ -9,8 +9,7 @@ gem 'acts_as_audited', '~> 2.0'
 gem 'devise'
 gem 'awesome_print'
 gem 'responders'
-# gem 'inherited_resources'
-# gem 'rabl'
+gem 'zonefile'
 
 group :assets do
     gem 'sass-rails',   '~> 3.2.3'

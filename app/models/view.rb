@@ -1,7 +1,11 @@
 class View < ActiveRecord::Base
     has_many :domains
 
+    RFC1912_NAME = '__rfc1912'
+    ANY_NAME     = '__any'
+
     validates_presence_of :name
+    validates_associated  :domains
 
     def updated_since?(timestamp)
         self.updated_at > timestamp

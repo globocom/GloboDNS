@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require File.expand_path('../../config/environment',  __FILE__)
-require 'globo_dns/importer'
+require 'globo_dns/importer/named_conf_importer'
+# require 'globo_dns/importer'
 
-GloboDns::Importer.new.import
+GloboDns::Importer.new.import(ARGV.shift)

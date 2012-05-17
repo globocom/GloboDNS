@@ -1,0 +1,453 @@
+require File.expand_path('../../../../config/environment', __FILE__)
+
+grammar NamedConf
+    rule file
+        (space top_level_directive space)+ {
+            attr_accessor :chroot_dir
+
+			def named_conf
+				str = ''
+				elements.each do |element|
+					next unless element.respond_to?(:top_level_directive)
+					top_level = element.top_level_directive
+
+					# skip zones and views, except for the 'rfc1912' view
+					next if top_level.respond_to?(:zone) || (top_level.respond_to?(:view) && top_level.view.name != View::RFC1912_NAME)
+
+					str << top_level.text_value << "\n\n"
+				end
+				str
+			end
+
+            def views(node = self, indent = '')
+                _views  = Array.new
+                _views << node.view if node.respond_to?(:view)
+
+                if node.nonterminal?
+                    node.elements.each do |child|
+                        _views += views(child, indent + '  ') unless child.terminal?
+                    end
+                end
+
+                _views
+            end
+
+            def zones(node = self)
+                _zones  = Array.new
+                _zones << node.zone if node.respond_to?(:zone)
+
+                node.elements.each do |child|
+                    _zones += zones(child) unless child.terminal?
+                end
+
+                _zones
+            end
+        }
+    end
+
+    rule top_level_directive
+        (acl / controls / include_ / key / logging / lwres / masters / options / server / statistics_channels / trusted_keys /  managed_keys / view / zone ) {
+        }
+    end
+
+    rule acl
+        'acl' space acl_name space '{' space acl_statements space '}' space ';' {
+        }
+    end
+
+    rule controls
+        'controls' space '{' space controls_statements space '}' space ';' {
+        }
+    end
+
+    rule include_
+        'include' space filename space ';'
+    end
+
+    rule key
+        'key' space key_id space '{' space key_statements space '}' space ';' {
+        }
+    end
+
+    rule logging
+        'logging' space '{' space logging_statements space '}' space ';' {
+        }
+    end
+
+    rule lwres
+        'lwres' space '{' space lwres_statements space '}' space ';' {
+        }
+    end
+
+    rule masters
+        'masters' space masters_name space '{' space masters_statements space '}' space ';' {
+        }
+    end
+
+    rule options
+        'options' space '{' space options_statements space '}' space ';' {
+        }
+    end
+
+    rule server
+        'server' space server_ipaddr ('/' ipaddr_prefix_length)? space '{' space server_statements space '}' space ';' {
+        }
+    end
+
+    rule statistics_channels
+        'statistics-channels' space '{' space statistics_channels_statements space '}' space ';' {
+        }
+    end
+
+    rule trusted_keys
+        'trusted-keys' space '{' space trusted_keys_statements space '}' space ';' {
+        }
+    end
+
+    rule managed_keys
+        'managed-keys' space '{' space managed_keys_statements space '}' space ';' {
+        }
+    end
+
+    rule view
+        'view' space view_name space dns_class? space '{' space view_statements space '}' space ';' {
+            def view
+                unless @view
+                    @view         = View.new(:name => view_name.text_value.strip_quotes)
+                    @view.domains = self.zones
+                end
+                @view
+            end
+
+            def zones(node = self, indent = '')
+                # STDERR.puts "[INFO] #{indent} calling 'zones' method of rule 'view' (self: #{self.object_id}) (@view: #{self.instance_variable_get('@view')}) (tv: \"#{node.text_value[0..20].gsub(/[\r\n]+/, ' ')}\", #{node.extension_modules.inspect})"
+                _zones  = Array.new
+                _zones << node.zone(self.view) if node.respond_to?(:zone)
+
+                if node.nonterminal?
+                    node.elements.each do |child|
+                        _zones += zones(child, indent + '  ') unless child.terminal?
+                    end
+                end
+
+                _zones
+            end
+        }
+    end
+
+    rule zone
+        'zone' space zone_name space dns_class? space '{' space zone_statements space '}' space ';' {
+            ZONE_TYPE_MAP = {
+                :mx    => MX.new.type,
+                :a     => A.new.type,
+                :a4    => AAAA.new.type,
+                :ns    => NS.new.type,
+                :cname => CNAME.new.type,
+                :txt   => TXT.new.type,
+                :ptr   => PTR.new.type,
+                :srv   => SRV.new.type,
+                :soa   => SOA.new.type
+            }.freeze
+
+            def zone(view = nil)
+                # STDERR.puts "[INFO] calling 'zone' method of rule 'zone'"
+                @zone ||= begin
+                    name   = zone_name.text_value.strip_quotes
+                    type   = zone_statements.elements.find{|zs| zs.respond_to?(:zone_type)}.try(:zone_type)
+                    file   = zone_statements.elements.find{|zs| zs.respond_to?(:zone_file)}.try(:zone_file)
+                    master = zone_statements.elements.find{|zs| zs.respond_to?(:zone_masters)}.try(:zone_masters)
+
+                    if type == 'master'
+                        chroot_dir = find_chroot_dir_in_parents
+                        chroot_file_path = File.join(chroot_dir, file)
+                        File.exists?(chroot_file_path) or raise Exception.new("[ERROR] zone file not found: \"#{chroot_file_path}\"")
+                        zone_file = Zonefile.from_file(chroot_file_path, name)
+
+                        _zone = Domain.new(:name => zone_file.origin, :view => view, :authority_type => Domain::MASTER, :ttl => zone_file.ttl)
+                        _zone.soa_record = SOA.new(:name       => zone_file.soa[:origin],
+                                                   :ttl        => zone_file.soa[:ttl],
+                                                   :primary_ns => zone_file.soa[:primary],
+                                                   :contact    => zone_file.soa[:email],
+                                                   :serial     => zone_file.soa[:serial],
+                                                   :refresh    => zone_file.soa[:refresh],
+                                                   :retry      => zone_file.soa[:retry],
+                                                   :expire     => zone_file.soa[:expire],
+                                                   :minimum    => zone_file.soa[:minimumTTL])
+                        _zone.soa_record.serial = zone_file.soa[:serial]
+                        _zone.soa_record.domain = _zone
+
+                        zone_file.records.each do |record_type, records|
+                            record_class = ZONE_TYPE_MAP[record_type].constantize
+                            records.each do |record|
+                                _zone.records << record_class.new(:name    => record[:name],
+                                                                  :ttl     => record[:ttl],
+                                                                  :prio    => record[:pri],
+                                                                  :content => record[:host])
+                            end
+                        end
+                    else
+                        _zone = Domain.new(:name => zone_name.text_value, :view => view, :authority_type => Domain::SLAVE, :master => master)
+                    end
+
+                    _zone
+                end
+            end
+
+            def find_chroot_dir_in_parents
+                p = parent
+                while p
+                    return p.chroot_dir if p.respond_to?(:chroot_dir)
+                    p = p.parent
+                end
+                raise Exception.new('[ERROR] unable to find "chroot_dir" attribute on parent nodes')
+            end
+        }
+    end
+
+    rule acl_name
+        name
+    end
+
+    rule acl_statements
+        statement* {
+        }
+    end
+
+    rule controls_statements
+        statement* {
+        }
+    end
+
+    rule key_id
+        name
+    end
+
+    rule key_statements
+        statement* {
+        }
+    end
+
+    rule logging_statements
+        statement* {
+        }
+    end
+
+    rule lwres_statements
+        statement* {
+        }
+    end
+
+    rule masters_name
+        name
+    end
+
+    rule masters_statements
+        (ipaddr space ';' space)* {
+            def to_s
+                # hack: there may be multiple masters, but we only select the first
+                # one as the DB currently expects a single IP addr value
+                elements.select{|el| el.respond_to?(:ipaddr)}.collect{|el| el.ipaddr.text_value}.first
+            end
+        }
+    end
+
+    rule options_statements
+        statement* {
+        }
+    end
+
+    rule server_ipaddr
+        ipaddr
+    end
+
+    rule server_statements
+        statement* {
+        }
+    end
+
+    rule statistics_channels_statements
+        statement* {
+        }
+    end
+
+    rule trusted_keys_statements
+        statement* {
+        }
+    end
+
+    rule managed_keys_statements
+        statement* {
+        }
+    end
+
+    rule view_name
+        name
+    end
+
+    rule dns_class
+        ('IN' / 'in') {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    rule view_statements
+        (zone / statement)* {
+        }
+    end
+
+    rule zone_name
+        name
+    end
+
+    rule zone_statements
+        (zone_type_statement / zone_file_statement / zone_masters_statement / zone_allow_update_statement)* {
+            def zone_str
+                elements.collect(&:to_s).join(":")
+            end
+        }
+    end
+
+    rule zone_type_statement
+        space 'type' space zone_type_value space ';' {
+            def to_s
+                "type #{zone_type_value}"
+            end
+
+            def zone_type
+                zone_type_value.text_value.strip_quotes
+            end
+        }
+    end
+
+    rule zone_type_value
+        ('slave' / 'master' / 'stub' / 'forward') {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    rule zone_file_statement
+        space 'file' space filename space ';' {
+            def to_s
+                "file #{filename}"
+            end
+
+            def zone_file
+                filename.text_value.strip_quotes
+            end
+        }
+    end
+
+    rule zone_masters_statement
+        space 'masters' space '{' space masters_statements space '}' space ';' {
+            def to_s
+                "masters { #{masters_statements} }"
+            end
+
+            def zone_masters
+                masters_statements.to_s.strip_quotes
+            end
+        }
+    end
+
+    rule zone_allow_update_statement
+        space 'allow-update' space '{' space allow_update_values space '}' space ';' {
+            def to_s
+                "allow-update { #{allow_update_values} }"
+            end
+        }
+    end
+
+    rule allow_update_values
+        (allow_update_value space ';' space)* {
+            def to_s
+                elements.collect{|el| el.allow_update_value}.join(' ')
+            end
+        }
+    end
+
+    rule allow_update_value
+        ('any' / 'none' / '"' allow_update_value '"') {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    # ------------------------------------------------
+    # ------------------ terminals -------------------
+
+    rule space
+        # comment / [\s]* {
+        [\s]* {
+            def inspect(indent = '')
+                ''
+            end
+
+            def to_s
+                ''
+            end
+        }
+    end
+
+    rule comment
+        [\s]* '#' [^\r\n]* [\r\n] comment*
+    end
+
+    rule filename
+        '"' [\w\.\/\-_]+ '"' {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    rule statement
+        (space (name space)+ ';' space /
+        space ((name space)+ '{' space statement* space '}' space)+ ';' space) {
+        }
+    end
+
+    rule name
+        (id / string) {
+            def to_s
+                text_value
+            end
+        }
+    end
+    
+    rule id
+        [\w\-\.\/]+ {
+            def to_s
+                text_value
+            end
+        }
+    end
+    
+    rule string
+        '"' [^"]* '"' {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    rule ipaddr
+        [\d] 1..3 '.' [\d] 1..3 '.' [\d] 1..3 '.' [\d] 1..3 {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    rule ipaddr_prefix_length
+        [\d]+ {
+            def to_s
+                text_value
+            end
+        }
+    end
+end

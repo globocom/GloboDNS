@@ -122,6 +122,7 @@ GEM
     warden (1.1.1)
       rack (>= 1.0)
     will_paginate (3.0.2)
+    zonefile (1.03)
 
 PLATFORMS
   ruby
@@ -141,3 +142,4 @@ DEPENDENCIES
   therubyracer
   uglifier (~> 1.0.3)
   will_paginate
+  zonefile
