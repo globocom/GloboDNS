@@ -26,18 +26,33 @@ class Domain < ActiveRecord::Base
 
     # associations
     belongs_to :view
-    has_many   :records, :dependent => :destroy, :inverse_of => :domain
-    has_one    :soa_record,    :class_name => 'SOA'
-    has_many   :ns_records,    :class_name => 'NS'
-    has_many   :mx_records,    :class_name => 'MX'
-    has_many   :a_records,     :class_name => 'A'
-    has_many   :txt_records,   :class_name => 'TXT'
-    has_many   :cname_records, :class_name => 'CNAME'
-    has_one    :loc_record,    :class_name => 'LOC'
-    has_many   :aaaa_records,  :class_name => 'AAAA'
-    has_many   :spf_records,   :class_name => 'SPF'
-    has_many   :srv_records,   :class_name => 'SRV'
-    has_many   :ptr_records,   :class_name => 'PTR'
+    has_many   :records,            :dependent => :destroy,      :inverse_of => :domain
+    has_one    :soa_record,         :class_name => 'SOA',        :inverse_of => :domain
+    has_many   :aaaa_records,       :class_name => 'AAAA',       :inverse_of => :domain
+    has_many   :a_records,          :class_name => 'A',          :inverse_of => :domain
+    has_many   :cert_records,       :class_name => 'CERT',       :inverse_of => :domain
+    has_many   :cname_records,      :class_name => 'CNAME',      :inverse_of => :domain
+    has_many   :dlv_records,        :class_name => 'DLV',        :inverse_of => :domain
+    has_many   :dnskey_records,     :class_name => 'DNSKEY',     :inverse_of => :domain
+    has_many   :ds_records,         :class_name => 'DS',         :inverse_of => :domain
+    has_many   :ipseckey_records,   :class_name => 'IPSECKEY',   :inverse_of => :domain
+    has_many   :key_records,        :class_name => 'KEY',        :inverse_of => :domain
+    has_many   :kx_records,         :class_name => 'KX',         :inverse_of => :domain
+    has_many   :loc_records,        :class_name => 'LOC',        :inverse_of => :domain
+    has_many   :mx_records,         :class_name => 'MX',         :inverse_of => :domain
+    has_many   :nsec3param_records, :class_name => 'NSEC3PARAM', :inverse_of => :domain
+    has_many   :nsec3_records,      :class_name => 'NSEC3',      :inverse_of => :domain
+    has_many   :nsec_records,       :class_name => 'NSEC',       :inverse_of => :domain
+    has_many   :ns_records,         :class_name => 'NS',         :inverse_of => :domain
+    has_many   :ptr_records,        :class_name => 'PTR',        :inverse_of => :domain
+    has_many   :rrsig_records,      :class_name => 'RRSIG',      :inverse_of => :domain
+    has_many   :sig_records,        :class_name => 'SIG',        :inverse_of => :domain
+    has_many   :spf_records,        :class_name => 'SPF',        :inverse_of => :domain
+    has_many   :srv_records,        :class_name => 'SRV',        :inverse_of => :domain
+    has_many   :ta_records,         :class_name => 'TA',         :inverse_of => :domain
+    has_many   :tkey_records,       :class_name => 'TKEY',       :inverse_of => :domain
+    has_many   :tsig_records,       :class_name => 'TSIG',       :inverse_of => :domain
+    has_many   :txt_records,        :class_name => 'TXT',        :inverse_of => :domain
 
     # validations
     validates_presence_of   :name

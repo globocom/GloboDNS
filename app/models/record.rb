@@ -33,7 +33,8 @@ class Record < ActiveRecord::Base
     scope :updated_since, lambda { |timestamp| where('updated_at > ?', timestamp) }
 
     # known record types
-    @@record_types = ['A', 'AAAA', 'CNAME', 'LOC', 'MX', 'NS', 'PTR', 'SOA', 'SPF', 'SRV', 'TXT']
+    @@record_types = %w(AAAA A CERT CNAME DLV DNSKEY DS IPSECKEY KEY KX LOC MX NSEC3PARAM NSEC3 NSEC NS PTR RRSIG SIG SOA SPF SRV TA TKEY TSIG TXT)
+
     cattr_reader :record_types
 
     class << self
