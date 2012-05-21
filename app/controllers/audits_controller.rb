@@ -1,18 +1,14 @@
 class AuditsController < ApplicationController
+    respond_to :html, :json
+    responders :flash
 
-  before_filter do
-    unless current_user.admin?
-      redirect_to root_url
+    before_filter :admin?
+
+    def index
+        @audits = Audited::Adapters::ActiveRecord::Audit.reorder('id DESC').limit(20)
+        @audits = @audits.paginate(:page => params[:page] || 1, :per_page => 20) if request.format.html? || request.format.js?
+        respond_with(@audits) do |format|
+            format.html { render :partial => 'list', :object => @audits, :as => :audits if request.xhr? }
+        end
     end
-  end
-
-  def index
-
-  end
-
-  # Retrieve the audit details for a domain
-  def domain
-    @domain = Domain.user( current_user ).find( params[:id] )
-  end
-
 end

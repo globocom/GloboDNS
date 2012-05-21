@@ -1,3 +1,2 @@
-%h1= t :title_audit_search_logs
-
-%em= t :text_audit_comming_soon
+%h1= t(:title_audits)
+= render :partial => 'list', :object => @audits, :as => :audits

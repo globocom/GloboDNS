@@ -8,6 +8,8 @@
 # * It specifies a default $TTL
 
 class Domain < ActiveRecord::Base
+    include SyslogHelper
+
     # define helper constants and methods to handle domain types
     AUTHORITY_TYPES  = define_enum([:MASTER, :SLAVE],   :authority_type)
     ADDRESSING_TYPES = define_enum([:REVERSE, :NORMAL], :addressing_type)
@@ -21,7 +23,7 @@ class Domain < ActiveRecord::Base
         delegate field.to_sym, (field.to_s + '=').to_sym, :to => :soa_record
     end
 
-    acts_as_audited :protect => false
+    audited :protect => false
     has_associated_audits
 
     # associations
@@ -125,6 +127,10 @@ class Domain < ActiveRecord::Base
     def save_soa_record #:nodoc:
         return if self.slave?
         soa_record.save or raise "[ERROR] unable to save SOA record (#{soa_record.errors.full_messages})"
+    end
+
+    def after_audit
+        syslog_audit(self.audits.last)
     end
 
     # ------------- 'BIND9 export' utility methods --------------

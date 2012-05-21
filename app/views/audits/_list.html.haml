@@ -1,0 +1,15 @@
+%div.audits-table-container
+  %table#audits-table
+    %thead
+      %tr
+        %th= t :label_audit_timestamp
+        %th= t :label_audit_user
+        %th= t :label_audit_from
+        %th= t :label_audit_action
+        %th= t :label_audit_auditable
+        %th= t :label_audit_associated
+        %th= t :label_audit_changes
+        / %th= t :label_audit_comment
+    %tbody
+      = render :partial => 'audit', :collection => @audits
+  = will_paginate @audits, :id => 'audits-table-pagination', :previous_label => '«'.html_safe, :next_label => '»'.html_safe

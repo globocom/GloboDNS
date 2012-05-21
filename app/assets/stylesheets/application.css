@@ -601,6 +601,26 @@ table#new-view td label {
     padding-right: 1em;
 }
 
+table#audits-table {
+    width: 100%;
+    margin-bottom: 2em;
+    border-bottom: 1px solid #efefef;
+    border-collapse: collapse;
+}
+table#audits-table th {
+    text-align: left;
+}
+table#audits-table th, table#audits-table td {
+    padding: .5em 1em .5em 0;
+	white-space: nowrap;
+}
+table#audits-table tr.even {
+    background-color: #f7f7f7;
+}
+table#audits-table td.changes span {
+	display: inline-block;
+	overflow: hidden;
+}
 
 .fieldWithErrors input {
     border: 1px solid #F66;

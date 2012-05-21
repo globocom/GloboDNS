@@ -134,28 +134,14 @@ en:
   button_sign_in: Sign in
 
 # Audits _domain_audit
-  label_audit_time: "Time:"
-  label_audit_changes: "Changes:"
-
-# Audits domain
-  title_audit_information_for: "Audit information for"
-  text_audit_click_on_revision_for_detail:
-    You can click on any revision number on the lists below to see the details
-    of the revision
-  title_audit_domain_revisions: "Domain Revisions"
-  text_audit_no_domain_revisions:
-    No revisions found for the domain.
-  title_audit_rr_revisions: "RR Revisions"
-  text_audit_order_description:
-    Revisions below sorted in reverse chronoligical order.
-  text_audit_no_resource_revision:
-    No revisions found for any resource records of the domain.
-  label_audit_no_domain_revisions: "No revisions found for the domain."
-
-# Audits index
-  title_audit_search_logs: "Search audit logs"
-  text_audit_comming_soon:
-    Coming soon!
+  title_audits: Logs
+  label_audit_timestamp: Time
+  label_audit_user: User
+  label_audit_from: From
+  label_audit_action: Action
+  label_audit_auditable: Entity
+  label_audit_associated: Association
+  label_audit_changes: Changes
 
 # Dashboard index
   label_lastest_domains: "Latest Domains"

@@ -1,0 +1,12 @@
+- even_odd = cycle('odd', 'even')
+%tr{:class => even_odd}
+  %td.timestamp= audit.created_at.to_formatted_s(:short)
+  %td.user= audit.user_id
+  %td.from= audit.remote_address
+  %td.action= audit.action
+  %td.auditable= "#{audit.auditable_type.try(:downcase)}:#{audit.auditable_id}"
+  %td.association= audit.associated_type ? "#{audit.associated_type.try(:downcase)}:#{audit.associated_id}" : ''
+  %td.changes{'title' => audit.audited_changes}
+    %span= audit.audited_changes
+
+  / %th= audit.comment

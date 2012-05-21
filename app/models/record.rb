@@ -4,10 +4,12 @@
 # that can easily be applied to any DNS RR's
 
 class Record < ActiveRecord::Base
+    include SyslogHelper
+
     belongs_to :domain, :inverse_of => :records
 
-    acts_as_audited :associated_with => :domain
-    self.non_audited_columns.delete( self.inheritance_column ) # audit the 'type' column
+    audited :associated_with => :domain
+    self.non_audited_columns.delete(self.inheritance_column) # audit the 'type' column
 
     validates_presence_of     :domain
     validates_presence_of     :name
@@ -123,6 +125,10 @@ class Record < ActiveRecord::Base
         self.class.resolv_resource_class(self.type)
     end
 
+    def after_audit
+        syslog_audit(self.audits.last)
+    end
+
     # fixed partial path, as we don't need a different partial for each record type
     def to_partial_path
         Record._to_partial_path
@@ -166,6 +172,23 @@ class Record < ActiveRecord::Base
     def update_domain_timestamp
         self.domain.touch
     end
+
+    # def audit_create(*args)
+    #     write_audit(:action => 'create', :audited_changes => audited_attributes, :comment => audit_comment)
+    #     Rails.syslogger.info "[GloboDns][record.create] #{audited_attributes.inspect} #{audit_comment ? ('(' + audit_comment + ')') : ''}"
+    # end
+
+    # def audit_update
+    #     unless (changes = audited_changes).empty? && audit_comment.blank?
+    #         write_audit(:action => 'update', :audited_changes => changes, :comment => audit_comment)
+    #         Rails.syslogger.info "[GloboDns][record.update] #{changes.inspect} #{audit_comment ? ('(' + audit_comment + ')') : ''}"
+    #     end
+    # end
+
+    # def audit_destroy
+    #     write_audit(:action => 'destroy', :audited_changes => audited_attributes, :comment => audit_comment)
+    #     Rails.syslogger.info "[GloboDns][record.destroy] #{audited_attributes.inspect} #{audit_comment ? ('(' + audit_comment + ')') : ''}"
+    # end
 
     # append the domain name to the +name+ field if missing
     # def append_domain_name!

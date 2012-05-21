@@ -1,4 +1,6 @@
 class View < ActiveRecord::Base
+    include SyslogHelper
+
     has_many :domains
 
     RFC1912_NAME = '__rfc1912'
@@ -9,6 +11,10 @@ class View < ActiveRecord::Base
 
     def updated_since?(timestamp)
         self.updated_at > timestamp
+    end
+
+    def after_audit
+        syslog_audit(self.audits.last)
     end
 
     def zones_dir
