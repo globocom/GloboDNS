@@ -17,6 +17,7 @@ class RecordsController < ApplicationController
 
     def show
         @record = Record.find(params[:id])
+        respond_with(@record)
     end
 
     def new
@@ -53,6 +54,15 @@ class RecordsController < ApplicationController
         @record.destroy
         respond_with(@record) do |format|
             format.html { head :no_content if request.xhr? }
+        end
+    end
+
+    def resolve
+        @record = Record.find(params[:id])
+        @master_response, @slave_response = @record.resolve
+        respond_to do |format|
+            format.html { render :partial => 'resolve' } if request.xhr?
+            format.json { render :json => {'master' => @master_response, 'slave' => @slave_response}.to_json }
         end
     end
 end
