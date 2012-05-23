@@ -14,6 +14,7 @@
     - if current_user.admin? || current_user.operator?
       = link_to '', '#', :class => 'edit-record-button ui-icon-edit', :title => t(:generic_edit)
       = link_to '', record_path(record), :remote => true, :method => :delete, :confirm => t(:confirm_domain_delete_record), :class => 'delete-record-button ui-icon-trash', :title => t(:generic_delete)
+      = link_to '', resolve_record_path(record), :remote => true, :class => 'resolve-record-button ui-icon-cogs', :title => t(:label_dns_query)
 
 - if current_user.admin? || current_user.operator?
   %tr[ record, :edit ]{:style => 'display: none;', :class => "#{even_odd} edit-record"}
@@ -24,5 +25,5 @@
       %td.prio=    record.supports_prio? ? f.text_field(:prio) : '&nbsp;'.html_safe
       %td.content= f.text_field :content
       %td.actions
-        = link_to('', '#', :class => 'update-record-button ui-icon-download-alt',    :title => t(:generic_update))
-        = link_to('', '#', :class => 'cancel-edit-record-button ui-icon-ban-circle', :title => t(:generic_cancel))
+        = link_to('', '#', :class => 'update-record-button      ui-icon-download-alt', :title => t(:generic_update))
+        = link_to('', '#', :class => 'cancel-edit-record-button ui-icon-ban-circle',   :title => t(:generic_cancel))

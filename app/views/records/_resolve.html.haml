@@ -1,0 +1,7 @@
+%h1= "#{@record.name} #{@record.type} #{truncate(@record.content, :length => 20)}"
+
+%h2= t(:label_master).titleize
+%div.response= simple_format(@master_response)
+
+%h2= t(:label_slave).titleize
+%div.response= simple_format(@slave_response)

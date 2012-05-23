@@ -2,7 +2,9 @@ GloboDns::Application.routes.draw do
     devise_for :users, :controllers => { :sessions => 'sessions' }
 
     resources :domains do
-        resources :records, :shallow => true
+        resources :records, :shallow => true do
+            get 'resolve', :on => :member
+        end
     end
 
     resources :domain_templates do

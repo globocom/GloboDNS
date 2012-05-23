@@ -231,6 +231,54 @@ $(document).ready(function() {
 		alert("[ERROR] unable to delete Record");
 	});
 
+	$('.resolve-record-button').live('ajax:success', function (evt, data, statusStr, xhr) {
+		showDialog('#resolve-result', data);
+	}).live('ajax:error', function () {
+		alert("[ERROR] unable to resolve Record");
+	});
+
+	var showDialog = function (id, content) {
+		var elem = $(id);
+		var win  = $(window);
+
+		// set the dialog's content
+		elem.find('.content').html(content);
+
+        // position the dialog at the center of the window
+        var winH = win.height();
+        var winW = win.width();
+        elem.css('top',  winH / 2 - elem.height() / 2);
+        elem.css('left', winW / 2 - elem.width()  / 2);
+
+		// display it using a fancy UI effect
+        elem.show();
+
+		// finally, add event handlers to close it
+		// elem.click(function () {
+		// 	if (console) console.log("clicked on dialog");
+		// });
+		var winClickHandler = win.bind('click', function (e) {
+			e.preventDefault();
+			if ($(e.target).closest(id).size() == 0) {
+				win.unbind('click', winClickHandler);
+				elem.hide();
+			}
+		});
+
+		var winKeypressHandler = win.bind('keypress', function (e) {
+			if (e.keyCode == 27) {
+				win.unbind('keypress', winKeypressHandler);
+				elem.hide();
+			}
+		});
+
+		elem.find('.close-button').one('click', function (e) {
+			e.preventDefault();
+			win.unbind('click', winClickHandler);
+			elem.hide();
+		});
+	};
+
 	var fixRecordTableZebraStriping = function () {
 		$('table#record-table tr.show-record:nth-child(even), table#record-table tr.edit-record:nth-child(odd)').addClass("even").removeClass("odd");
 		$('table#record-table tr.show-record:nth-child(odd), table#record-table tr.edit-record:nth-child(even)').addClass("odd").removeClass("even");

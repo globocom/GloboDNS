@@ -104,6 +104,10 @@ class Record < ActiveRecord::Base
         false
     end
 
+    def resolve
+        [GloboDns::Resolver::MASTER.resolve(self), GloboDns::Resolver::SLAVE.resolve(self)]
+    end
+
     # return the Resolv::DNS resource instance, based on the 'type' column
     def self.resolv_resource_class(type)
         case type
@@ -172,23 +176,6 @@ class Record < ActiveRecord::Base
     def update_domain_timestamp
         self.domain.touch
     end
-
-    # def audit_create(*args)
-    #     write_audit(:action => 'create', :audited_changes => audited_attributes, :comment => audit_comment)
-    #     Rails.syslogger.info "[GloboDns][record.create] #{audited_attributes.inspect} #{audit_comment ? ('(' + audit_comment + ')') : ''}"
-    # end
-
-    # def audit_update
-    #     unless (changes = audited_changes).empty? && audit_comment.blank?
-    #         write_audit(:action => 'update', :audited_changes => changes, :comment => audit_comment)
-    #         Rails.syslogger.info "[GloboDns][record.update] #{changes.inspect} #{audit_comment ? ('(' + audit_comment + ')') : ''}"
-    #     end
-    # end
-
-    # def audit_destroy
-    #     write_audit(:action => 'destroy', :audited_changes => audited_attributes, :comment => audit_comment)
-    #     Rails.syslogger.info "[GloboDns][record.destroy] #{audited_attributes.inspect} #{audit_comment ? ('(' + audit_comment + ')') : ''}"
-    # end
 
     # append the domain name to the +name+ field if missing
     # def append_domain_name!

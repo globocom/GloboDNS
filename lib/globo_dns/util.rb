@@ -1,8 +1,5 @@
-require 'resolv'
-
 module GloboDns
 module Util
-
     def logger=(value)
         @logger = value
     end
@@ -31,10 +28,6 @@ module Util
     def exec_as_root(command_id, *args)
         args.unshift(GloboDns::Config::Binaries::SUDO)
         exec(command_id, *args)
-    end
-
-    def resolver
-        @@resolver ||= Resolv::DNS::new(:nameserver => GloboDns::Config::NAMESERVER_HOST)
     end
 
 end # Util

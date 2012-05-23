@@ -304,7 +304,7 @@ input[type="submit"]::-moz-focus-inner, input[type="button"]:focus {
 textarea#named_conf {
     width: 99%;
     height: 25em;
-    font-family: Monospace;
+    font-family: Monospace, Courier New;
 }
 
 .pagination {
@@ -642,7 +642,7 @@ input.nb, textarea.nb {
     padding: .25em;
     border: 1px solid #ccc;
     color: #3f3f3f;
-    font: Monospace;
+    font: Monospace, Courier New;
 }
 
 .hidden-by-domain-template {
@@ -665,6 +665,43 @@ ul.start li {
     vertical-align: middle;
 }
 
+.dialog {
+	position:   fixed;
+	width:      640px;
+	display:    none;
+	padding:    2em;
+	z-index:    9999;
+	background: white;
+    box-shadow: 0px 0px 16px #888;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+}
+.dialog h1 {
+	margin-top: 0;
+}
+.dialog h2 {
+	margin: 1em 0 0 0;
+	padding: 0;
+	font-size: 100%;
+}
+.dialog .response {
+	font-family: Monospace, Courier New;
+	padding:     .5em;
+	border:      1px solid #ccc;
+	height:      180px;
+	overflow-y:  auto;
+}
+.dialog .response p {
+	margin: 0 0 1em 0;
+}
+.dialog .actions {
+	text-align: right;
+}
+.dialog .actions button {
+	padding: 0 1em;
+	text-align: right;
+}
+ 
 #ajaxBusy {
   display: none;
   margin: 0;

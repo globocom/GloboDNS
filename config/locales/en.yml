@@ -109,6 +109,7 @@ en:
   generic_export: "Export"
   generic_reset: "Reset"
   generic_reload: "Reload"
+  generic_close: "Close"
   generic_test: "Test"
   generic_yes: "Yes"
   generic_no: "No"
@@ -206,6 +207,8 @@ en:
   label_domain_retry: "Retry"
   label_domain_expire: "Expire"
   label_domain_minimum: "Minimum"
+  label_master: master
+  label_slave: slave
 
 # Domain apply_macro
   title_macro_for: "Macros for %{domain}"
@@ -259,6 +262,7 @@ en:
   label_domain_record_type: "Type"
   label_domain_record_priority: "Priority"
   label_domain_record_data: "Data"
+  label_dns_query: 'Test'
 
 # Domains edit
   title_update_zone: "Update zone"

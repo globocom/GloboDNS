@@ -1,8 +1,10 @@
 development: &devconf
+    bind_master_host:  'localhost'
+    bind_master_port:  53
+    bind_slave_host:   'localhost'
+    bind_slave_port:   5353
     bind_user:         'bind'
     bind_group:        'bind'
-    # bind_host:       'localhost'
-    # bind_port:       '53'
     bind_config_file:  '/etc/named.conf'
     bind_config_dir:   '/etc/named/'
     bind_chroot_dir:   '/var/named/chroot/'
@@ -28,6 +30,7 @@ development: &devconf
         named:         '/usr/sbin/named'
         rndc:          '/usr/sbin/rndc'
         checkconf:     '/usr/sbin/named-checkconf'
+        dig:           '/usr/bin/dig'
         git:           '/usr/bin/git'
         zone2sql:      '/usr/bin/zone2sql'
         rsync:         '/usr/bin/rsync'
@@ -37,8 +40,10 @@ development: &devconf
 test:
     bind_user:         <%= ENV['USER'] %>
     bind_group:        'bind'
-    bind_host:         'localhost'
-    bind_port:         '5353'
+    bind_master_host:  'localhost'
+    bind_master_port:  53
+    bind_slave_host:   'localhost'
+    bind_slave_port:   5353
     bind_config_file:  '/etc/named.conf'
     bind_config_dir:   '/etc/named/'
     bind_error_log:    '/var/log/globodns.error.log'

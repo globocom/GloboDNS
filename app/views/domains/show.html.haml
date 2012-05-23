@@ -25,6 +25,11 @@
   #record-template-edit= t :label_domain_edit_record
   #record-template-delete= t :label_domain_delete_record
 
+%div#resolve-result.dialog
+  %div.content
+  %div.actions
+    = button_tag t(:generic_close), :class => 'close-button close-resolve-result-button ui-icon-remove'
+
 %h1
   = Domain.model_name.human.titleize
   - if current_user.admin? || current_user.operator?
