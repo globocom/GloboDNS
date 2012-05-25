@@ -66,8 +66,8 @@ class Importer
                 domain_views = Hash.new
                 root.views.each do |view|
                     view.domains.each do |domain|
-                        domain_views[domain.import_file_name] ||= Array.new
-                        domain_views[domain.import_file_name]  << view.name
+                        domain_views[domain.name] ||= Array.new
+                        domain_views[domain.name]  << view.name
                     end
                 end
                 common_domains = domain_views.select { |domain, views| views.size == root.views.size }
@@ -79,12 +79,12 @@ class Importer
                     view.save or raise Exception.new("[ERROR] unable to save view #{view.name}: #{view.errors.full_messages}")
 
                     domains.each do |domain|
-                        domain_views = common_domains[domain.import_file_name]
+                        domain_views = common_domains[domain.name]
 
                         if domain_views == false
                             next
                         elsif domain_views.is_a?(Array)
-                            common_domains[domain.import_file_name] = false
+                            common_domains[domain.name] = false
                             domain.view = nil
                         else
                             domain.view = view
