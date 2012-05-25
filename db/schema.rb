@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120523202405) do
+ActiveRecord::Schema.define(:version => 20120525183452) do
 
   create_table "audits", :force => true do |t|
     t.integer  "auditable_id"
@@ -36,7 +36,7 @@ ActiveRecord::Schema.define(:version => 20120523202405) do
 
   create_table "domain_templates", :force => true do |t|
     t.string   "name"
-    t.integer  "ttl",        :null => false
+    t.string   "ttl",        :null => false
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
     t.integer  "view_id"
@@ -49,7 +49,7 @@ ActiveRecord::Schema.define(:version => 20120523202405) do
     t.integer  "last_check"
     t.integer  "notified_serial"
     t.string   "account"
-    t.integer  "ttl"
+    t.string   "ttl"
     t.text     "notes"
     t.datetime "created_at",                   :null => false
     t.datetime "updated_at",                   :null => false
@@ -65,7 +65,7 @@ ActiveRecord::Schema.define(:version => 20120523202405) do
     t.string   "name"
     t.string   "record_type",        :null => false
     t.string   "content",            :null => false
-    t.integer  "ttl",                :null => false
+    t.string   "ttl",                :null => false
     t.integer  "prio"
     t.datetime "created_at",         :null => false
     t.datetime "updated_at",         :null => false
@@ -76,7 +76,7 @@ ActiveRecord::Schema.define(:version => 20120523202405) do
     t.string   "name",       :null => false
     t.string   "type",       :null => false
     t.string   "content",    :null => false
-    t.integer  "ttl"
+    t.string   "ttl"
     t.integer  "prio"
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false

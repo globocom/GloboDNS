@@ -9,6 +9,7 @@
 
 class Domain < ActiveRecord::Base
     include SyslogHelper
+    include BindTimeFormatHelper
 
     # define helper constants and methods to handle domain types
     AUTHORITY_TYPES  = define_enum([:MASTER, :SLAVE],   :authority_type)
@@ -59,14 +60,15 @@ class Domain < ActiveRecord::Base
     has_many   :txt_records,        :class_name => 'TXT',        :inverse_of => :domain
 
     # validations
-    validates_presence_of   :name
-    validates_uniqueness_of :name, :scope => :view_id
-    validates_inclusion_of  :authority_type,  :in => AUTHORITY_TYPES.keys,  :message => "must be one of #{AUTHORITY_TYPES.keys.join(', ')}"
-    validates_inclusion_of  :addressing_type, :in => ADDRESSING_TYPES.keys, :message => "must be one of #{ADDRESSING_TYPES.keys.join(', ')}"
-    validates_presence_of   :ttl,        :if => :master?
-    validates_associated    :soa_record, :if => :master? 
-    validates_presence_of   :master,     :if => :slave?
-    validates_format_of     :master,     :if => :slave?, :allow_blank => true, :with => /\A(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\z/
+    validates_presence_of      :name
+    validates_uniqueness_of    :name, :scope => :view_id
+    validates_inclusion_of     :authority_type,  :in => AUTHORITY_TYPES.keys,  :message => "must be one of #{AUTHORITY_TYPES.keys.join(', ')}"
+    validates_inclusion_of     :addressing_type, :in => ADDRESSING_TYPES.keys, :message => "must be one of #{ADDRESSING_TYPES.keys.join(', ')}"
+    validates_presence_of      :ttl,        :if => :master?
+    validates_bind_time_format :ttl,        :if => :master?
+    validates_associated       :soa_record, :if => :master?
+    validates_presence_of      :master,     :if => :slave?
+    validates_format_of        :master,     :if => :slave?, :allow_blank => true, :with => /\A(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\z/
 
     # callbacks
     # before_validation :set_addressing_type

@@ -5,15 +5,17 @@
 
 class Record < ActiveRecord::Base
     include SyslogHelper
+    include BindTimeFormatHelper
 
     belongs_to :domain, :inverse_of => :records
 
     audited :associated_with => :domain
     self.non_audited_columns.delete(self.inheritance_column) # audit the 'type' column
 
-    validates_presence_of     :domain
-    validates_presence_of     :name
-    validates_numericality_of :ttl, :greater_than_or_equal_to => 0, :only_integer => true, :allow_nil => true
+    validates_presence_of      :domain
+    validates_presence_of      :name
+    validates_bind_time_format :ttl
+    # validates_numericality_of :ttl, :greater_than_or_equal_to => 0, :only_integer => true, :allow_nil => true
 
     class_attribute :batch_soa_updates
 

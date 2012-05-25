@@ -9,13 +9,14 @@ class SOA < Record
     SOA_FIELDS = %w{primary_ns contact serial refresh retry expire minimum}
     ACCESSIBLE_SOA_FIELDS = SOA_FIELDS - ['serial']
 
-    validates_presence_of     :primary_ns, :content, :serial, :refresh, :retry, :expire, :minimum
-    validates_numericality_of :serial
+    validates_presence_of      :primary_ns, :content, :serial, :refresh, :retry, :expire, :minimum
+    validates_numericality_of  :serial
+    validates_bind_time_format :refresh, :retry, :expire, :minimum
     # validates_numericality_of :serial, :refresh, :retry, :expire, :allow_blank => true, :greater_than_or_equal_to => 0
     # validates_numericality_of :minimum, :allow_blank => true, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 21600 # 10800
-    validates_uniqueness_of   :domain_id, :on => :update
-    validates                 :contact, :presence => true, :hostname => true
-    validates                 :name,    :presence => true, :hostname => true
+    validates_uniqueness_of    :domain_id, :on => :update
+    validates                  :contact, :presence => true, :hostname => true
+    validates                  :name,    :presence => true, :hostname => true
 
     # before_validation :update_serial
     before_validation :set_initial_serial, :on => :create
@@ -112,7 +113,7 @@ class SOA < Record
 
         soa_fields.each_with_index do |field_value, index|
             field_name  = SOA_FIELDS[index]
-            field_value = field_value.try(:to_i) unless field_name == 'primary_ns' || field_name == 'contact'
+            # field_value = field_value.try(:to_i) unless field_name == 'primary_ns' || field_name == 'contact'
             instance_variable_set("@#{field_name}", field_value)
             instance_variable_set("@#{field_name}_was", field_value)
         end
