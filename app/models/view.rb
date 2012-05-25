@@ -53,6 +53,7 @@ class View < ActiveRecord::Base
         str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, self.reverse_file)}\";\n"
         str << "\n"
         str << "#{indent}    # common zones\n"
+        # str << "#{indent}    include \"/etc/named.rfc1912.zones\";\n"
         str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, GloboDns::Config::ZONES_FILE)}\";\n"
         str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, GloboDns::Config::SLAVES_FILE)}\";\n"
         str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, GloboDns::Config::REVERSE_FILE)}\";\n"

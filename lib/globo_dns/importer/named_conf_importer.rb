@@ -62,34 +62,42 @@ class Importer
                 Domain.delete_all
                 View.delete_all
 
+                # find 'common/shared' domains
+                domain_views = Hash.new
+                root.views.each do |view|
+                    view.domains.each do |domain|
+                        domain_views[domain.import_file_name] ||= Array.new
+                        domain_views[domain.import_file_name]  << view.name
+                    end
+                end
+                common_domains = domain_views.select { |domain, views| views.size == root.views.size }
+
+                # save each view and its respective domain
                 root.views.each do |view|
                     domains = view.domains.clone
                     view.domains.clear
-
-                    case view.name;
-                    when View::RFC1912_NAME; next
-                    when View::ANY_NAME;     view = nil
-                    else
-                        puts "saving view: #{view.inspect}"
-                        view.save or raise Exception.new("[ERROR] unable to save view #{view.name}: #{view.errors.full_messages}")
-                    end
+                    view.save or raise Exception.new("[ERROR] unable to save view #{view.name}: #{view.errors.full_messages}")
 
                     domains.each do |domain|
+                        domain_views = common_domains[domain.import_file_name]
+
+                        if domain_views == false
+                            next
+                        elsif domain_views.is_a?(Array)
+                            common_domains[domain.import_file_name] = false
+                            domain.view = nil
+                        else
+                            domain.view = view
+                        end
+
                         puts "saving domain: #{domain.inspect} (soa: #{domain.soa_record.inspect})"
-                        domain.view = view
                         domain.save or raise Exception.new("[ERROR] unable to save domain #{domain.name}: #{domain.errors.full_messages} (soa: #{domain.soa_record.errors.full_messages})")
                     end
                 end
 
-                begin
-                    File.open(File.join(BIND_MASTER_CHROOT_DIR, BIND_CONFIG_FILE), 'w') do |file|
-                        file.write(root.named_conf)
-                    end
-                rescue Exception => e
-                    STDERR.puts "[ERROR] unable to save named.conf file"
-                    raise ActiveRecord::Rollback.new
-                end
             end
+
+            GloboDns::Exporter.new.export_master(root.named_conf)
         end
     ensure
         if named_conf_file

@@ -23,6 +23,8 @@ class Domain < ActiveRecord::Base
         delegate field.to_sym, (field.to_s + '=').to_sym, :to => :soa_record
     end
 
+    attr_accessor :import_file_name
+
     audited :protect => false
     has_associated_audits
 

@@ -27,18 +27,19 @@ module NamedConf
   module File1
     attr_accessor :chroot_dir
 
-			def conf
-				puts "[conf]"
-				elements.inject('') do |str, element|
-					next unless element.respond_to?(:top_level_directive)
-					top_level = element.top_level_directive
+    def named_conf
+        str = ''
+        elements.each do |element|
+            next unless element.respond_to?(:top_level_directive)
+            top_level = element.top_level_directive
 
-					# skip zones and views, except for the 'rfc1912' view
-					next if top_level.respond_to?(:zone) || (top_level.respond_to?(:view) && top_level.view.view_name.text_value != View::RFC1912_NAME)
+            # skip zones and views
+            next if top_level.respond_to?(:zone) || top_level.respond_to?(:view)
 
-					str << top_level.text_value << "\n\n"
-				end
-			end
+            str << top_level.text_value << "\n\n"
+        end
+        str
+    end
 
     def views(node = self, indent = '')
         _views  = Array.new
@@ -53,15 +54,15 @@ module NamedConf
         _views
     end
 
-    def zones(node = self)
-        _zones  = Array.new
-        _zones << node.zone if node.respond_to?(:zone)
+    def domains(node = self)
+        _domains  = Array.new
+        _domains << node.domain if node.respond_to?(:domain)
 
         node.elements.each do |child|
-            _zones += zones(child) unless child.terminal?
+            _domains += domains(child) unless child.terminal?
         end
 
-        _zones
+        _domains
     end
   end
 
@@ -1638,24 +1639,25 @@ module NamedConf
   module View1
     def view
         unless @view
-            @view         = View.new(:name => view_name.text_value.strip_quotes)
-            @view.domains = self.zones
+            @view              = View.new(:name => view_name.text_value.strip_quotes)
+            @view.domains      = self.domains
+            @view.clients      = view_statements.elements.find{|e| e.respond_to?(:match_clients)}.try(:match_clients).try(:to_s)
+            @view.destinations = view_statements.elements.find{|e| e.respond_to?(:match_destinations)}.try(:match_destinations).try(:to_s)
         end
         @view
     end
 
-    def zones(node = self, indent = '')
-        # STDERR.puts "[INFO] #{indent} calling 'zones' method of rule 'view' (self: #{self.object_id}) (@view: #{self.instance_variable_get('@view')}) (tv: \"#{node.text_value[0..20].gsub(/[\r\n]+/, ' ')}\", #{node.extension_modules.inspect})"
-        _zones  = Array.new
-        _zones << node.zone(self.view) if node.respond_to?(:zone)
+    def domains(node = self, indent = '')
+        _domains  = Array.new
+        _domains << node.domain(self.view) if node.respond_to?(:domain)
 
         if node.nonterminal?
             node.elements.each do |child|
-                _zones += zones(child, indent + '  ') unless child.terminal?
+                _domains += domains(child, indent + '  ') unless child.terminal?
             end
         end
 
-        _zones
+        _domains
     end
   end
 
@@ -1812,9 +1814,9 @@ module NamedConf
         :soa   => SOA.new.type
     }.freeze
 
-    def zone(view = nil)
+    def domain(view = nil)
         # STDERR.puts "[INFO] calling 'zone' method of rule 'zone'"
-        @zone ||= begin
+        @domain ||= begin
             name   = zone_name.text_value.strip_quotes
             type   = zone_statements.elements.find{|zs| zs.respond_to?(:zone_type)}.try(:zone_type)
             file   = zone_statements.elements.find{|zs| zs.respond_to?(:zone_file)}.try(:zone_file)
@@ -1826,7 +1828,12 @@ module NamedConf
                 File.exists?(chroot_file_path) or raise Exception.new("[ERROR] zone file not found: \"#{chroot_file_path}\"")
                 zone_file = Zonefile.from_file(chroot_file_path, name)
 
-                _zone = Domain.new(:name => zone_file.origin, :view => view, :authority_type => Domain::MASTER, :ttl => zone_file.ttl)
+                _zone = Domain.new(:name             => zone_file.origin,
+                                   :view             => view,
+                                   :authority_type   => Domain::MASTER,
+                                   :ttl              => zone_file.ttl,
+                                   :import_file_name => chroot_file_path)
+
                 _zone.soa_record = SOA.new(:name       => zone_file.soa[:origin],
                                            :ttl        => zone_file.soa[:ttl],
                                            :primary_ns => zone_file.soa[:primary],
@@ -1837,7 +1844,7 @@ module NamedConf
                                            :expire     => zone_file.soa[:expire],
                                            :minimum    => zone_file.soa[:minimumTTL])
                 _zone.soa_record.serial = zone_file.soa[:serial]
-                _zone.soa_record.domain = _zone
+                # _zone.soa_record.domain = _zone
 
                 zone_file.records.each do |record_type, records|
                     record_class = ZONE_TYPE_MAP[record_type].constantize
@@ -1849,7 +1856,11 @@ module NamedConf
                     end
                 end
             else
-                _zone = Domain.new(:name => zone_name.text_value, :view => view, :authority_type => Domain::SLAVE, :master => master)
+                _zone = Domain.new(:name             => name,
+                                   :view             => view,
+                                   :authority_type   => Domain::SLAVE,
+                                   :master           => master,
+                                   :import_file_name => chroot_file_path)
             end
 
             _zone
@@ -2499,6 +2510,36 @@ module NamedConf
   end
 
   module ViewStatements0
+    def match_clients
+      elements[0]
+    end
+
+    def space
+      elements[1]
+    end
+  end
+
+  module ViewStatements1
+    def match_destinations
+      elements[0]
+    end
+
+    def space
+      elements[1]
+    end
+  end
+
+  module ViewStatements2
+    def zone
+      elements[0]
+    end
+
+    def space
+      elements[1]
+    end
+  end
+
+  module ViewStatements3
   end
 
   def _nt_view_statements
@@ -2515,16 +2556,60 @@ module NamedConf
     s0, i0 = [], index
     loop do
       i1 = index
-      r2 = _nt_zone
+      i2, s2 = index, []
+      r3 = _nt_match_clients
+      s2 << r3
+      if r3
+        r4 = _nt_space
+        s2 << r4
+      end
+      if s2.last
+        r2 = instantiate_node(SyntaxNode,input, i2...index, s2)
+        r2.extend(ViewStatements0)
+      else
+        @index = i2
+        r2 = nil
+      end
       if r2
         r1 = r2
       else
-        r3 = _nt_statement
-        if r3
-          r1 = r3
+        i5, s5 = index, []
+        r6 = _nt_match_destinations
+        s5 << r6
+        if r6
+          r7 = _nt_space
+          s5 << r7
+        end
+        if s5.last
+          r5 = instantiate_node(SyntaxNode,input, i5...index, s5)
+          r5.extend(ViewStatements1)
         else
-          @index = i1
-          r1 = nil
+          @index = i5
+          r5 = nil
+        end
+        if r5
+          r1 = r5
+        else
+          i8, s8 = index, []
+          r9 = _nt_zone
+          s8 << r9
+          if r9
+            r10 = _nt_space
+            s8 << r10
+          end
+          if s8.last
+            r8 = instantiate_node(SyntaxNode,input, i8...index, s8)
+            r8.extend(ViewStatements2)
+          else
+            @index = i8
+            r8 = nil
+          end
+          if r8
+            r1 = r8
+          else
+            @index = i1
+            r1 = nil
+          end
         end
       end
       if r1
@@ -2534,9 +2619,305 @@ module NamedConf
       end
     end
     r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
-    r0.extend(ViewStatements0)
+    r0.extend(ViewStatements3)
 
     node_cache[:view_statements][start_index] = r0
+
+    r0
+  end
+
+  module MatchClients0
+    def address_match
+      elements[0]
+    end
+
+    def space
+      elements[2]
+    end
+  end
+
+  module MatchClients1
+    def space1
+      elements[1]
+    end
+
+    def space2
+      elements[3]
+    end
+
+    def space3
+      elements[6]
+    end
+
+  end
+
+  module MatchClients2
+    def to_s
+        elements[4].elements.collect{|e| e.address_match.to_s}.join(';')
+    end
+  end
+
+  def _nt_match_clients
+    start_index = index
+    if node_cache[:match_clients].has_key?(index)
+      cached = node_cache[:match_clients][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    i0, s0 = index, []
+    if has_terminal?('match-clients', false, index)
+      r1 = instantiate_node(SyntaxNode,input, index...(index + 13))
+      @index += 13
+    else
+      terminal_parse_failure('match-clients')
+      r1 = nil
+    end
+    s0 << r1
+    if r1
+      r2 = _nt_space
+      s0 << r2
+      if r2
+        if has_terminal?('{', false, index)
+          r3 = instantiate_node(SyntaxNode,input, index...(index + 1))
+          @index += 1
+        else
+          terminal_parse_failure('{')
+          r3 = nil
+        end
+        s0 << r3
+        if r3
+          r4 = _nt_space
+          s0 << r4
+          if r4
+            s5, i5 = [], index
+            loop do
+              i6, s6 = index, []
+              r7 = _nt_address_match
+              s6 << r7
+              if r7
+                if has_terminal?(';', false, index)
+                  r8 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                  @index += 1
+                else
+                  terminal_parse_failure(';')
+                  r8 = nil
+                end
+                s6 << r8
+                if r8
+                  r9 = _nt_space
+                  s6 << r9
+                end
+              end
+              if s6.last
+                r6 = instantiate_node(SyntaxNode,input, i6...index, s6)
+                r6.extend(MatchClients0)
+              else
+                @index = i6
+                r6 = nil
+              end
+              if r6
+                s5 << r6
+              else
+                break
+              end
+            end
+            if s5.empty?
+              @index = i5
+              r5 = nil
+            else
+              r5 = instantiate_node(SyntaxNode,input, i5...index, s5)
+            end
+            s0 << r5
+            if r5
+              if has_terminal?('}', false, index)
+                r10 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                @index += 1
+              else
+                terminal_parse_failure('}')
+                r10 = nil
+              end
+              s0 << r10
+              if r10
+                r11 = _nt_space
+                s0 << r11
+                if r11
+                  if has_terminal?(';', false, index)
+                    r12 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                    @index += 1
+                  else
+                    terminal_parse_failure(';')
+                    r12 = nil
+                  end
+                  s0 << r12
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+    if s0.last
+      r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
+      r0.extend(MatchClients1)
+      r0.extend(MatchClients2)
+    else
+      @index = i0
+      r0 = nil
+    end
+
+    node_cache[:match_clients][start_index] = r0
+
+    r0
+  end
+
+  module MatchDestinations0
+    def address_match
+      elements[0]
+    end
+
+    def space
+      elements[2]
+    end
+  end
+
+  module MatchDestinations1
+    def space1
+      elements[1]
+    end
+
+    def space2
+      elements[3]
+    end
+
+    def space3
+      elements[6]
+    end
+
+  end
+
+  module MatchDestinations2
+    def to_s
+        elements[4].elements.collect{|e| e.address_match.to_s}.join(';')
+    end
+  end
+
+  def _nt_match_destinations
+    start_index = index
+    if node_cache[:match_destinations].has_key?(index)
+      cached = node_cache[:match_destinations][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    i0, s0 = index, []
+    if has_terminal?('match-destinations', false, index)
+      r1 = instantiate_node(SyntaxNode,input, index...(index + 18))
+      @index += 18
+    else
+      terminal_parse_failure('match-destinations')
+      r1 = nil
+    end
+    s0 << r1
+    if r1
+      r2 = _nt_space
+      s0 << r2
+      if r2
+        if has_terminal?('{', false, index)
+          r3 = instantiate_node(SyntaxNode,input, index...(index + 1))
+          @index += 1
+        else
+          terminal_parse_failure('{')
+          r3 = nil
+        end
+        s0 << r3
+        if r3
+          r4 = _nt_space
+          s0 << r4
+          if r4
+            s5, i5 = [], index
+            loop do
+              i6, s6 = index, []
+              r7 = _nt_address_match
+              s6 << r7
+              if r7
+                if has_terminal?(';', false, index)
+                  r8 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                  @index += 1
+                else
+                  terminal_parse_failure(';')
+                  r8 = nil
+                end
+                s6 << r8
+                if r8
+                  r9 = _nt_space
+                  s6 << r9
+                end
+              end
+              if s6.last
+                r6 = instantiate_node(SyntaxNode,input, i6...index, s6)
+                r6.extend(MatchDestinations0)
+              else
+                @index = i6
+                r6 = nil
+              end
+              if r6
+                s5 << r6
+              else
+                break
+              end
+            end
+            if s5.empty?
+              @index = i5
+              r5 = nil
+            else
+              r5 = instantiate_node(SyntaxNode,input, i5...index, s5)
+            end
+            s0 << r5
+            if r5
+              if has_terminal?('}', false, index)
+                r10 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                @index += 1
+              else
+                terminal_parse_failure('}')
+                r10 = nil
+              end
+              s0 << r10
+              if r10
+                r11 = _nt_space
+                s0 << r11
+                if r11
+                  if has_terminal?(';', false, index)
+                    r12 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                    @index += 1
+                  else
+                    terminal_parse_failure(';')
+                    r12 = nil
+                  end
+                  s0 << r12
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+    if s0.last
+      r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
+      r0.extend(MatchDestinations1)
+      r0.extend(MatchDestinations2)
+    else
+      @index = i0
+      r0 = nil
+    end
+
+    node_cache[:match_destinations][start_index] = r0
 
     r0
   end
@@ -4118,6 +4499,261 @@ module NamedConf
     end
 
     node_cache[:ipaddr_prefix_length][start_index] = r0
+
+    r0
+  end
+
+  module AddressMatch0
+    def ipaddr_prefix_length
+      elements[1]
+    end
+  end
+
+  module AddressMatch1
+    def ipaddr
+      elements[1]
+    end
+
+    def space
+      elements[3]
+    end
+  end
+
+  module AddressMatch2
+    def space1
+      elements[1]
+    end
+
+    def key_id
+      elements[2]
+    end
+
+    def space2
+      elements[3]
+    end
+  end
+
+  module AddressMatch3
+    def acl_name
+      elements[0]
+    end
+
+    def space
+      elements[1]
+    end
+  end
+
+  module AddressMatch4
+    def space1
+      elements[1]
+    end
+
+    def space2
+      elements[3]
+    end
+
+    def space3
+      elements[5]
+    end
+  end
+
+  module AddressMatch5
+    def to_s
+        text_value.strip_quotes
+    end
+  end
+
+  def _nt_address_match
+    start_index = index
+    if node_cache[:address_match].has_key?(index)
+      cached = node_cache[:address_match][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    i0 = index
+    i1, s1 = index, []
+    if has_terminal?('!', false, index)
+      r3 = instantiate_node(SyntaxNode,input, index...(index + 1))
+      @index += 1
+    else
+      terminal_parse_failure('!')
+      r3 = nil
+    end
+    if r3
+      r2 = r3
+    else
+      r2 = instantiate_node(SyntaxNode,input, index...index)
+    end
+    s1 << r2
+    if r2
+      r4 = _nt_ipaddr
+      s1 << r4
+      if r4
+        i6, s6 = index, []
+        if has_terminal?('/', false, index)
+          r7 = instantiate_node(SyntaxNode,input, index...(index + 1))
+          @index += 1
+        else
+          terminal_parse_failure('/')
+          r7 = nil
+        end
+        s6 << r7
+        if r7
+          r8 = _nt_ipaddr_prefix_length
+          s6 << r8
+        end
+        if s6.last
+          r6 = instantiate_node(SyntaxNode,input, i6...index, s6)
+          r6.extend(AddressMatch0)
+        else
+          @index = i6
+          r6 = nil
+        end
+        if r6
+          r5 = r6
+        else
+          r5 = instantiate_node(SyntaxNode,input, index...index)
+        end
+        s1 << r5
+        if r5
+          r9 = _nt_space
+          s1 << r9
+        end
+      end
+    end
+    if s1.last
+      r1 = instantiate_node(SyntaxNode,input, i1...index, s1)
+      r1.extend(AddressMatch1)
+    else
+      @index = i1
+      r1 = nil
+    end
+    if r1
+      r0 = r1
+      r0.extend(AddressMatch5)
+    else
+      i10, s10 = index, []
+      if has_terminal?('key', false, index)
+        r11 = instantiate_node(SyntaxNode,input, index...(index + 3))
+        @index += 3
+      else
+        terminal_parse_failure('key')
+        r11 = nil
+      end
+      s10 << r11
+      if r11
+        r12 = _nt_space
+        s10 << r12
+        if r12
+          r13 = _nt_key_id
+          s10 << r13
+          if r13
+            r14 = _nt_space
+            s10 << r14
+          end
+        end
+      end
+      if s10.last
+        r10 = instantiate_node(SyntaxNode,input, i10...index, s10)
+        r10.extend(AddressMatch2)
+      else
+        @index = i10
+        r10 = nil
+      end
+      if r10
+        r0 = r10
+        r0.extend(AddressMatch5)
+      else
+        i15, s15 = index, []
+        r16 = _nt_acl_name
+        s15 << r16
+        if r16
+          r17 = _nt_space
+          s15 << r17
+        end
+        if s15.last
+          r15 = instantiate_node(SyntaxNode,input, i15...index, s15)
+          r15.extend(AddressMatch3)
+        else
+          @index = i15
+          r15 = nil
+        end
+        if r15
+          r0 = r15
+          r0.extend(AddressMatch5)
+        else
+          i18, s18 = index, []
+          if has_terminal?('{', false, index)
+            r19 = instantiate_node(SyntaxNode,input, index...(index + 1))
+            @index += 1
+          else
+            terminal_parse_failure('{')
+            r19 = nil
+          end
+          s18 << r19
+          if r19
+            r20 = _nt_space
+            s18 << r20
+            if r20
+              s21, i21 = [], index
+              loop do
+                r22 = _nt_address_match
+                if r22
+                  s21 << r22
+                else
+                  break
+                end
+              end
+              if s21.empty?
+                @index = i21
+                r21 = nil
+              else
+                r21 = instantiate_node(SyntaxNode,input, i21...index, s21)
+              end
+              s18 << r21
+              if r21
+                r23 = _nt_space
+                s18 << r23
+                if r23
+                  if has_terminal?('}', false, index)
+                    r24 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                    @index += 1
+                  else
+                    terminal_parse_failure('}')
+                    r24 = nil
+                  end
+                  s18 << r24
+                  if r24
+                    r25 = _nt_space
+                    s18 << r25
+                  end
+                end
+              end
+            end
+          end
+          if s18.last
+            r18 = instantiate_node(SyntaxNode,input, i18...index, s18)
+            r18.extend(AddressMatch4)
+          else
+            @index = i18
+            r18 = nil
+          end
+          if r18
+            r0 = r18
+            r0.extend(AddressMatch5)
+          else
+            @index = i0
+            r0 = nil
+          end
+        end
+      end
+    end
+
+    node_cache[:address_match][start_index] = r0
 
     r0
   end

@@ -10,8 +10,9 @@ class SOA < Record
     ACCESSIBLE_SOA_FIELDS = SOA_FIELDS - ['serial']
 
     validates_presence_of     :primary_ns, :content, :serial, :refresh, :retry, :expire, :minimum
-    validates_numericality_of :serial, :refresh, :retry, :expire, :allow_blank => true, :greater_than_or_equal_to => 0
-    validates_numericality_of :minimum, :allow_blank => true, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 21600 # 10800
+    validates_numericality_of :serial
+    # validates_numericality_of :serial, :refresh, :retry, :expire, :allow_blank => true, :greater_than_or_equal_to => 0
+    # validates_numericality_of :minimum, :allow_blank => true, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 21600 # 10800
     validates_uniqueness_of   :domain_id, :on => :update
     validates                 :contact, :presence => true, :hostname => true
     validates                 :name,    :presence => true, :hostname => true
@@ -22,7 +23,7 @@ class SOA < Record
     before_validation :set_content
     after_initialize  :update_convenience_accessors
 
-    attr_accessible :name, :ttl, :prio, :content, *ACCESSIBLE_SOA_FIELDS
+    attr_accessible  :name, :ttl, :prio, :content, *ACCESSIBLE_SOA_FIELDS
 
     # this allows us to have these convenience attributes act like any other
     # column in terms of validations
