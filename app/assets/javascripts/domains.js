@@ -250,33 +250,34 @@ $(document).ready(function() {
         elem.css('top',  winH / 2 - elem.height() / 2);
         elem.css('left', winW / 2 - elem.width()  / 2);
 
-		// display it using a fancy UI effect
+		// display it
         elem.show();
 
 		// finally, add event handlers to close it
-		// elem.click(function () {
-		// 	if (console) console.log("clicked on dialog");
-		// });
-		var winClickHandler = win.bind('click', function (e) {
+		win.bind('click.window', function (e) {
 			e.preventDefault();
-			if ($(e.target).closest(id).size() == 0) {
-				win.unbind('click', winClickHandler);
-				elem.hide();
-			}
+			if ($(e.target).closest(id).size() == 0)
+				closeDialog(id);
 		});
 
-		var winKeypressHandler = win.bind('keypress', function (e) {
-			if (e.keyCode == 27) {
-				win.unbind('keypress', winKeypressHandler);
-				elem.hide();
-			}
+		win.bind('keypress.window', function (e) {
+			if (e.keyCode == 27)
+				closeDialog(id);
 		});
 
-		elem.find('.close-button').one('click', function (e) {
+		elem.find('.close-button').one('click.close-button', function (e) {
 			e.preventDefault();
-			win.unbind('click', winClickHandler);
-			elem.hide();
+			closeDialog(id);
 		});
+	};
+
+	var closeDialog = function(id) {
+		var elem = $(id);
+		var win  = $(window);
+
+		win.unbind('click.window');
+		win.unbind('keypress.window');
+		elem.hide();
 	};
 
 	var fixRecordTableZebraStriping = function () {
