@@ -6,13 +6,17 @@ grammar NamedConf
             attr_accessor :chroot_dir
 
             def named_conf
-                str = ''
+				view_keys = views.collect(&:key_name)
+                str       = ''
+
                 elements.each do |element|
                     next unless element.respond_to?(:top_level_directive)
                     top_level = element.top_level_directive
 
                     # skip zones and views
-                    next if top_level.respond_to?(:zone) || top_level.respond_to?(:view)
+                    next if top_level.respond_to?(:zone) ||
+					        top_level.respond_to?(:view) ||
+							top_level.respond_to?(:key_name) && view_keys.include?(top_level.key_name)
 
                     str << top_level.text_value << "\n\n"
                 end
@@ -20,27 +24,31 @@ grammar NamedConf
             end
 
             def views(node = self, indent = '')
-                _views  = Array.new
-                _views << node.view if node.respond_to?(:view)
+				@views ||= begin
+					_views  = Array.new
+					_views << node.view if node.respond_to?(:view)
 
-                if node.nonterminal?
-                    node.elements.each do |child|
-                        _views += views(child, indent + '  ') unless child.terminal?
-                    end
-                end
+					if node.nonterminal?
+						node.elements.each do |child|
+							_views += views(child, indent + '  ') unless child.terminal?
+						end
+					end
 
-                _views
+					_views
+				end
             end
 
             def domains(node = self)
-                _domains  = Array.new
-                _domains << node.domain if node.respond_to?(:domain)
+				@domains ||= begin
+					_domains  = Array.new
+					_domains << node.domain if node.respond_to?(:domain)
 
-                node.elements.each do |child|
-                    _domains += domains(child) unless child.terminal?
-                end
+					node.elements.each do |child|
+						_domains += domains(child) unless child.terminal?
+					end
 
-                _domains
+					_domains
+				end
             end
         }
     end
@@ -65,7 +73,10 @@ grammar NamedConf
     end
 
     rule key
-        'key' space key_id space '{' space key_statements space '}' space ';' {
+        'key' space key_name space '{' space key_statements space '}' space ';' {
+			def name
+				key_name.text_value.strip_quotes
+			end
         }
     end
 
@@ -228,7 +239,7 @@ grammar NamedConf
         }
     end
 
-    rule key_id
+    rule key_name
         name
     end
 
@@ -303,14 +314,14 @@ grammar NamedConf
     end
 
     rule view_statements
-        (match_clients space / match_destinations space / zone space)* {
+        (match_clients space / match_destinations space / zone space / attach_cache_statement space)* {
         }
     end
 
     rule match_clients
         'match-clients' space '{' space (address_match ';' space)+ '}' space ';' {
             def to_s
-                elements[4].elements.collect{|e| e.address_match.to_s}.join(';')
+                elements[4].elements.collect{|e| e.address_match.to_s}.join('; ')
             end
         }
     end
@@ -318,10 +329,18 @@ grammar NamedConf
     rule match_destinations
         'match-destinations' space '{' space (address_match ';' space)+ '}' space ';' {
             def to_s
-                elements[4].elements.collect{|e| e.address_match.to_s}.join(';')
+                elements[4].elements.collect{|e| e.address_match.to_s}.join('; ')
             end
         }
     end
+
+	rule attach_cache_statement
+		'attach-cache' space cache_name space ';'
+	end
+
+	rule cache_name
+		name
+	end
 
     rule zone_name
         name
@@ -478,9 +497,9 @@ grammar NamedConf
     end
 
     rule address_match
-        ('!'? ipaddr ('/' ipaddr_prefix_length)? space / 'key' space key_id space / acl_name space / '{' space address_match+ space '}' space) {
+        ('!'? ipaddr ('/' ipaddr_prefix_length)? space / 'key' space key_name space / acl_name space / '{' space address_match+ space '}' space) {
             def to_s
-                text_value.strip_quotes
+                text_value
             end
         }
     end

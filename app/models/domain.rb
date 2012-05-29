@@ -15,7 +15,7 @@ class Domain < ActiveRecord::Base
     AUTHORITY_TYPES  = define_enum([:MASTER, :SLAVE],   :authority_type)
     ADDRESSING_TYPES = define_enum([:REVERSE, :NORMAL], :addressing_type)
 
-    REVERSE_DOMAIN_SUFFIX = '.in-addr.arpa'
+    REVERSE_DOMAIN_SUFFIXES = %w(.in-addr.arpa .ip6.arpa)
 
     # virtual attributes that ease new zone creation. If present, they'll be
     # used to create an SOA for the domain
@@ -71,7 +71,6 @@ class Domain < ActiveRecord::Base
     validates_format_of        :master,     :if => :slave?, :allow_blank => true, :with => /\A(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\z/
 
     # callbacks
-    # before_validation :set_addressing_type
     after_save        :save_soa_record
 
     # scopes
@@ -104,7 +103,7 @@ class Domain < ActiveRecord::Base
     end
 
     def name=(value)
-        rv = write_attribute('name', value)
+        rv = write_attribute('name', value.chomp('.'))
         set_addressing_type
         rv
     end
@@ -196,7 +195,10 @@ class Domain < ActiveRecord::Base
     private
 
     def set_addressing_type
-        name.ends_with?(REVERSE_DOMAIN_SUFFIX) ? self.reverse! : self.normal!
+        REVERSE_DOMAIN_SUFFIXES.each do |suffix|
+            self.reverse! and return if name.ends_with?(suffix)
+        end
+        self.normal!
     end
 
     def records_format

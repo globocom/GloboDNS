@@ -276,7 +276,7 @@ en:
   label_add_domain: "Add Domain"
   title_domains_list: "Domains"
   message_no_domains_found: "No domains found"
-  desc_show_reverse_records: 'Show reverse records'
+  desc_show_reverse_domains: 'Show reverse domains'
 
 # Domains new
   title_new_domain: "New Domain"

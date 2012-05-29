@@ -7,5 +7,5 @@
   - if domains.respond_to?(:current_page)
     %div.domains-selector-buttons
       = check_box_tag('show-reverse-domains-checkbox', '1', checked = session[:show_reverse_domains])
-      = label_tag('show-reverse-domains-checkbox', '', :id => 'show-reverse-domains-checkbox-label', :class => 'ui-icon-retweet', :title => t(:desc_show_reverse_records), 'data-url' => domains_path, 'data-remote' => true)
+      = label_tag('show-reverse-domains-checkbox', '', :id => 'show-reverse-domains-checkbox-label', :class => 'ui-icon-retweet', :title => t(:desc_show_reverse_domains), 'data-url' => domains_path, 'data-remote' => true)
     = will_paginate domains, :id => 'domains-table-pagination', :previous_label => '«'.html_safe, :next_label => '»'.html_safe

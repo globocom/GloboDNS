@@ -97,7 +97,7 @@ class Importer
 
             end
 
-            GloboDns::Exporter.new.export_master(root.named_conf)
+            GloboDns::Exporter.new.export_all(root.named_conf, root.named_conf)
         end
     ensure
         if named_conf_file

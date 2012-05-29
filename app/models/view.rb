@@ -45,9 +45,12 @@ class View < ActiveRecord::Base
     end
 
     def to_bind9_conf(indent = '')
-        match_clients  = Array.new
-        match_clients << "key \"#{self.key_name}\"" if self.key.present?
-        match_clients << self.clients               if self.clients.present?
+        match_clients = self.clients.present? ? self.clients.split(/\s*;\s*/) : Array.new
+        if self.key.present?
+            key_str = "key \"#{self.key_name}\""
+            match_clients.delete(key_str)
+            match_clients.unshift(key_str)
+        end
 
         str  = "#{indent}key \"#{self.key_name}\" {\n"
         str << "#{indent}    algorithm hmac-md5;\n"
@@ -57,7 +60,7 @@ class View < ActiveRecord::Base
         str << "#{indent}view \"#{self.name}\" {\n"
         str << "#{indent}    attach-cache       \"globodns-shared-cache\";\n"
         str << "\n"
-        str << "#{indent}    match-clients      { #{match_clients.join('; ')}; };\n" if match_clients.present?
+        str << "#{indent}    match-clients      { #{match_clients.uniq.join('; ')}; };\n" if match_clients.present?
         str << "#{indent}    match-destinations { #{self.destinations}; };\n"        if self.destinations.present?
         str << "\n"
         str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, self.zones_file)}\";\n"
