@@ -15,7 +15,7 @@ class Domain < ActiveRecord::Base
     AUTHORITY_TYPES  = define_enum([:MASTER, :SLAVE],   :authority_type)
     ADDRESSING_TYPES = define_enum([:REVERSE, :NORMAL], :addressing_type)
 
-    REVERSE_DOMAIN_SUFFIXES = %w(.in-addr.arpa .ip6.arpa)
+    REVERSE_DOMAIN_SUFFIXES = ['.in-addr.arpa', '.ip6.arpa']
 
     # virtual attributes that ease new zone creation. If present, they'll be
     # used to create an SOA for the domain
