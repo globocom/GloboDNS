@@ -1,4 +1,4 @@
-%h1= "#{@record.name} #{@record.type} #{truncate(@record.content, :length => 20)}"
+%h1= "#{t(:label_record)}: #{@record.name} (#{t(:label_type)}: #{@record.type}, #{t(:label_content)}: #{truncate(@record.content, :length => 30)})"
 
 %h2= t(:label_master).titleize
 %div.response= simple_format(@master_response)

@@ -363,9 +363,10 @@ en:
   label_report_system_domains: "System Domains"
   label_report_total_domains: "Total Domains"
 
-# Reports results
-  title_report_result_for: "Results for \"%{who}\""
-  message_user_not_found: "No users found"
+# Records resolve
+  label_record: Record
+  label_type: type
+  label_content: content
 
 # Reports view
   label_user_has: "has"
