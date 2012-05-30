@@ -245,10 +245,8 @@ $(document).ready(function() {
 		elem.find('.content').html(content);
 
         // position the dialog at the center of the window
-        var winH = win.height();
-        var winW = win.width();
-        elem.css('top',  winH / 2 - elem.height() / 2);
-        elem.css('left', winW / 2 - elem.width()  / 2);
+        elem.css('top',  (win.height() - elem.outerHeight()) / 2);
+        elem.css('left', (win.width()  - elem.outerWidth())  / 2);
 
 		// display it
         elem.show();
