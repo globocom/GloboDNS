@@ -6,49 +6,60 @@ grammar NamedConf
             attr_accessor :chroot_dir
 
             def named_conf
-				view_keys = views.collect(&:key_name)
+                view_keys = views.collect(&:key_name)
+                puts "view_keys:\n#{view_keys.awesome_inspect}"
                 str       = ''
 
                 elements.each do |element|
                     next unless element.respond_to?(:top_level_directive)
                     top_level = element.top_level_directive
 
+                    if top_level.respond_to?(:key_name)
+                        puts "[top level] key_name: #{top_level.key_name} (tv: #{top_level.key_name.text_value})"
+                    end
+
+                    if top_level.respond_to?(:key)
+                        puts "[top level] key: #{top_level.key} (tv: #{top_level.key.text_value})"
+                    end
+
                     # skip zones and views
-                    next if top_level.respond_to?(:zone) ||
-					        top_level.respond_to?(:view) ||
-							top_level.respond_to?(:key_name) && view_keys.include?(top_level.key_name)
+                    next if is_rule?(top_level, 'zone') ||
+                            is_rule?(top_level, 'view') ||
+                            is_rule?(top_level, 'key') && top_level.respond_to?(:key_name) && view_keys.include?(top_level.key_name.to_s)
 
                     str << top_level.text_value << "\n\n"
                 end
                 str
             end
 
-            def views(node = self, indent = '')
-				@views ||= begin
-					_views  = Array.new
-					_views << node.view if node.respond_to?(:view)
-
-					if node.nonterminal?
-						node.elements.each do |child|
-							_views += views(child, indent + '  ') unless child.terminal?
-						end
-					end
-
-					_views
-				end
+            def views
+                @views ||= get_views_recursivelly
             end
 
-            def domains(node = self)
-				@domains ||= begin
-					_domains  = Array.new
-					_domains << node.domain if node.respond_to?(:domain)
+            def domains
+                @domains ||= get_domains_recursivelly
+            end
 
-					node.elements.each do |child|
-						_domains += domains(child) unless child.terminal?
-					end
+            private
 
-					_domains
-				end
+            def is_rule?(node, rule_name)
+                node.extension_modules.include?("NamedConf::#{rule_name.camelize}0".constantize)
+            end
+
+            def get_views_recursivelly(node = self, views = Array.new)
+                views << node.view if node.respond_to?(:view)
+                node.elements.each do |child|
+                    get_views_recursivelly(child, views) unless child.terminal?
+                end
+                views
+            end
+
+            def get_domains_recursivelly(node = self, domains = Array.new)
+                domains << node.domain if node.respond_to?(:domain)
+                node.elements.each do |child|
+                    get_domains_recursivelly(child, domains) unless child.terminal?
+                end
+                domains
             end
         }
     end
@@ -74,9 +85,6 @@ grammar NamedConf
 
     rule key
         'key' space key_name space '{' space key_statements space '}' space ';' {
-			def name
-				key_name.text_value.strip_quotes
-			end
         }
     end
 
@@ -125,24 +133,21 @@ grammar NamedConf
             def view
                 unless @view
                     @view              = View.new(:name => view_name.text_value.strip_quotes)
-                    @view.domains      = self.domains
+                    @view.domains      = get_domains_recursivelly
                     @view.clients      = view_statements.elements.find{|e| e.respond_to?(:match_clients)}.try(:match_clients).try(:to_s)
                     @view.destinations = view_statements.elements.find{|e| e.respond_to?(:match_destinations)}.try(:match_destinations).try(:to_s)
                 end
                 @view
             end
 
-            def domains(node = self, indent = '')
-                _domains  = Array.new
-                _domains << node.domain(self.view) if node.respond_to?(:domain)
+            private
 
-                if node.nonterminal?
-                    node.elements.each do |child|
-                        _domains += domains(child, indent + '  ') unless child.terminal?
-                    end
+            def get_domains_recursivelly(node = self, domains = Array.new)
+                domains << node.domain(self.view) if node.respond_to?(:domain)
+                node.elements.each do |child|
+                    get_domains_recursivelly(child, domains) unless child.terminal?
                 end
-
-                _domains
+                domains
             end
         }
     end
@@ -240,7 +245,11 @@ grammar NamedConf
     end
 
     rule key_name
-        name
+        name {
+            def to_s
+                text_value.strip_quotes
+            end
+        }
     end
 
     rule key_statements
@@ -334,13 +343,13 @@ grammar NamedConf
         }
     end
 
-	rule attach_cache_statement
-		'attach-cache' space cache_name space ';'
-	end
+    rule attach_cache_statement
+        'attach-cache' space cache_name space ';'
+    end
 
-	rule cache_name
-		name
-	end
+    rule cache_name
+        name
+    end
 
     rule zone_name
         name

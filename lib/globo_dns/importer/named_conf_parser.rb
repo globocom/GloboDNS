@@ -28,41 +28,60 @@ module NamedConf
     attr_accessor :chroot_dir
 
     def named_conf
-        str = ''
+        view_keys = views.collect(&:key_name)
+        puts "view_keys:\n#{view_keys.awesome_inspect}"
+        str       = ''
+
         elements.each do |element|
             next unless element.respond_to?(:top_level_directive)
             top_level = element.top_level_directive
 
+            if top_level.respond_to?(:key_name)
+                puts "[top level] key_name: #{top_level.key_name} (tv: #{top_level.key_name.text_value})"
+            end
+
+            if top_level.respond_to?(:key)
+                puts "[top level] key: #{top_level.key} (tv: #{top_level.key.text_value})"
+            end
+
             # skip zones and views
-            next if top_level.respond_to?(:zone) || top_level.respond_to?(:view)
+            next if is_rule?(top_level, 'zone') ||
+                    is_rule?(top_level, 'view') ||
+                    is_rule?(top_level, 'key') && top_level.respond_to?(:key_name) && view_keys.include?(top_level.key_name.to_s)
 
             str << top_level.text_value << "\n\n"
         end
         str
     end
 
-    def views(node = self, indent = '')
-        _views  = Array.new
-        _views << node.view if node.respond_to?(:view)
-
-        if node.nonterminal?
-            node.elements.each do |child|
-                _views += views(child, indent + '  ') unless child.terminal?
-            end
-        end
-
-        _views
+    def views
+        @views ||= get_views_recursivelly
     end
 
-    def domains(node = self)
-        _domains  = Array.new
-        _domains << node.domain if node.respond_to?(:domain)
+    def domains
+        @domains ||= get_domains_recursivelly
+    end
 
+    private
+
+    def is_rule?(node, rule_name)
+        node.extension_modules.include?("NamedConf::#{rule_name.camelize}0".constantize.class)
+    end
+
+    def get_views_recursivelly(node = self, views = Array.new)
+        views << node.view if node.respond_to?(:view)
         node.elements.each do |child|
-            _domains += domains(child) unless child.terminal?
+            get_views_recursivelly(child, views) unless child.terminal?
         end
+        views
+    end
 
-        _domains
+    def get_domains_recursivelly(node = self, domains = Array.new)
+        domains << node.domain if node.respond_to?(:domain)
+        node.elements.each do |child|
+            get_domains_recursivelly(child, domains) unless child.terminal?
+        end
+        domains
     end
   end
 
@@ -534,7 +553,7 @@ module NamedConf
       elements[1]
     end
 
-    def key_id
+    def key_name
       elements[2]
     end
 
@@ -587,7 +606,7 @@ module NamedConf
       r2 = _nt_space
       s0 << r2
       if r2
-        r3 = _nt_key_id
+        r3 = _nt_key_name
         s0 << r3
         if r3
           r4 = _nt_space
@@ -1640,24 +1659,21 @@ module NamedConf
     def view
         unless @view
             @view              = View.new(:name => view_name.text_value.strip_quotes)
-            @view.domains      = self.domains
+            @view.domains      = get_domains_recursivelly
             @view.clients      = view_statements.elements.find{|e| e.respond_to?(:match_clients)}.try(:match_clients).try(:to_s)
             @view.destinations = view_statements.elements.find{|e| e.respond_to?(:match_destinations)}.try(:match_destinations).try(:to_s)
         end
         @view
     end
 
-    def domains(node = self, indent = '')
-        _domains  = Array.new
-        _domains << node.domain(self.view) if node.respond_to?(:domain)
+    private
 
-        if node.nonterminal?
-            node.elements.each do |child|
-                _domains += domains(child, indent + '  ') unless child.terminal?
-            end
+    def get_domains_recursivelly(node = self, domains = Array.new)
+        domains << node.domain(self.view) if node.respond_to?(:domain)
+        node.elements.each do |child|
+            get_domains_recursivelly(child, domains) unless child.terminal?
         end
-
-        _domains
+        domains
     end
   end
 
@@ -2062,10 +2078,16 @@ module NamedConf
     r0
   end
 
-  def _nt_key_id
+  module KeyName0
+    def to_s
+        text_value.strip_quotes
+    end
+  end
+
+  def _nt_key_name
     start_index = index
-    if node_cache[:key_id].has_key?(index)
-      cached = node_cache[:key_id][index]
+    if node_cache[:key_name].has_key?(index)
+      cached = node_cache[:key_name][index]
       if cached
         cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
         @index = cached.interval.end
@@ -2074,8 +2096,9 @@ module NamedConf
     end
 
     r0 = _nt_name
+    r0.extend(KeyName0)
 
-    node_cache[:key_id][start_index] = r0
+    node_cache[:key_name][start_index] = r0
 
     r0
   end
@@ -2540,6 +2563,16 @@ module NamedConf
   end
 
   module ViewStatements3
+    def attach_cache_statement
+      elements[0]
+    end
+
+    def space
+      elements[1]
+    end
+  end
+
+  module ViewStatements4
   end
 
   def _nt_view_statements
@@ -2607,8 +2640,26 @@ module NamedConf
           if r8
             r1 = r8
           else
-            @index = i1
-            r1 = nil
+            i11, s11 = index, []
+            r12 = _nt_attach_cache_statement
+            s11 << r12
+            if r12
+              r13 = _nt_space
+              s11 << r13
+            end
+            if s11.last
+              r11 = instantiate_node(SyntaxNode,input, i11...index, s11)
+              r11.extend(ViewStatements3)
+            else
+              @index = i11
+              r11 = nil
+            end
+            if r11
+              r1 = r11
+            else
+              @index = i1
+              r1 = nil
+            end
           end
         end
       end
@@ -2619,7 +2670,7 @@ module NamedConf
       end
     end
     r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
-    r0.extend(ViewStatements3)
+    r0.extend(ViewStatements4)
 
     node_cache[:view_statements][start_index] = r0
 
@@ -2653,7 +2704,7 @@ module NamedConf
 
   module MatchClients2
     def to_s
-        elements[4].elements.collect{|e| e.address_match.to_s}.join(';')
+        elements[4].elements.collect{|e| e.address_match.to_s}.join('; ')
     end
   end
 
@@ -2801,7 +2852,7 @@ module NamedConf
 
   module MatchDestinations2
     def to_s
-        elements[4].elements.collect{|e| e.address_match.to_s}.join(';')
+        elements[4].elements.collect{|e| e.address_match.to_s}.join('; ')
     end
   end
 
@@ -2918,6 +2969,94 @@ module NamedConf
     end
 
     node_cache[:match_destinations][start_index] = r0
+
+    r0
+  end
+
+  module AttachCacheStatement0
+    def space1
+      elements[1]
+    end
+
+    def cache_name
+      elements[2]
+    end
+
+    def space2
+      elements[3]
+    end
+
+  end
+
+  def _nt_attach_cache_statement
+    start_index = index
+    if node_cache[:attach_cache_statement].has_key?(index)
+      cached = node_cache[:attach_cache_statement][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    i0, s0 = index, []
+    if has_terminal?('attach-cache', false, index)
+      r1 = instantiate_node(SyntaxNode,input, index...(index + 12))
+      @index += 12
+    else
+      terminal_parse_failure('attach-cache')
+      r1 = nil
+    end
+    s0 << r1
+    if r1
+      r2 = _nt_space
+      s0 << r2
+      if r2
+        r3 = _nt_cache_name
+        s0 << r3
+        if r3
+          r4 = _nt_space
+          s0 << r4
+          if r4
+            if has_terminal?(';', false, index)
+              r5 = instantiate_node(SyntaxNode,input, index...(index + 1))
+              @index += 1
+            else
+              terminal_parse_failure(';')
+              r5 = nil
+            end
+            s0 << r5
+          end
+        end
+      end
+    end
+    if s0.last
+      r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
+      r0.extend(AttachCacheStatement0)
+    else
+      @index = i0
+      r0 = nil
+    end
+
+    node_cache[:attach_cache_statement][start_index] = r0
+
+    r0
+  end
+
+  def _nt_cache_name
+    start_index = index
+    if node_cache[:cache_name].has_key?(index)
+      cached = node_cache[:cache_name][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    r0 = _nt_name
+
+    node_cache[:cache_name][start_index] = r0
 
     r0
   end
@@ -4524,7 +4663,7 @@ module NamedConf
       elements[1]
     end
 
-    def key_id
+    def key_name
       elements[2]
     end
 
@@ -4559,7 +4698,7 @@ module NamedConf
 
   module AddressMatch5
     def to_s
-        text_value.strip_quotes
+        text_value
     end
   end
 
@@ -4649,7 +4788,7 @@ module NamedConf
         r12 = _nt_space
         s10 << r12
         if r12
-          r13 = _nt_key_id
+          r13 = _nt_key_name
           s10 << r13
           if r13
             r14 = _nt_space

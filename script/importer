@@ -1,7 +1,10 @@
 #!/usr/bin/env ruby
 
 require File.expand_path('../../config/environment',  __FILE__)
-require 'globo_dns/importer/named_conf_importer'
-# require 'globo_dns/importer'
 
-GloboDns::Importer.new.import(ARGV.shift)
+if ARGV.size != 2
+    STDERR.puts "Usage: #$0 <master-chroot-dir> <slave-chroot-dir>\n\n"
+    exit 1
+end
+
+GloboDns::Importer.new.import(ARGV[0], ARGV[1])
