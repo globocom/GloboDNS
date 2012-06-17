@@ -1,10 +1,38 @@
 #!/usr/bin/env ruby
 
-require File.expand_path('../../config/environment',  __FILE__)
+require 'optparse'
 
-if ARGV.size != 2
-    STDERR.puts "Usage: #$0 <master-chroot-dir> <slave-chroot-dir>\n\n"
-    exit 1
+import_options = Hash.new
+opts = OptionParser.new do |opts|
+    opts.banner = "Usage: #{$0} [options]\n\nAvailable options:\n"
+    opts.on '--help', '' do
+        STDERR.puts opts.help, "\n"
+        exit 0
+    end
+    opts.on '--master-chroot-dir DIR' do |dir|
+        import_options[:master_chroot_dir] = dir
+    end
+    opts.on '--master-named-conf-file FILE' do |file|
+        import_options[:master_named_conf_file] = file
+    end
+    opts.on '--slave-chroot-dir DIR' do |dir|
+        import_options[:slave_chroot_dir] = dir
+    end
+    opts.on '--slave-named-conf-file FILE' do |file|
+        import_options[:slave_named_conf_file] = file
+    end
+    opts.on '--remote' do
+        import_options[:remote] = true
+    end
+    opts.on '--export' do
+        import_options[:export] = true
+    end
+    opts.on '--debug' do
+        import_options[:debug] = true
+    end
 end
+opts.parse!
 
-GloboDns::Importer.new.import(ARGV[0], ARGV[1])
+require File.expand_path('../../config/environment',  __FILE__)
+puts "[DEBUG] options:\n#{import_options.awesome_inspect}"
+GloboDns::Importer.new.import(import_options)

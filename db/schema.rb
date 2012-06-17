@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120528162942) do
+ActiveRecord::Schema.define(:version => 20120619223235) do
 
   create_table "audits", :force => true do |t|
     t.integer  "auditable_id"
@@ -72,14 +72,14 @@ ActiveRecord::Schema.define(:version => 20120528162942) do
   end
 
   create_table "records", :force => true do |t|
-    t.integer  "domain_id",  :null => false
-    t.string   "name",       :null => false
-    t.string   "type",       :null => false
-    t.string   "content",    :null => false
+    t.integer  "domain_id",                  :null => false
+    t.string   "name",                       :null => false
+    t.string   "type",                       :null => false
+    t.string   "content",    :limit => 4096, :null => false
     t.string   "ttl"
     t.integer  "prio"
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
+    t.datetime "created_at",                 :null => false
+    t.datetime "updated_at",                 :null => false
   end
 
   add_index "records", ["domain_id"], :name => "index_records_on_domain_id"

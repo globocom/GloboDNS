@@ -2,6 +2,7 @@
 
 
 require File.expand_path('../../../../config/environment', __FILE__)
+require File.expand_path('../util', __FILE__)
 
 module NamedConf
   include Treetop::Runtime
@@ -29,20 +30,11 @@ module NamedConf
 
     def named_conf
         view_keys = views.collect(&:key_name)
-        puts "view_keys:\n#{view_keys.awesome_inspect}"
         str       = ''
 
         elements.each do |element|
             next unless element.respond_to?(:top_level_directive)
             top_level = element.top_level_directive
-
-            if top_level.respond_to?(:key_name)
-                puts "[top level] key_name: #{top_level.key_name} (tv: #{top_level.key_name.text_value})"
-            end
-
-            if top_level.respond_to?(:key)
-                puts "[top level] key: #{top_level.key} (tv: #{top_level.key.text_value})"
-            end
 
             # skip zones and views
             next if is_rule?(top_level, 'zone') ||
@@ -55,33 +47,44 @@ module NamedConf
     end
 
     def views
-        @views ||= get_views_recursivelly
+        @views ||= get_views_recursively
     end
 
     def domains
-        @domains ||= get_domains_recursivelly
+        @domains ||= get_domains_recursively
+    end
+
+    def directory_option
+        @directory_option ||= get_directory_option_recursively
     end
 
     private
 
     def is_rule?(node, rule_name)
-        node.extension_modules.include?("NamedConf::#{rule_name.camelize}0".constantize.class)
+        node.extension_modules.include?("NamedConf::#{rule_name.camelize}0".constantize)
     end
 
-    def get_views_recursivelly(node = self, views = Array.new)
+    def get_views_recursively(node = self, views = Array.new)
         views << node.view if node.respond_to?(:view)
         node.elements.each do |child|
-            get_views_recursivelly(child, views) unless child.terminal?
+            get_views_recursively(child, views) unless child.terminal?
         end
         views
     end
 
-    def get_domains_recursivelly(node = self, domains = Array.new)
-        domains << node.domain if node.respond_to?(:domain)
+    def get_domains_recursively(node = self, domains = Array.new)
+        node.respond_to?(:view)   and return domains
+        node.respond_to?(:domain) and domains << node.domain
+
         node.elements.each do |child|
-            get_domains_recursivelly(child, domains) unless child.terminal?
+            get_domains_recursively(child, domains) unless child.terminal?
         end
         domains
+    end
+
+    def get_directory_option_recursively(node = self)
+        top_level = elements.find{|e| e.respond_to?(:top_level_directive) && is_rule?(e.top_level_directive, 'options')}
+        top_level and top_level.top_level_directive.options_statements.elements.find{|e| e.respond_to?(:directory_option)}.try(:directory_option)
     end
   end
 
@@ -1659,7 +1662,7 @@ module NamedConf
     def view
         unless @view
             @view              = View.new(:name => view_name.text_value.strip_quotes)
-            @view.domains      = get_domains_recursivelly
+            @view.domains      = get_domains_recursively
             @view.clients      = view_statements.elements.find{|e| e.respond_to?(:match_clients)}.try(:match_clients).try(:to_s)
             @view.destinations = view_statements.elements.find{|e| e.respond_to?(:match_destinations)}.try(:match_destinations).try(:to_s)
         end
@@ -1668,10 +1671,10 @@ module NamedConf
 
     private
 
-    def get_domains_recursivelly(node = self, domains = Array.new)
+    def get_domains_recursively(node = self, domains = Array.new)
         domains << node.domain(self.view) if node.respond_to?(:domain)
         node.elements.each do |child|
-            get_domains_recursivelly(child, domains) unless child.terminal?
+            get_domains_recursively(child, domains) unless child.terminal?
         end
         domains
     end
@@ -1818,18 +1821,6 @@ module NamedConf
   end
 
   module Zone1
-    ZONE_TYPE_MAP = {
-        :mx    => MX.new.type,
-        :a     => A.new.type,
-        :a4    => AAAA.new.type,
-        :ns    => NS.new.type,
-        :cname => CNAME.new.type,
-        :txt   => TXT.new.type,
-        :ptr   => PTR.new.type,
-        :srv   => SRV.new.type,
-        :soa   => SOA.new.type
-    }.freeze
-
     def domain(view = nil)
         # STDERR.puts "[INFO] calling 'zone' method of rule 'zone'"
         @domain ||= begin
@@ -1839,47 +1830,47 @@ module NamedConf
             master = zone_statements.elements.find{|zs| zs.respond_to?(:zone_masters)}.try(:zone_masters)
 
             if type == 'master'
-                chroot_dir = find_chroot_dir_in_parents
-                chroot_file_path = File.join(chroot_dir, file)
+                directory_option = find_directory_in_parents
+                chroot_dir       = find_chroot_dir_in_parents
+                chroot_file_path = Pathname.new(file).absolute? ? File.join(chroot_dir, file) : File.join(chroot_dir, directory_option, file)
                 File.exists?(chroot_file_path) or raise Exception.new("[ERROR] zone file not found: \"#{chroot_file_path}\"")
-                zone_file = Zonefile.from_file(chroot_file_path, name)
+                zone_file        = Zonefile.from_file(chroot_file_path, name)
 
-                _zone = Domain.new(:name             => zone_file.origin,
-                                   :view             => view,
-                                   :authority_type   => Domain::MASTER,
-                                   :ttl              => zone_file.ttl,
-                                   :import_file_name => chroot_file_path)
+                _domain = Domain.new(:name             => zone_file.origin,
+                                     :view             => view,
+                                     :authority_type   => Domain::MASTER,
+                                     :ttl              => zone_file.ttl,
+                                     :import_file_name => chroot_file_path)
 
-                _zone.soa_record = SOA.new(:name       => zone_file.soa[:origin],
-                                           :ttl        => zone_file.soa[:ttl],
-                                           :primary_ns => zone_file.soa[:primary],
-                                           :contact    => zone_file.soa[:email],
-                                           :serial     => zone_file.soa[:serial],
-                                           :refresh    => zone_file.soa[:refresh],
-                                           :retry      => zone_file.soa[:retry],
-                                           :expire     => zone_file.soa[:expire],
-                                           :minimum    => zone_file.soa[:minimumTTL])
-                _zone.soa_record.serial = zone_file.soa[:serial]
-                # _zone.soa_record.domain = _zone
+                _domain.soa_record = SOA.new(:name       => zone_file.soa[:origin],
+                                             :ttl        => zone_file.soa[:ttl],
+                                             :primary_ns => zone_file.soa[:primary],
+                                             :contact    => zone_file.soa[:email],
+                                             :serial     => zone_file.soa[:serial],
+                                             :refresh    => zone_file.soa[:refresh],
+                                             :retry      => zone_file.soa[:retry],
+                                             :expire     => zone_file.soa[:expire],
+                                             :minimum    => zone_file.soa[:minimumTTL])
+                puts "[Zonefile] parsing file #{chroot_file_path} (name: #{name}) (object_id: #{_domain.object_id}) (inspect: #{_domain.inspect})"
+                _domain.soa_record.serial = zone_file.soa[:serial]
 
-                zone_file.records.each do |record_type, records|
-                    record_class = ZONE_TYPE_MAP[record_type].constantize
-                    records.each do |record|
-                        _zone.records << record_class.new(:name    => record[:name],
-                                                          :ttl     => record[:ttl],
-                                                          :prio    => record[:pri],
-                                                          :content => record[:host])
-                    end
+                zone_file.all_records.each do |record|
+                    next if record[:type].upcase == 'SOA'
+                    _domain.records << Record.new(:name    => record[:name],
+                                                  :type    => record[:type].upcase,
+                                                  :ttl     => record[:ttl],
+                                                  :prio    => record[:pri],
+                                                  :content => record[:host])
                 end
             else
-                _zone = Domain.new(:name             => name,
-                                   :view             => view,
-                                   :authority_type   => Domain::SLAVE,
-                                   :master           => master,
-                                   :import_file_name => chroot_file_path)
+                _domain = Domain.new(:name             => name,
+                                     :view             => view,
+                                     :authority_type   => Domain::const_get(type.upcase),
+                                     :master           => master,
+                                     :import_file_name => chroot_file_path)
             end
 
-            _zone
+            _domain
         end
     end
 
@@ -1890,6 +1881,21 @@ module NamedConf
             p = p.parent
         end
         raise Exception.new('[ERROR] unable to find "chroot_dir" attribute on parent nodes')
+    end
+
+    def find_directory_in_parents
+        @directory_option ||= begin
+            dir = nil
+            p   = parent
+            while p
+                if p.respond_to?(:directory_option)
+                    dir = p.directory_option
+                    break
+                end
+                p = p.parent
+            end
+            dir
+        end
     end
   end
 
@@ -2215,24 +2221,40 @@ module NamedConf
   end
 
   module MastersStatements0
-    def ipaddr
+    def space1
       elements[0]
     end
 
-    def space1
-      elements[1]
+    def space2
+      elements[2]
     end
 
-    def space2
+    def port
       elements[3]
     end
   end
 
   module MastersStatements1
+    def ipaddr
+      elements[0]
+    end
+
+    def space1
+      elements[2]
+    end
+
+    def space2
+      elements[4]
+    end
+  end
+
+  module MastersStatements2
     def to_s
         # hack: there may be multiple masters, but we only select the first
         # one as the DB currently expects a single IP addr value
-        elements.select{|el| el.respond_to?(:ipaddr)}.collect{|el| el.ipaddr.text_value}.first
+        ipaddr = elements.select{|el| el.respond_to?(:ipaddr)}.collect{|el| el.ipaddr.text_value}.first
+        port   = elements.select{|el| el.respond_to?(:port)  }.collect{|el| el.port.text_value}.first
+        (port ? "#{ipaddr}/#{port}" : ipaddr)
     end
   end
 
@@ -2253,26 +2275,62 @@ module NamedConf
       r2 = _nt_ipaddr
       s1 << r2
       if r2
-        r3 = _nt_space
+        i4, s4 = index, []
+        r5 = _nt_space
+        s4 << r5
+        if r5
+          if has_terminal?('port', false, index)
+            r6 = instantiate_node(SyntaxNode,input, index...(index + 4))
+            @index += 4
+          else
+            terminal_parse_failure('port')
+            r6 = nil
+          end
+          s4 << r6
+          if r6
+            r7 = _nt_space
+            s4 << r7
+            if r7
+              r8 = _nt_port
+              s4 << r8
+            end
+          end
+        end
+        if s4.last
+          r4 = instantiate_node(SyntaxNode,input, i4...index, s4)
+          r4.extend(MastersStatements0)
+        else
+          @index = i4
+          r4 = nil
+        end
+        if r4
+          r3 = r4
+        else
+          r3 = instantiate_node(SyntaxNode,input, index...index)
+        end
         s1 << r3
         if r3
-          if has_terminal?(';', false, index)
-            r4 = instantiate_node(SyntaxNode,input, index...(index + 1))
-            @index += 1
-          else
-            terminal_parse_failure(';')
-            r4 = nil
-          end
-          s1 << r4
-          if r4
-            r5 = _nt_space
-            s1 << r5
+          r9 = _nt_space
+          s1 << r9
+          if r9
+            if has_terminal?(';', false, index)
+              r10 = instantiate_node(SyntaxNode,input, index...(index + 1))
+              @index += 1
+            else
+              terminal_parse_failure(';')
+              r10 = nil
+            end
+            s1 << r10
+            if r10
+              r11 = _nt_space
+              s1 << r11
+            end
           end
         end
       end
       if s1.last
         r1 = instantiate_node(SyntaxNode,input, i1...index, s1)
-        r1.extend(MastersStatements0)
+        r1.extend(MastersStatements1)
       else
         @index = i1
         r1 = nil
@@ -2284,7 +2342,7 @@ module NamedConf
       end
     end
     r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
-    r0.extend(MastersStatements1)
+    r0.extend(MastersStatements2)
 
     node_cache[:masters_statements][start_index] = r0
 
@@ -2307,7 +2365,19 @@ module NamedConf
 
     s0, i0 = [], index
     loop do
-      r1 = _nt_statement
+      i1 = index
+      r2 = _nt_directory_statement
+      if r2
+        r1 = r2
+      else
+        r3 = _nt_statement
+        if r3
+          r1 = r3
+        else
+          @index = i1
+          r1 = nil
+        end
+      end
       if r1
         s0 << r1
       else
@@ -2318,6 +2388,83 @@ module NamedConf
     r0.extend(OptionsStatements0)
 
     node_cache[:options_statements][start_index] = r0
+
+    r0
+  end
+
+  module DirectoryStatement0
+    def space1
+      elements[1]
+    end
+
+    def filename
+      elements[2]
+    end
+
+    def space2
+      elements[3]
+    end
+
+  end
+
+  module DirectoryStatement1
+    def directory_option
+        filename.text_value.strip_quotes
+    end
+  end
+
+  def _nt_directory_statement
+    start_index = index
+    if node_cache[:directory_statement].has_key?(index)
+      cached = node_cache[:directory_statement][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    i0, s0 = index, []
+    if has_terminal?('directory', false, index)
+      r1 = instantiate_node(SyntaxNode,input, index...(index + 9))
+      @index += 9
+    else
+      terminal_parse_failure('directory')
+      r1 = nil
+    end
+    s0 << r1
+    if r1
+      r2 = _nt_space
+      s0 << r2
+      if r2
+        r3 = _nt_filename
+        s0 << r3
+        if r3
+          r4 = _nt_space
+          s0 << r4
+          if r4
+            if has_terminal?(';', false, index)
+              r5 = instantiate_node(SyntaxNode,input, index...(index + 1))
+              @index += 1
+            else
+              terminal_parse_failure(';')
+              r5 = nil
+            end
+            s0 << r5
+          end
+        end
+      end
+    end
+    if s0.last
+      r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
+      r0.extend(DirectoryStatement0)
+      r0.extend(DirectoryStatement1)
+    else
+      @index = i0
+      r0 = nil
+    end
+
+    node_cache[:directory_statement][start_index] = r0
 
     r0
   end
@@ -3286,8 +3433,20 @@ module NamedConf
             r0 = r4
             r0.extend(ZoneTypeValue0)
           else
-            @index = i0
-            r0 = nil
+            if has_terminal?('hint', false, index)
+              r5 = instantiate_node(SyntaxNode,input, index...(index + 4))
+              @index += 4
+            else
+              terminal_parse_failure('hint')
+              r5 = nil
+            end
+            if r5
+              r0 = r5
+              r0.extend(ZoneTypeValue0)
+            else
+              @index = i0
+              r0 = nil
+            end
           end
         end
       end
@@ -4279,6 +4438,19 @@ module NamedConf
   end
 
   module Name0
+    def ipaddr_prefix_length
+      elements[1]
+    end
+  end
+
+  module Name1
+    def server_ipaddr
+      elements[0]
+    end
+
+  end
+
+  module Name2
     def to_s
         text_value
     end
@@ -4299,15 +4471,58 @@ module NamedConf
     r1 = _nt_id
     if r1
       r0 = r1
-      r0.extend(Name0)
+      r0.extend(Name2)
     else
       r2 = _nt_string
       if r2
         r0 = r2
-        r0.extend(Name0)
+        r0.extend(Name2)
       else
-        @index = i0
-        r0 = nil
+        i3, s3 = index, []
+        r4 = _nt_server_ipaddr
+        s3 << r4
+        if r4
+          i6, s6 = index, []
+          if has_terminal?('/', false, index)
+            r7 = instantiate_node(SyntaxNode,input, index...(index + 1))
+            @index += 1
+          else
+            terminal_parse_failure('/')
+            r7 = nil
+          end
+          s6 << r7
+          if r7
+            r8 = _nt_ipaddr_prefix_length
+            s6 << r8
+          end
+          if s6.last
+            r6 = instantiate_node(SyntaxNode,input, i6...index, s6)
+            r6.extend(Name0)
+          else
+            @index = i6
+            r6 = nil
+          end
+          if r6
+            r5 = r6
+          else
+            r5 = instantiate_node(SyntaxNode,input, index...index)
+          end
+          s3 << r5
+        end
+        if s3.last
+          r3 = instantiate_node(SyntaxNode,input, i3...index, s3)
+          r3.extend(Name1)
+        else
+          @index = i3
+          r3 = nil
+        end
+        if r3
+          r0 = r3
+          r0.extend(Name2)
+        else
+          @index = i0
+          r0 = nil
+        end
       end
     end
 
@@ -4432,9 +4647,6 @@ module NamedConf
   end
 
   module Ipaddr0
-  end
-
-  module Ipaddr1
     def to_s
         text_value
     end
@@ -4444,6 +4656,46 @@ module NamedConf
     start_index = index
     if node_cache[:ipaddr].has_key?(index)
       cached = node_cache[:ipaddr][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    i0 = index
+    r1 = _nt_ipv4
+    if r1
+      r0 = r1
+    else
+      r2 = _nt_ipv6
+      r2.extend(Ipaddr0)
+      if r2
+        r0 = r2
+      else
+        @index = i0
+        r0 = nil
+      end
+    end
+
+    node_cache[:ipaddr][start_index] = r0
+
+    r0
+  end
+
+  module Ipv40
+  end
+
+  module Ipv41
+    def to_s
+        text_value
+    end
+  end
+
+  def _nt_ipv4
+    start_index = index
+    if node_cache[:ipv4].has_key?(index)
+      cached = node_cache[:ipv4][index]
       if cached
         cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
         @index = cached.interval.end
@@ -4586,14 +4838,58 @@ module NamedConf
     end
     if s0.last
       r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
-      r0.extend(Ipaddr0)
-      r0.extend(Ipaddr1)
+      r0.extend(Ipv40)
+      r0.extend(Ipv41)
     else
       @index = i0
       r0 = nil
     end
 
-    node_cache[:ipaddr][start_index] = r0
+    node_cache[:ipv4][start_index] = r0
+
+    r0
+  end
+
+  module Ipv60
+    def to_s
+        text_value
+    end
+  end
+
+  def _nt_ipv6
+    start_index = index
+    if node_cache[:ipv6].has_key?(index)
+      cached = node_cache[:ipv6][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    s0, i0 = [], index
+    loop do
+      if has_terminal?('\G[\\d:]', true, index)
+        r1 = true
+        @index += 1
+      else
+        r1 = nil
+      end
+      if r1
+        s0 << r1
+      else
+        break
+      end
+    end
+    if s0.empty?
+      @index = i0
+      r0 = nil
+    else
+      r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
+      r0.extend(Ipv60)
+    end
+
+    node_cache[:ipv6][start_index] = r0
 
     r0
   end
@@ -4638,6 +4934,50 @@ module NamedConf
     end
 
     node_cache[:ipaddr_prefix_length][start_index] = r0
+
+    r0
+  end
+
+  module Port0
+    def to_s
+        text_value
+    end
+  end
+
+  def _nt_port
+    start_index = index
+    if node_cache[:port].has_key?(index)
+      cached = node_cache[:port][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    s0, i0 = [], index
+    loop do
+      if has_terminal?('\G[\\d]', true, index)
+        r1 = true
+        @index += 1
+      else
+        r1 = nil
+      end
+      if r1
+        s0 << r1
+      else
+        break
+      end
+    end
+    if s0.empty?
+      @index = i0
+      r0 = nil
+    else
+      r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
+      r0.extend(Port0)
+    end
+
+    node_cache[:port][start_index] = r0
 
     r0
   end

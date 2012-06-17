@@ -16,7 +16,7 @@ module Util
     def self.exec(command_id, *args)
         output = nil
         self.logger.debug "[GloboDns::Util::exec] #{args.join(' ')}"
-        self.logger.puts  "[GloboDns::Util::exec] #{args.join(' ')}"
+        puts              "[GloboDns::Util::exec] #{args.join(' ')}"
         IO::popen(args) do |io|
             output = io.read
         end
@@ -28,10 +28,15 @@ module Util
     def self.exec!(command_id, *args)
         output = nil
         self.logger.debug "[GloboDns::Util::exec!] #{args.join(' ')}"
+        puts "[GloboDns::Util::exec!] #{args.join(' ')}"
         IO::popen(args) do |io|
             output = io.read
         end
+        puts "$?: #{$?}"
+        puts "$?.exitstatus: #{$?.exitstatus}"
         output
+    rescue Exception => e
+        "#{output}\n#{e}\n#{e.backtrace}"
     end
 
     def self.exec_as_bind(command_id, *args)

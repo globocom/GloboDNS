@@ -44,6 +44,6 @@ class Bind9Controller < ApplicationController
     private
 
     def get_current_config
-        @current_config = IO.read(File.join(BIND_CHROOT_DIR, BIND_CONFIG_FILE)).sub(/\n*#{GloboDns::Exporter::CONFIG_START_TAG}.*#{GloboDns::Exporter::CONFIG_END_TAG}\n*/m, "\n")
+        @current_config = IO.read(File.join(EXPORT_CHROOT_DIR, EXPORT_CONFIG_FILE)).sub(/\n*#{GloboDns::Exporter::CONFIG_START_TAG}.*#{GloboDns::Exporter::CONFIG_END_TAG}\n*/m, "\n")
     end
 end

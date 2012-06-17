@@ -1,14 +1,28 @@
 development: &devconf
-    bind_master_host:       '127.0.0.1'
-    bind_master_port:       5353
-    bind_slave_host:        '127.0.0.1'
-    bind_slave_port:        5354
-    bind_user:              'bind'
-    bind_group:             'bind'
-    bind_config_file:       '/etc/named.conf'
-    bind_config_dir:        '/etc/named/'
-    bind_master_chroot_dir: '/var/named/chroot_master/'
-    bind_slave_chroot_dir:  '/var/named/chroot_slave/'
+    bind_master_user:            'named'
+    bind_master_host:            'localbindmaster'
+    bind_master_ipaddr:          '127.0.0.1'
+    bind_master_port:            5353
+    bind_master_chroot_dir:      '/var/named/external_chroot_master'
+    bind_master_named_conf_file: '/etc/named.conf'
+
+    bind_slave_user:             'named'
+    bind_slave_host:             'localbindslave'
+    bind_slave_ipaddr:           '127.0.0.1'
+    bind_slave_port:             5354
+    bind_slave_chroot_dir:       '/var/named/external_chroot_slave'
+    bind_slave_named_conf_file:  '/etc/named.conf'
+
+    bind_user:                   'named'
+    bind_group:                  'named'
+
+    export_config_file:          '/etc/dnsapi.conf'
+    export_config_dir:           '/etc/dnsapi/'
+    export_master_chroot_dir: <%= Rails.root.join('tmp', 'named', 'chroot_master') %>
+    export_slave_chroot_dir:  <%= Rails.root.join('tmp', 'named', 'chroot_slave') %>
+
+    # bind_master_chroot_dir: '/var/named/chroot_master/'
+    # bind_slave_chroot_dir:  '/var/named/chroot_slave/'
     bind_error_log:         '/var/named/chroot_master/var/log/globodns.error.log'
 
     rndc_config_file:       '/etc/rndc.conf'
@@ -23,8 +37,8 @@ development: &devconf
     slaves_file:            'slaves.conf'
     views_file:             'views.conf'
 
-    nameserver_host:        'localhost'
     record_order:           [ SOA, NS, MX, A, AAAA, CNAME, LOC, SPF, SRV, PTR, TXT ]
+    git_author:             'Globo DNS API <dnsapi@globoi.com>'
 
     binaries:
         bind:          '/usr/sbin/named'

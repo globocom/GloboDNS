@@ -1,4 +1,5 @@
 require File.expand_path('../../../../config/environment', __FILE__)
+require File.expand_path('../util', __FILE__)
 
 grammar NamedConf
     rule file
@@ -7,20 +8,11 @@ grammar NamedConf
 
             def named_conf
                 view_keys = views.collect(&:key_name)
-                puts "view_keys:\n#{view_keys.awesome_inspect}"
                 str       = ''
 
                 elements.each do |element|
                     next unless element.respond_to?(:top_level_directive)
                     top_level = element.top_level_directive
-
-                    if top_level.respond_to?(:key_name)
-                        puts "[top level] key_name: #{top_level.key_name} (tv: #{top_level.key_name.text_value})"
-                    end
-
-                    if top_level.respond_to?(:key)
-                        puts "[top level] key: #{top_level.key} (tv: #{top_level.key.text_value})"
-                    end
 
                     # skip zones and views
                     next if is_rule?(top_level, 'zone') ||
@@ -33,11 +25,15 @@ grammar NamedConf
             end
 
             def views
-                @views ||= get_views_recursivelly
+                @views ||= get_views_recursively
             end
 
             def domains
-                @domains ||= get_domains_recursivelly
+                @domains ||= get_domains_recursively
+            end
+
+            def directory_option
+                @directory_option ||= get_directory_option_recursively
             end
 
             private
@@ -46,20 +42,27 @@ grammar NamedConf
                 node.extension_modules.include?("NamedConf::#{rule_name.camelize}0".constantize)
             end
 
-            def get_views_recursivelly(node = self, views = Array.new)
+            def get_views_recursively(node = self, views = Array.new)
                 views << node.view if node.respond_to?(:view)
                 node.elements.each do |child|
-                    get_views_recursivelly(child, views) unless child.terminal?
+                    get_views_recursively(child, views) unless child.terminal?
                 end
                 views
             end
 
-            def get_domains_recursivelly(node = self, domains = Array.new)
-                domains << node.domain if node.respond_to?(:domain)
+            def get_domains_recursively(node = self, domains = Array.new)
+                node.respond_to?(:view)   and return domains
+                node.respond_to?(:domain) and domains << node.domain
+
                 node.elements.each do |child|
-                    get_domains_recursivelly(child, domains) unless child.terminal?
+                    get_domains_recursively(child, domains) unless child.terminal?
                 end
                 domains
+            end
+
+            def get_directory_option_recursively(node = self)
+                top_level = elements.find{|e| e.respond_to?(:top_level_directive) && is_rule?(e.top_level_directive, 'options')}
+                top_level and top_level.top_level_directive.options_statements.elements.find{|e| e.respond_to?(:directory_option)}.try(:directory_option)
             end
         }
     end
@@ -133,7 +136,7 @@ grammar NamedConf
             def view
                 unless @view
                     @view              = View.new(:name => view_name.text_value.strip_quotes)
-                    @view.domains      = get_domains_recursivelly
+                    @view.domains      = get_domains_recursively
                     @view.clients      = view_statements.elements.find{|e| e.respond_to?(:match_clients)}.try(:match_clients).try(:to_s)
                     @view.destinations = view_statements.elements.find{|e| e.respond_to?(:match_destinations)}.try(:match_destinations).try(:to_s)
                 end
@@ -142,10 +145,10 @@ grammar NamedConf
 
             private
 
-            def get_domains_recursivelly(node = self, domains = Array.new)
+            def get_domains_recursively(node = self, domains = Array.new)
                 domains << node.domain(self.view) if node.respond_to?(:domain)
                 node.elements.each do |child|
-                    get_domains_recursivelly(child, domains) unless child.terminal?
+                    get_domains_recursively(child, domains) unless child.terminal?
                 end
                 domains
             end
@@ -154,18 +157,6 @@ grammar NamedConf
 
     rule zone
         'zone' space zone_name space dns_class? space '{' space zone_statements space '}' space ';' {
-            ZONE_TYPE_MAP = {
-                :mx    => MX.new.type,
-                :a     => A.new.type,
-                :a4    => AAAA.new.type,
-                :ns    => NS.new.type,
-                :cname => CNAME.new.type,
-                :txt   => TXT.new.type,
-                :ptr   => PTR.new.type,
-                :srv   => SRV.new.type,
-                :soa   => SOA.new.type
-            }.freeze
-
             def domain(view = nil)
                 # STDERR.puts "[INFO] calling 'zone' method of rule 'zone'"
                 @domain ||= begin
@@ -175,47 +166,47 @@ grammar NamedConf
                     master = zone_statements.elements.find{|zs| zs.respond_to?(:zone_masters)}.try(:zone_masters)
 
                     if type == 'master'
-                        chroot_dir = find_chroot_dir_in_parents
-                        chroot_file_path = File.join(chroot_dir, file)
+                        directory_option = find_directory_in_parents
+                        chroot_dir       = find_chroot_dir_in_parents
+                        chroot_file_path = Pathname.new(file).absolute? ? File.join(chroot_dir, file) : File.join(chroot_dir, directory_option, file)
                         File.exists?(chroot_file_path) or raise Exception.new("[ERROR] zone file not found: \"#{chroot_file_path}\"")
-                        zone_file = Zonefile.from_file(chroot_file_path, name)
+                        zone_file        = Zonefile.from_file(chroot_file_path, name, chroot_dir, directory_option)
 
-                        _zone = Domain.new(:name             => zone_file.origin,
-                                           :view             => view,
-                                           :authority_type   => Domain::MASTER,
-                                           :ttl              => zone_file.ttl,
-                                           :import_file_name => chroot_file_path)
+                        _domain = Domain.new(:name             => zone_file.origin,
+                                             :view             => view,
+                                             :authority_type   => Domain::MASTER,
+                                             :ttl              => zone_file.ttl,
+                                             :import_file_name => chroot_file_path)
 
-                        _zone.soa_record = SOA.new(:name       => zone_file.soa[:origin],
-                                                   :ttl        => zone_file.soa[:ttl],
-                                                   :primary_ns => zone_file.soa[:primary],
-                                                   :contact    => zone_file.soa[:email],
-                                                   :serial     => zone_file.soa[:serial],
-                                                   :refresh    => zone_file.soa[:refresh],
-                                                   :retry      => zone_file.soa[:retry],
-                                                   :expire     => zone_file.soa[:expire],
-                                                   :minimum    => zone_file.soa[:minimumTTL])
-                        _zone.soa_record.serial = zone_file.soa[:serial]
-                        # _zone.soa_record.domain = _zone
+                        _domain.soa_record = SOA.new(:name       => zone_file.soa[:origin],
+                                                     :ttl        => zone_file.soa[:ttl],
+                                                     :primary_ns => zone_file.soa[:primary],
+                                                     :contact    => zone_file.soa[:email],
+                                                     :serial     => zone_file.soa[:serial],
+                                                     :refresh    => zone_file.soa[:refresh],
+                                                     :retry      => zone_file.soa[:retry],
+                                                     :expire     => zone_file.soa[:expire],
+                                                     :minimum    => zone_file.soa[:minimumTTL])
+                        puts "[Zonefile] parsing file #{chroot_file_path} (name: #{name}) (object_id: #{_domain.object_id}) (inspect: #{_domain.inspect})"
+                        _domain.soa_record.serial = zone_file.soa[:serial]
 
-                        zone_file.records.each do |record_type, records|
-                            record_class = ZONE_TYPE_MAP[record_type].constantize
-                            records.each do |record|
-                                _zone.records << record_class.new(:name    => record[:name],
-                                                                  :ttl     => record[:ttl],
-                                                                  :prio    => record[:pri],
-                                                                  :content => record[:host])
-                            end
+                        zone_file.all_records.each do |record|
+                            next if record[:type].upcase == 'SOA'
+                            _domain.records << Record.new(:name    => record[:name],
+                                                          :type    => record[:type].upcase,
+                                                          :ttl     => record[:ttl],
+                                                          :prio    => record[:pri],
+                                                          :content => record[:host])
                         end
                     else
-                        _zone = Domain.new(:name             => name,
-                                           :view             => view,
-                                           :authority_type   => Domain::SLAVE,
-                                           :master           => master,
-                                           :import_file_name => chroot_file_path)
+                        _domain = Domain.new(:name             => name,
+                                             :view             => view,
+                                             :authority_type   => Domain::const_get(type.upcase),
+                                             :master           => master,
+                                             :import_file_name => chroot_file_path)
                     end
 
-                    _zone
+                    _domain
                 end
             end
 
@@ -226,6 +217,21 @@ grammar NamedConf
                     p = p.parent
                 end
                 raise Exception.new('[ERROR] unable to find "chroot_dir" attribute on parent nodes')
+            end
+
+            def find_directory_in_parents
+                @directory_option ||= begin
+                    dir = nil
+                    p   = parent
+                    while p
+                        if p.respond_to?(:directory_option)
+                            dir = p.directory_option
+                            break
+                        end
+                        p = p.parent
+                    end
+                    dir
+                end
             end
         }
     end
@@ -241,14 +247,6 @@ grammar NamedConf
 
     rule controls_statements
         statement* {
-        }
-    end
-
-    rule key_name
-        name {
-            def to_s
-                text_value.strip_quotes
-            end
         }
     end
 
@@ -272,17 +270,27 @@ grammar NamedConf
     end
 
     rule masters_statements
-        (ipaddr space ';' space)* {
+        (ipaddr (space 'port' space port)? (space 'key' space key_name)? space ';' space)* {
             def to_s
                 # hack: there may be multiple masters, but we only select the first
                 # one as the DB currently expects a single IP addr value
-                elements.select{|el| el.respond_to?(:ipaddr)}.collect{|el| el.ipaddr.text_value}.first
+                ipaddr = elements.select{|el| el.respond_to?(:ipaddr)}.collect{|el| el.ipaddr.text_value}.first
+                port   = elements.select{|el| el.respond_to?(:port)  }.collect{|el| el.port.text_value}.first
+                (port ? "#{ipaddr}/#{port}" : ipaddr)
             end
         }
     end
 
     rule options_statements
-        statement* {
+        (directory_statement / statement)* {
+        }
+    end
+
+    rule directory_statement
+        'directory' space filename space ';' {
+            def directory_option
+                filename.text_value.strip_quotes
+            end
         }
     end
 
@@ -376,7 +384,7 @@ grammar NamedConf
     end
 
     rule zone_type_value
-        ('slave' / 'master' / 'stub' / 'forward') {
+        ('slave' / 'master' / 'stub' / 'forward' / 'hint') {
             def to_s
                 text_value
             end
@@ -466,7 +474,7 @@ grammar NamedConf
     end
 
     rule name
-        (id / string) {
+        (id / string / server_ipaddr ('/' ipaddr_prefix_length)?) {
             def to_s
                 text_value
             end
@@ -490,7 +498,23 @@ grammar NamedConf
     end
 
     rule ipaddr
+        ipv4 / ipv6 {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    rule ipv4
         [\d] 1..3 '.' [\d] 1..3 '.' [\d] 1..3 '.' [\d] 1..3 {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    rule ipv6
+        [\d:]+ {
             def to_s
                 text_value
             end
@@ -504,6 +528,22 @@ grammar NamedConf
             end
         }
     end
+
+    rule port
+        [\d]+ {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+	rule key_name
+        '"' [\w\.\/\-_]+ '"' / [\w\.\/\-_] {
+            def to_s
+                text_value.strip_quotes
+            end
+        }
+	end
 
     rule address_match
         ('!'? ipaddr ('/' ipaddr_prefix_length)? space / 'key' space key_name space / acl_name space / '{' space address_match+ space '}' space) {

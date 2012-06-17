@@ -4,6 +4,8 @@ class View < ActiveRecord::Base
     RFC1912_NAME = '__rfc1912'
     ANY_NAME     = '__any'
 
+    audited :protect => false
+
     has_many :domains
 
     validates_presence_of :name, :key
@@ -45,6 +47,7 @@ class View < ActiveRecord::Base
     end
 
     def to_bind9_conf(indent = '')
+        puts "[DEBUG] exporting view \"#{self.name}\""
         match_clients = self.clients.present? ? self.clients.split(/\s*;\s*/) : Array.new
         if self.key.present?
             key_str = "key \"#{self.key_name}\""
@@ -63,14 +66,14 @@ class View < ActiveRecord::Base
         str << "#{indent}    match-clients      { #{match_clients.uniq.join('; ')}; };\n" if match_clients.present?
         str << "#{indent}    match-destinations { #{self.destinations}; };\n"        if self.destinations.present?
         str << "\n"
-        str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, self.zones_file)}\";\n"
-        str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, self.slaves_file)}\";\n"
-        str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, self.reverse_file)}\";\n"
+        str << "#{indent}    include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, self.zones_file)}\";\n"
+        str << "#{indent}    include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, self.slaves_file)}\";\n"
+        str << "#{indent}    include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, self.reverse_file)}\";\n"
         str << "\n"
         str << "#{indent}    # common zones\n"
-        str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, GloboDns::Config::ZONES_FILE)}\";\n"
-        str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, GloboDns::Config::SLAVES_FILE)}\";\n"
-        str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, GloboDns::Config::REVERSE_FILE)}\";\n"
+        str << "#{indent}    include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, GloboDns::Config::ZONES_FILE)}\";\n"
+        str << "#{indent}    include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, GloboDns::Config::SLAVES_FILE)}\";\n"
+        str << "#{indent}    include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, GloboDns::Config::REVERSE_FILE)}\";\n"
         str << "#{indent}};\n\n"
         str
     end

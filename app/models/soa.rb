@@ -37,7 +37,6 @@ class SOA < Record
         end
 
         define_method "#{soa_entry}=" do |value|
-            puts "setting #{soa_entry} as #{value}"
             instance_variable_set("@#{soa_entry}", value)
             set_content
             instance_variable_get("@#{soa_entry}")
@@ -113,7 +112,7 @@ class SOA < Record
 
         soa_fields.each_with_index do |field_value, index|
             field_name  = SOA_FIELDS[index]
-            # field_value = field_value.try(:to_i) unless field_name == 'primary_ns' || field_name == 'contact'
+            field_value = field_value.try(:to_i) if field_name == 'serial'
             instance_variable_set("@#{field_name}", field_value)
             instance_variable_set("@#{field_name}_was", field_value)
         end

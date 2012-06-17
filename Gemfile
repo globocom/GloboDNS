@@ -9,7 +9,7 @@ gem 'audited-activerecord', '~> 3.0.0.rc1'
 gem 'devise'
 gem 'awesome_print'
 gem 'responders'
-gem 'zonefile'
+# gem 'zonefile'
 gem 'syslogger'
 
 group :assets do

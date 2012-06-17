@@ -12,7 +12,7 @@ class Domain < ActiveRecord::Base
     include BindTimeFormatHelper
 
     # define helper constants and methods to handle domain types
-    AUTHORITY_TYPES  = define_enum([:MASTER, :SLAVE],   :authority_type)
+    AUTHORITY_TYPES  = define_enum([:MASTER, :SLAVE, :FORWARD, :STUB, :HINT], :authority_type)
     ADDRESSING_TYPES = define_enum([:REVERSE, :NORMAL], :addressing_type)
 
     REVERSE_DOMAIN_SUFFIXES = ['.in-addr.arpa', '.ip6.arpa']
@@ -71,7 +71,7 @@ class Domain < ActiveRecord::Base
     validates_format_of        :master,     :if => :slave?, :allow_blank => true, :with => /\A(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\z/
 
     # callbacks
-    after_save        :save_soa_record
+    after_save :save_soa_record
 
     # scopes
     default_scope         order("#{self.table_name}.name")
@@ -103,7 +103,7 @@ class Domain < ActiveRecord::Base
     end
 
     def name=(value)
-        rv = write_attribute('name', value.chomp('.'))
+        rv = write_attribute('name', value == '.' ? value : value.chomp('.'))
         set_addressing_type
         rv
     end
@@ -129,7 +129,7 @@ class Domain < ActiveRecord::Base
 
     # setup an SOA if we have the requirements
     def save_soa_record #:nodoc:
-        return if self.slave?
+        return unless self.master?
         soa_record.save or raise "[ERROR] unable to save SOA record (#{soa_record.errors.full_messages})"
     end
 
@@ -160,7 +160,7 @@ class Domain < ActiveRecord::Base
     end
 
     def zonefile_absolute_path
-        File.join(GloboDns::Config::BIND_CONFIG_DIR, zonefile_path)
+        File.join(GloboDns::Config::EXPORT_CONFIG_DIR, zonefile_path)
     end
 
     def to_bind9_conf(indent = '')
@@ -190,6 +190,10 @@ class Domain < ActiveRecord::Base
         end
     ensure
         output.close
+    end
+
+    def import_key
+        self.name.to_s + ':' + self.import_file_name.to_s
     end
 
     private
