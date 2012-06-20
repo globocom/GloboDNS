@@ -5,7 +5,7 @@ class RecordTemplate < ActiveRecord::Base
     validates_presence_of :domain_template, :name, :ttl
     validates_presence_of :record_type
 
-    before_save           :build_content, :if => :soa?
+    before_validation     :build_content, :if => :soa?
     before_validation     :set_soa_name,  :if => :soa?
     before_validation     :set_serial,    :if => :soa?
     before_validation     :inherit_ttl
