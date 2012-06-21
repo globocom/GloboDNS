@@ -34,5 +34,4 @@ end
 opts.parse!
 
 require File.expand_path('../../config/environment',  __FILE__)
-puts "[DEBUG] options:\n#{import_options.awesome_inspect}"
 GloboDns::Importer.new.import(import_options)

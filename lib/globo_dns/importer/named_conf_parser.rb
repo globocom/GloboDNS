@@ -1834,7 +1834,7 @@ module NamedConf
                 chroot_dir       = find_chroot_dir_in_parents
                 chroot_file_path = Pathname.new(file).absolute? ? File.join(chroot_dir, file) : File.join(chroot_dir, directory_option, file)
                 File.exists?(chroot_file_path) or raise Exception.new("[ERROR] zone file not found: \"#{chroot_file_path}\"")
-                zone_file        = Zonefile.from_file(chroot_file_path, name)
+                zone_file        = Zonefile.from_file(chroot_file_path, name, chroot_dir, directory_option)
 
                 _domain = Domain.new(:name             => zone_file.origin,
                                      :view             => view,
@@ -1856,11 +1856,10 @@ module NamedConf
 
                 zone_file.all_records.each do |record|
                     next if record[:type].upcase == 'SOA'
-                    _domain.records << Record.new(:name    => record[:name],
-                                                  :type    => record[:type].upcase,
-                                                  :ttl     => record[:ttl],
-                                                  :prio    => record[:pri],
-                                                  :content => record[:host])
+                    _domain.records << record[:type].constantize.new(:name    => record[:name],
+                                                                     :ttl     => record[:ttl],
+                                                                     :prio    => record[:pri],
+                                                                     :content => record[:host])
                 end
             else
                 _domain = Domain.new(:name             => name,
@@ -2084,31 +2083,6 @@ module NamedConf
     r0
   end
 
-  module KeyName0
-    def to_s
-        text_value.strip_quotes
-    end
-  end
-
-  def _nt_key_name
-    start_index = index
-    if node_cache[:key_name].has_key?(index)
-      cached = node_cache[:key_name][index]
-      if cached
-        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
-        @index = cached.interval.end
-      end
-      return cached
-    end
-
-    r0 = _nt_name
-    r0.extend(KeyName0)
-
-    node_cache[:key_name][start_index] = r0
-
-    r0
-  end
-
   module KeyStatements0
   end
 
@@ -2235,20 +2209,34 @@ module NamedConf
   end
 
   module MastersStatements1
+    def space1
+      elements[0]
+    end
+
+    def space2
+      elements[2]
+    end
+
+    def key_name
+      elements[3]
+    end
+  end
+
+  module MastersStatements2
     def ipaddr
       elements[0]
     end
 
     def space1
-      elements[2]
+      elements[3]
     end
 
     def space2
-      elements[4]
+      elements[5]
     end
   end
 
-  module MastersStatements2
+  module MastersStatements3
     def to_s
         # hack: there may be multiple masters, but we only select the first
         # one as the DB currently expects a single IP addr value
@@ -2310,27 +2298,63 @@ module NamedConf
         end
         s1 << r3
         if r3
-          r9 = _nt_space
+          i10, s10 = index, []
+          r11 = _nt_space
+          s10 << r11
+          if r11
+            if has_terminal?('key', false, index)
+              r12 = instantiate_node(SyntaxNode,input, index...(index + 3))
+              @index += 3
+            else
+              terminal_parse_failure('key')
+              r12 = nil
+            end
+            s10 << r12
+            if r12
+              r13 = _nt_space
+              s10 << r13
+              if r13
+                r14 = _nt_key_name
+                s10 << r14
+              end
+            end
+          end
+          if s10.last
+            r10 = instantiate_node(SyntaxNode,input, i10...index, s10)
+            r10.extend(MastersStatements1)
+          else
+            @index = i10
+            r10 = nil
+          end
+          if r10
+            r9 = r10
+          else
+            r9 = instantiate_node(SyntaxNode,input, index...index)
+          end
           s1 << r9
           if r9
-            if has_terminal?(';', false, index)
-              r10 = instantiate_node(SyntaxNode,input, index...(index + 1))
-              @index += 1
-            else
-              terminal_parse_failure(';')
-              r10 = nil
-            end
-            s1 << r10
-            if r10
-              r11 = _nt_space
-              s1 << r11
+            r15 = _nt_space
+            s1 << r15
+            if r15
+              if has_terminal?(';', false, index)
+                r16 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                @index += 1
+              else
+                terminal_parse_failure(';')
+                r16 = nil
+              end
+              s1 << r16
+              if r16
+                r17 = _nt_space
+                s1 << r17
+              end
             end
           end
         end
       end
       if s1.last
         r1 = instantiate_node(SyntaxNode,input, i1...index, s1)
-        r1.extend(MastersStatements1)
+        r1.extend(MastersStatements2)
       else
         @index = i1
         r1 = nil
@@ -2342,7 +2366,7 @@ module NamedConf
       end
     end
     r0 = instantiate_node(SyntaxNode,input, i0...index, s0)
-    r0.extend(MastersStatements2)
+    r0.extend(MastersStatements3)
 
     node_cache[:masters_statements][start_index] = r0
 
@@ -4978,6 +5002,100 @@ module NamedConf
     end
 
     node_cache[:port][start_index] = r0
+
+    r0
+  end
+
+  module KeyName0
+  end
+
+  module KeyName1
+    def to_s
+        text_value.strip_quotes
+    end
+  end
+
+  def _nt_key_name
+    start_index = index
+    if node_cache[:key_name].has_key?(index)
+      cached = node_cache[:key_name][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    i0 = index
+    i1, s1 = index, []
+    if has_terminal?('"', false, index)
+      r2 = instantiate_node(SyntaxNode,input, index...(index + 1))
+      @index += 1
+    else
+      terminal_parse_failure('"')
+      r2 = nil
+    end
+    s1 << r2
+    if r2
+      s3, i3 = [], index
+      loop do
+        if has_terminal?('\G[\\w\\.\\/\\-_]', true, index)
+          r4 = true
+          @index += 1
+        else
+          r4 = nil
+        end
+        if r4
+          s3 << r4
+        else
+          break
+        end
+      end
+      if s3.empty?
+        @index = i3
+        r3 = nil
+      else
+        r3 = instantiate_node(SyntaxNode,input, i3...index, s3)
+      end
+      s1 << r3
+      if r3
+        if has_terminal?('"', false, index)
+          r5 = instantiate_node(SyntaxNode,input, index...(index + 1))
+          @index += 1
+        else
+          terminal_parse_failure('"')
+          r5 = nil
+        end
+        s1 << r5
+      end
+    end
+    if s1.last
+      r1 = instantiate_node(SyntaxNode,input, i1...index, s1)
+      r1.extend(KeyName0)
+    else
+      @index = i1
+      r1 = nil
+    end
+    if r1
+      r0 = r1
+      r0.extend(KeyName1)
+    else
+      if has_terminal?('\G[\\w\\.\\/\\-_]', true, index)
+        r6 = true
+        @index += 1
+      else
+        r6 = nil
+      end
+      if r6
+        r0 = r6
+        r0.extend(KeyName1)
+      else
+        @index = i0
+        r0 = nil
+      end
+    end
+
+    node_cache[:key_name][start_index] = r0
 
     r0
   end

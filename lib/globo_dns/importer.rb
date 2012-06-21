@@ -180,7 +180,7 @@ class Importer
                 file.write(slave_root.named_conf)
             end
         end
-    ensure
+    # ensure
         # FileUtils.remove_entry_secure master_tmp_dir unless master_tmp_dir.nil? || @options[:keep_tmp_dir] == true
         # FileUtils.remove_entry_secure slave_tmp_dir  unless slave_tmp_dir.nil?  || @options[:keep_tmp_dir] == true
     end

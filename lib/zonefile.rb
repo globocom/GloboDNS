@@ -238,14 +238,14 @@ class Zonefile
             /ix
             add_record($4, :name => $1, :ttl => $2, :class => $3, :host => $5)
 
-        elsif line=~/^(#{valid_name})? \s*
+        elsif line =~ /^(#{valid_name})? \s*
             #{ttl_cls}
             AAAA \s+
             (#{valid_ip6})               
             /x
             add_record('aaaa', :name => $1, :ttl => $2, :class => $3, :host => $4)
 
-        elsif line=~/^(#{valid_name})? \s*
+        elsif line =~ /^(#{valid_name})? \s*
             #{ttl_cls}
             MX \s+
             (\d+) \s+

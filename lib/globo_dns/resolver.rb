@@ -3,13 +3,15 @@ class Resolver
     include GloboDns::Config
     include GloboDns::Util
 
+    DEFAULT_PORT = 53
+
     def initialize(host, port)
         @host = host
         @port = port
     end
 
-    MASTER = GloboDns::Resolver.new(BIND_MASTER_HOST, BIND_MASTER_PORT.to_i)
-    SLAVE  = GloboDns::Resolver.new(BIND_SLAVE_HOST,  BIND_SLAVE_PORT.to_i)
+    MASTER = GloboDns::Resolver.new(BIND_MASTER_IPADDR, (BIND_MASTER_PORT rescue DEFAULT_PORT).to_i)
+    SLAVE  = GloboDns::Resolver.new(BIND_SLAVE_IPADDR,  (BIND_SLAVE_PORT  rescue DEFAULT_PORT).to_i)
 
     def resolve(record)
         name      = Record::fqdn(record.name, record.domain.name)

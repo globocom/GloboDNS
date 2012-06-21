@@ -15,9 +15,9 @@ class User < ActiveRecord::Base
 
     # before_save :check_auth_tokens
     before_save   :ensure_authentication_token
-    after_destroy :persist_audits
+    # after_destroy :persist_audits
 
-    has_many :audits, :as => :user
+    # has_many :audits, :as => :user
 
     # ROLES = [:ADMIN, :OPERATOR, :VIEWER].inject(Hash.new) do |hash, role|
     #     role_str = role.to_s[0]

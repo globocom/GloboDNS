@@ -192,11 +192,10 @@ grammar NamedConf
 
                         zone_file.all_records.each do |record|
                             next if record[:type].upcase == 'SOA'
-                            _domain.records << Record.new(:name    => record[:name],
-                                                          :type    => record[:type].upcase,
-                                                          :ttl     => record[:ttl],
-                                                          :prio    => record[:pri],
-                                                          :content => record[:host])
+                            _domain.records << record[:type].constantize.new(:name    => record[:name],
+                                                                             :ttl     => record[:ttl],
+                                                                             :prio    => record[:pri],
+                                                                             :content => record[:host])
                         end
                     else
                         _domain = Domain.new(:name             => name,
@@ -537,13 +536,13 @@ grammar NamedConf
         }
     end
 
-	rule key_name
-        '"' [\w\.\/\-_]+ '"' / [\w\.\/\-_] {
+    rule key_name
+        ('"' [\w\.\/\-_]+ '"' / [\w\.\/\-_]) {
             def to_s
                 text_value.strip_quotes
             end
         }
-	end
+    end
 
     rule address_match
         ('!'? ipaddr ('/' ipaddr_prefix_length)? space / 'key' space key_name space / acl_name space / '{' space address_match+ space '}' space) {

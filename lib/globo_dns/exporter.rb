@@ -297,9 +297,11 @@ class Exporter
 
         rsync_output = exec('remote rsync',
                             Binaries::RSYNC,
+                            '--inplace',
                             '--no-owner',
                             '--no-group',
                             '--no-perms',
+                            '--verbose',
                             File.join(chroot_dir, EXPORT_CONFIG_DIR, File.basename(EXPORT_CONFIG_FILE)),
                             "#{remote[:user]}@#{remote[:host]}:#{File.join(remote[:chroot_dir], remote[:named_conf])}")
 
@@ -315,7 +317,7 @@ class Exporter
         if @options[:abort_on_rndc_failure] == false
             exec!(*cmd_args)
         else
-            exec(cmd_args)
+            exec(*cmd_args)
         end
     end
 

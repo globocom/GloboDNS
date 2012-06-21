@@ -23,7 +23,7 @@ class Bind9Controller < ApplicationController
                                               params['slave-named-conf'],
                                               :all                   => params['export-all'],
                                               :keep_tmp_dir          => true,
-                                              :abort_on_rndc_failure => false,
+                                              # :abort_on_rndc_failure => false,
                                               :logger                => Logger.new(sio = StringIO.new('', 'w')))
 
             # GloboDns::Exporter.new.export_all(params[:named_conf], :logger => Logger.new(sio = StringIO.new('', 'w')), :test_changes => false)

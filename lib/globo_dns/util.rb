@@ -15,7 +15,8 @@ module Util
     # raises and exception if the return code is not '0' (success)
     def self.exec(command_id, *args)
         output = nil
-        self.logger.debug "[GloboDns::Util::exec] #{args.join(' ')}"
+        self.logger.info  "[GloboDns::Util::exec] #{args.join(' ')}"
+        Rails.logger.info "[GloboDns::Util::exec] #{args.join(' ')}"
         puts              "[GloboDns::Util::exec] #{args.join(' ')}"
         IO::popen(args) do |io|
             output = io.read
@@ -27,7 +28,7 @@ module Util
     # same as 'exec', but don't raise an exception if the exit status is not 0
     def self.exec!(command_id, *args)
         output = nil
-        self.logger.debug "[GloboDns::Util::exec!] #{args.join(' ')}"
+        self.logger.info "[GloboDns::Util::exec!] #{args.join(' ')}"
         puts "[GloboDns::Util::exec!] #{args.join(' ')}"
         IO::popen(args) do |io|
             output = io.read
