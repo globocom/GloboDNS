@@ -129,7 +129,13 @@ class Exporter
             file.puts
             file.puts CONFIG_START_TAG
             file.puts '# this block is auto generated; do not edit'
-            file.puts "include \"#{File.join(EXPORT_CONFIG_DIR, VIEWS_FILE)}\";"
+            if View.count > 0
+                file.puts "include \"#{File.join(EXPORT_CONFIG_DIR, VIEWS_FILE)}\";"
+            else
+                file.puts "include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, GloboDns::Config::ZONES_FILE)}\";\n"
+                file.puts "include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, GloboDns::Config::SLAVES_FILE)}\";\n"
+                file.puts "include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, GloboDns::Config::REVERSE_FILE)}\";\n"
+            end
             file.puts CONFIG_END_TAG
         end
         File.utime(@touch_timestamp, @touch_timestamp, named_conf_file)
