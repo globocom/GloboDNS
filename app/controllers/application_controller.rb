@@ -4,6 +4,12 @@ class ApplicationController < ActionController::Base
     before_filter :authenticate_user!  # all pages require a login
     after_filter  :flash_headers
 
+    rescue_from ActiveRecord::RecordNotFound,        :with => :render_404
+    rescue_from ActionController::RoutingError,      :with => :render_404
+    rescue_from ActionController::UnknownController, :with => :render_404
+    rescue_from AbstractController::ActionNotFound,  :with => :render_404
+    rescue_from Exception,                           :with => :render_500
+
     helper_method :admin?, :operator?, :admin_or_operator?, :viewer?
 
     def admin?
@@ -52,10 +58,17 @@ class ApplicationController < ActionController::Base
         end
     end
 
-    def render_404
+    def render_404(exception)
         respond_to do |format|
-            format.html { render :status => :forbidden, :file => File.join(Rails.root, 'public', '404.html'), :layout => nil }
+            format.html { render :status => :not_found, :file => File.join(Rails.root, 'public', '404.html'), :layout => nil }
             format.json { render :status => :not_found, :json => { :error => 'NOT FOUND' } }
+        end
+    end
+
+    def render_500(exception)
+        respond_to do |format|
+            format.json { render :status => :internal_server_error, :json => { :error => exception.message, :backtrace => exception.backtrace } }
+            format.html { raise(exception) }
         end
     end
 end
