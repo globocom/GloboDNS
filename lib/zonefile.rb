@@ -10,23 +10,23 @@
 # The following hash keys are returned per record type:
 #
 # * SOA
-#    - :ttl, :primary, :email, :serial, :refresh, :retry, :expire, :minimumTTL
+#    - :ttl, :primary_ns, :contact, :serial, :refresh, :retry, :expire, :minimum
 # * A
-#    - :name, :ttl, :class, :host
+#    - :name, :ttl, :class, :content
 # * MX
-#    - :name, :ttl, :class, :pri, :host
+#    - :name, :ttl, :class, :prio, :content
 # * NS
-#    - :name, :ttl, :class, :host
+#    - :name, :ttl, :class, :content
 # * CNAME
-#    - :name, :ttl, :class, :host
+#    - :name, :ttl, :class, :content
 # * TXT
 #    - :name, :ttl, :class, :text
 # * A4 (AAAA)
-#    - :name, :ttl, :class, :host
+#    - :name, :ttl, :class, :content
 # * PTR
-#    - :name, :ttl, :class, :host
+#    - :name, :ttl, :class, :content
 # * SRV
-#    - :name, :ttl, :class, :pri, :weight, :port, :host
+#    - :name, :ttl, :class, :prio, :weight, :port, :content
 #
 # == Examples
 #
@@ -36,7 +36,7 @@
 #  
 #  # Display MX-Records
 #  zf.mx.each do |mx_record|
-#     puts "Mail Exchagne with priority: #{mx_record[:pri]} --> #{mx_record[:host]}"
+#     puts "Mail Exchagne with priority: #{mx_record[:prio]} --> #{mx_record[:content]}"
 #  end
 #
 #  # Show SOA TTL
@@ -44,7 +44,7 @@
 #
 #  # Show A-Records
 #  zf.a.each do |a_record|
-#     puts "#{a_record[:name]} --> #{a_record[:host]}"
+#     puts "#{a_record[:name]} --> #{a_record[:content]}"
 #  end
 #
 #
@@ -55,12 +55,12 @@
 #  # Change TTL and add an A-Record
 #
 #  zf.soa[:ttl] = '123123'      # Change the SOA ttl
-#  zf.a << { :class => 'IN', :name => 'www', :host => '192.168.100.1', :ttl => 3600 }  # add A-Record
+#  zf.a << { :class => 'IN', :name => 'www', :content => '192.168.100.1', :ttl => 3600 }  # add A-Record
 #
 #  # Setting PTR records (deleting existing ones)
 #
-#  zf.ptr = [ { :class => 'IN', :name=>'1.100.168.192.in-addr.arpa', :host => 'my.host.com' },
-#             { :class => 'IN', :name=>'2.100.168.192.in-addr.arpa', :host => 'me.host.com' } ]
+#  zf.ptr = [ { :class => 'IN', :name=>'1.100.168.192.in-addr.arpa', :content => 'my.host.com' },
+#             { :class => 'IN', :name=>'2.100.168.192.in-addr.arpa', :content => 'me.host.com' } ]
 #
 #  # Increase Serial Number
 #  zf.new_serial
@@ -236,14 +236,14 @@ class Zonefile
             (#{rr_type}) \s+
             (#{valid_name})
             /ix
-            add_record($4, :name => $1, :ttl => $2, :class => $3, :host => $5)
+            add_record($4, :name => $1, :ttl => $2, :class => $3, :content => $5)
 
         elsif line =~ /^(#{valid_name})? \s*
             #{ttl_cls}
             AAAA \s+
             (#{valid_ip6})               
             /x
-            add_record('aaaa', :name => $1, :ttl => $2, :class => $3, :host => $4)
+            add_record('aaaa', :name => $1, :ttl => $2, :class => $3, :content => $4)
 
         elsif line =~ /^(#{valid_name})? \s*
             #{ttl_cls}
@@ -251,7 +251,7 @@ class Zonefile
             (\d+) \s+
             (#{valid_name})
             /ix
-            add_record('mx', :name => $1, :ttl => $2, :class => $3, :pri => $4.to_i, :host => $5)
+            add_record('mx', :name => $1, :ttl => $2, :class => $3, :prio => $4.to_i, :content => $5)
 
         # elsif line=~/^(#{valid_name})? \s*
         #     #{ttl_cls}
@@ -261,7 +261,7 @@ class Zonefile
         #     (\d+) \s+
         #     (#{valid_name})
         #     /ix
-        #     add_record('srv', :name => $1, :ttl => $2, :class => $3, :pri => $4, :weight => $5, :port => $6, :host => $7)
+        #     add_record('srv', :name => $1, :ttl => $2, :class => $3, :prio => $4, :weight => $5, :port => $6, :content => $7)
 
         elsif line =~ /^(#{valid_name}) \s+
             #{ttl_cls}
@@ -276,18 +276,17 @@ class Zonefile
               (#{rr_ttl}) \s*
               \)?
               /ix
-            ttl = @soa[:ttl] || $2 || ''
             @soa[:type]       = 'SOA'
             @soa[:name]       = $1
-            @soa[:origin]     = $1
-            @soa[:ttl]        = ttl
-            @soa[:primary]    = $4
-            @soa[:email]      = $5
+            @soa[:ttl]        = $2 || ''
+            @soa[:class]      = $3
+            @soa[:primary_ns] = $4
+            @soa[:contact]    = $5
             @soa[:serial]     = $6
             @soa[:refresh]    = $7
             @soa[:retry]      = $8
             @soa[:expire]     = $9
-            @soa[:minimumTTL] = $10
+            @soa[:minimum]    = $10
             @all_records     << @soa
 
         elsif line=~ /^(#{valid_name})? \s*
@@ -295,11 +294,11 @@ class Zonefile
             PTR \s+
             (#{valid_name})
             /ix
-            add_record('ptr', :name => $1, :class => $3, :ttl => $2, :host => $4)
+            add_record('ptr', :name => $1, :class => $3, :ttl => $2, :content => $4)
 
         elsif line =~ /^(#{valid_name})? \s* #{ttl_cls} ([A-Z0-9]+) \s+ (.*)$/ix
             # add_record('txt', :name => $1, :ttl => $2, :class => $3, :text => $4.strip)
-            add_record($4, :name => $1, :ttl => $2, :class => $3, :host => $5)
+            add_record($4, :name => $1, :ttl => $2, :class => $3, :content => $5)
 
         else
             STDERR.puts "[WARNING][Zonefile.parse] unparseable line: \"#{line}\""
@@ -321,12 +320,12 @@ class Zonefile
 ;  Database file #{@filename || 'unknown'} for #{@origin || 'unknown'} zone.
 ;       Zone version: #{self.soa[:serial]}
 ;
-#{self.soa[:origin]}            #{self.soa[:ttl]} IN  SOA  #{self.soa[:primary]} #{self.soa[:email]} (
+#{self.soa[:name]}            #{self.soa[:ttl]} IN  SOA  #{self.soa[:primary]} #{self.soa[:contact]} (
 #{self.soa[:serial]}    ; serial number
 #{self.soa[:refresh]}   ; refresh
 #{self.soa[:retry]}     ; retry
 #{self.soa[:expire]}    ; expire
-#{self.soa[:minimumTTL]}        ; minimum TTL
+#{self.soa[:minimum]}   ; minimum TTL
                                 )
 
 #{@origin ? "$ORIGIN #{@origin}" : ''}
@@ -335,26 +334,26 @@ class Zonefile
 ; Zone NS Records
 ENDH
 self.ns.each do |ns|
-    out <<  "#{ns[:name]}      #{ns[:ttl]}     #{ns[:class]}   NS      #{ns[:host]}\n"
+    out <<  "#{ns[:name]}      #{ns[:ttl]}     #{ns[:class]}   NS      #{ns[:content]}\n"
 end
 out << "\n; Zone MX Records\n" unless self.mx.empty?
 self.mx.each do |mx|
-    out << "#{mx[:name]}       #{mx[:ttl]}     #{mx[:class]}   MX      #{mx[:pri]} #{mx[:host]}\n"
+    out << "#{mx[:name]}       #{mx[:ttl]}     #{mx[:class]}   MX      #{mx[:prio]} #{mx[:content]}\n"
 end
 
 out << "\n; Zone A Records\n" unless self.a.empty?
 self.a.each do |a|
-    out <<  "#{a[:name]}    #{a[:ttl]}      #{a[:class]}    A       #{a[:host]}\n"
+    out <<  "#{a[:name]}    #{a[:ttl]}      #{a[:class]}    A       #{a[:content]}\n"
 end   
 
 out << "\n; Zone CNAME Records\n" unless self.cname.empty?
 self.cname.each do |cn|
-    out << "#{cn[:name]}       #{cn[:ttl]}     #{cn[:class]}   CNAME   #{cn[:host]}\n"
+    out << "#{cn[:name]}       #{cn[:ttl]}     #{cn[:class]}   CNAME   #{cn[:content]}\n"
 end  
 
 out << "\n; Zone AAAA Records\n" unless self.aaaa.empty?
 self.aaaa.each do |a4|
-    out << "#{a4[:name]}       #{a4[:ttl]}     #{a4[:class]}   AAAA    #{a4[:host]}\n"
+    out << "#{a4[:name]}       #{a4[:ttl]}     #{a4[:class]}   AAAA    #{a4[:content]}\n"
 end
 
 out << "\n; Zone TXT Records\n" unless self.txt.empty?
@@ -364,12 +363,12 @@ end
 
 out << "\n; Zone SRV Records\n" unless self.srv.empty?
 self.srv.each do |srv|
-    out << "#{srv[:name]}      #{srv[:ttl]}    #{srv[:class]}  SRV     #{srv[:pri]} #{srv[:weight]} #{srv[:port]}      #{srv[:host]}\n"
+    out << "#{srv[:name]}      #{srv[:ttl]}    #{srv[:class]}  SRV     #{srv[:prio]} #{srv[:weight]} #{srv[:port]}      #{srv[:content]}\n"
 end
 
 out << "\n; Zone PTR Records\n" unless self.ptr.empty?
 self.ptr.each do |ptr|
-    out << "#{ptr[:name]}      #{ptr[:ttl]}    #{ptr[:class]}  PTR     #{ptr[:host]}\n"
+    out << "#{ptr[:name]}      #{ptr[:ttl]}    #{ptr[:class]}  PTR     #{ptr[:content]}\n"
 end
 
 out

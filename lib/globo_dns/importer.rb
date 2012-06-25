@@ -1,20 +1,4 @@
-require 'polyglot'
-require 'treetop'
-
-treetop_file         = File.expand_path('../importer/named_conf.treetop',   __FILE__)
-compiled_parser_file = File.expand_path('../importer/named_conf_parser.rb', __FILE__)
-if File.mtime(treetop_file) > File.mtime(compiled_parser_file)
-    Treetop.load treetop_file
-else
-    require compiled_parser_file
-end
-
-# Treetop::Runtime::SyntaxNode.class_eval do
-#     alias :old_inspect :inspect
-#     def inspect(indent = '')
-#         self.terminal? ? '' : old_inspect(indent)
-#     end
-# end
+require File.expand_path('../importer/util', __FILE__)
 
 module GloboDns
 class Importer
@@ -83,26 +67,43 @@ class Importer
             end
         end
 
-        # actually parse both configuration files; abort on error
-        parser      = NamedConfParser.new
-        master_root = parser.parse(master_canonical_named_conf) or raise RuntimeError.new("[ERROR] unable to parse canonical master BIND configuration: #{parser.failure_reason}")
-        slave_root  = parser.parse(slave_canonical_named_conf)  or raise RuntimeError.new("[ERROR] unable to parse canonical slave BIND configuration: #{parser.failure_reason}")
+        # load grammar
+        Citrus.load(File.expand_path('../importer/named_conf.citrus', __FILE__))
 
-        # set the chroot_dir; this is needed to find and parse the zone files
-        master_root.chroot_dir = master_chroot_dir
-        slave_root.chroot_dir  = slave_chroot_dir
+        # process slave first, cache the filtered config and free the parsed
+        # tree to free some memory
+        slave_root = nil
+        begin
+            slave_root = NamedConf.parse(slave_canonical_named_conf)
+        rescue Citrus::ParseError => e
+            raise RuntimeError.new("[ERROR] unable to parse canonical slave BIND configuration (line #{e.line_number}, column #{e.line_offset}: #{e.line})")
+        end
 
+        slave_config = slave_root.config
+        slave_root   = nil
+        if options[:debug]
+            File.open('/tmp/globodns.filtered.slave.named.conf.' + ('%x' % (rand * 999999)), 'w') do |file|
+                file.write(slave_config)
+                puts "[DEBUG] filtered slave BIND configuration written to \"#{file.path}\""
+            end
+        end
+
+        # now, process the master file
+        master_root = nil
+        begin
+            master_root = NamedConf.parse(master_canonical_named_conf)
+        rescue Citrus::ParseError => e
+            raise RuntimeError.new("[ERROR] unable to parse canonical master BIND configuration (line #{e.line_number}, column #{e.line_offset}: #{e.line})")
+        end
+
+        master_config = master_root.config
         if options[:debug]
             # write filtered/parsed representation to a tmp file, for debugging purposes
             File.open('/tmp/globodns.filtered.master.named.conf.' + ('%x' % (rand * 999999)), 'w') do |file|
-                file.write(master_root.named_conf)
+                file.write(master_config)
                 puts "[DEBUG] filtered master BIND configuration written to \"#{file.path}\""
             end
 
-            File.open('/tmp/globodns.filtered.slave.named.conf.' + ('%x' % (rand * 999999)), 'w') do |file|
-                file.write(slave_root.named_conf)
-                puts "[DEBUG] filtered slave BIND configuration written to \"#{file.path}\""
-            end
         end
 
         # disable auditing on all affected models
@@ -111,61 +112,75 @@ class Importer
         Record.disable_auditing
 
         # save the 'View's and 'Domain's found by the parser to the DB
-        View.transaction do
-            # ActiveRecord::Base.connection.execute "TRUNCATE `#{View.table_name}`"
-            # ActiveRecord::Base.connection.execute "TRUNCATE `#{Domain.table_name}`"
-            # ActiveRecord::Base.connection.execute "TRUNCATE `#{Record.table_name}`"
-            Record.delete_all
-            Domain.delete_all
-            View.delete_all
+        # ActiveRecord::Base.connection.execute "TRUNCATE `#{View.table_name}`"
+        # ActiveRecord::Base.connection.execute "TRUNCATE `#{Domain.table_name}`"
+        # ActiveRecord::Base.connection.execute "TRUNCATE `#{Record.table_name}`"
+        Record.delete_all
+        Domain.delete_all
+        View.delete_all
 
-            # find 'common/shared' domains
-            domain_views = Hash.new
-            master_root.views.each do |view|
-                view.domains.each do |domain|
-                    domain_views[domain.import_key] ||= Array.new
-                    domain_views[domain.import_key]  << view.name
+        # find 'common/shared' domains
+        domain_views = Hash.new
+        master_root.views.each do |view|
+            view.domains.each do |domain|
+                domain_views[domain.import_key] ||= Array.new
+                domain_views[domain.import_key]  << view.name
+            end
+        end
+        common_domains = domain_views.select { |domain_key, views|
+            puts "[select common domains] domain: #{domain_key}; views.size: #{views.size}; master_root.views.size: #{master_root.views.size}"
+            views.size == master_root.views.size
+        }
+        puts "common domains:\n    #{common_domains.keys.join("    \n")}"
+
+        # save each view and its respective domains
+        master_root.views.each do |view|
+            unless view.model.save
+                STDERR.puts("[ERROR] unable to save view #{view.name}: #{view.model.errors.full_messages}")
+                next
+            end
+
+            while domain = view.domains.shift
+                domain.chroot_dir = master_chroot_dir
+                domain.bind_dir   = master_root.bind_dir
+                domain_views      = common_domains[domain.import_key]
+
+                unless domain.model && domain.model.soa_record
+                    STDERR.puts "[ERROR] unable to build DB model from zone statement: #{domain.to_str}"
+                    next
                 end
-            end
-            common_domains = domain_views.select { |domain, views|
-                puts "[select common domains] domain: #{domain}; views.size: #{views.size}; master_root.views.size: #{master_root.views.size}"
-                views.size == master_root.views.size
-            }
-            puts "common domains:\n#{common_domains.awesome_inspect}"
 
-            # save each view and its respective domains
-            master_root.views.each do |view|
-                domains = view.domains.clone
-                view.domains.clear
-                view.save or raise Exception.new("[ERROR] unable to save view #{view.name}: #{view.errors.full_messages}")
-
-                domains.each do |domain|
-                    domain_views = common_domains[domain.import_key]
-
-                    if domain_views == false
-                        next
-                    elsif domain_views.is_a?(Array)
-                        common_domains[domain.import_key] = false
-                        domain.view = nil                    # shared/common domains are saved with a 'nil' View
-                    else
-                        domain.view = view
-                    end
-
-                    puts "[view] saving domain: #{domain.inspect} (soa: #{domain.soa_record.inspect}) (object_id: #{domain.object_id})"
-                    domain.save or raise Exception.new("[ERROR] unable to save domain #{domain.name}: #{domain.errors.full_messages} (soa: #{domain.soa_record.errors.full_messages})")
+                if domain_views == false
+                    next
+                elsif domain_views.is_a?(Array)
+                    common_domains[domain.import_key] = false
+                else
+                    domain.model.view_id = view.model.id
                 end
-            end
 
-            # save domains outside any views
-            master_root.domains.each do |domain|
-                puts "[standalone] saving domain: #{domain.inspect} (soa: #{domain.soa_record.inspect}) (object_id: #{domain.object_id})"
-                domain.save or raise Exception.new("[ERROR] unable to save domain #{domain.name}: #{domain.errors.full_messages} (soa: #{domain.soa_record.errors.full_messages})")
+                puts "[view] saving domain: #{domain.model.inspect} (soa: #{domain.model.soa_record.inspect})"
+                domain.model.save or STDERR.puts("[ERROR] unable to save domain #{domain.model.name}: #{domain.model.errors.full_messages} (soa: #{domain.model.soa_record.errors.full_messages})")
+                domain.reset_model
             end
+        end
+
+        # save domains outside any views
+        while domain = master_root.domains.shift
+            domain.chroot_dir = master_chroot_dir
+            domain.bind_dir   = master_root.bind_dir
+            unless domain.model && domain.model.soa_record
+                STDERR.puts "[ERROR} unable to build DB model from zone statement: #{domain.to_str}"
+                next
+            end
+            puts "[standalone] saving domain: #{domain.model.inspect} (soa: #{domain.model.soa_record.inspect})"
+            domain.model.save or STDERR.puts("[ERROR] unable to save domain #{domain.model.name}: #{domain.model.errors.full_messages} (soa: #{domain.model.soa_record.errors.full_messages})")
+            domain.reset_model
         end
 
         # finally, regenerate/export the updated database
         if options[:export]
-            GloboDns::Exporter.new.export_all(master_root.named_conf, slave_root.named_conf,
+            # GloboDns::Exporter.new.export_all(master_config, slave_config,
+            GloboDns::Exporter.new.export_all(master_config, '',
                                               :all                   => true,
                                               :keep_tmp_dir          => true,
                                               :abort_on_rndc_failure => false,
@@ -173,11 +188,11 @@ class Importer
         else
             # save the new named.conf files to the local chroots
             File.open(File.join(EXPORT_MASTER_CHROOT_DIR, EXPORT_CONFIG_FILE), 'w')  do |file|
-                file.write(master_root.named_conf)
+                file.write(master_config)
             end
 
             File.open(File.join(EXPORT_SLAVE_CHROOT_DIR, EXPORT_CONFIG_FILE), 'w')  do |file|
-                file.write(slave_root.named_conf)
+                file.write(slave_config)
             end
         end
     # ensure

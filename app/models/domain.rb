@@ -68,7 +68,6 @@ class Domain < ActiveRecord::Base
     validates_bind_time_format :ttl,        :if => :master?
     validates_associated       :soa_record, :if => :master?
     validates_presence_of      :master,     :if => :slave?
-    validates_format_of        :master,     :if => :slave?, :allow_blank => true, :with => /\A(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\z/
 
     # callbacks
     after_save :save_soa_record
@@ -168,7 +167,7 @@ class Domain < ActiveRecord::Base
         str  = "#{indent}zone \"#{self.name}\" {\n"
         str << "#{indent}    type    #{self.slave? ? 'slave' : 'master'};\n"
         str << "#{indent}    file    \"#{zonefile_absolute_path}\";\n"
-        str << "#{indent}    masters { #{self.master}#{view ? ' key "' + view.key_name + '"' : ''}; };\n" if self.slave?
+        str << "#{indent}    masters { #{self.master.strip.chomp(';')}; };\n" if self.slave?
         str << "#{indent}};\n\n"
         str
     end

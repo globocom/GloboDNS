@@ -4,21 +4,17 @@ String.class_eval do
     end
 end
 
-module NamedConf
-    module Util
-        def included(base)
-            STDERR.puts "including #{self.name}::InstanceMethods"
-            base.send(:include, InstanceMethods)
+Citrus::Match.class_eval do
+    def delete_from(parent)
+        captures.clear
+        matches.clear
+        puts "indeed! parent.matches includes it!" if parent.matches.include?(self)
+        parent.matches.delete(self)
+        parent.captures.each do |key, value|
+            puts "indeed! parent.captures[#{key}] is it!" if value.object_id == self.object_id
+            parent.captures[key] = value = nil if value.object_id == self.object_id
+            puts "indeed! parent.captures[#{key}] includes it!" if value.is_a?(Array) && value.include?(self)
+            parent.captures[key].delete(self)  if value.is_a?(Array) && value.include?(self)
         end
-
-        module InstanceMethods
-            def directory
-                @directory
-            end
-
-            def directory=(val)
-                @directory = val
-            end
-        end
-	end
+    end
 end

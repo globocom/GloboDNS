@@ -9,8 +9,8 @@ gem 'audited-activerecord', '~> 3.0.0.rc1'
 gem 'devise'
 gem 'awesome_print'
 gem 'responders'
-# gem 'zonefile'
 gem 'syslogger'
+gem 'citrus'
 
 group :assets do
     gem 'sass-rails',   '~> 3.2.3'

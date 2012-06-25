@@ -1,0 +1,511 @@
+grammar NamedConf
+    rule file
+        (space (top_level_statement space)+) {
+            def config
+                @config ||= begin
+                    _config = ''
+                    view_keys = Array.new
+
+                    self[:top_level_statement].each do |statement|
+                        view_keys << statement.view.view_name.value if statement.view && statement.view.view_name
+                    end
+
+                    self[:top_level_statement].each do |statement|
+                        next if statement.zone ||
+                                statement.view ||
+                                (statement.key && statement.key.key_name && view_keys.include?(statement.key.key_name))
+                        _config << statement.value << "\n\n"
+                    end
+
+                    _config
+                end
+            end
+
+            def views
+                @views ||= self[:top_level_statement].select { |statement| statement.view && statement.view.respond_to?(:model) }
+            end
+
+            def zones
+                @zones ||= begin
+                    _zones = Array.new
+                    self[:top_level_statement].reject! do |statement|
+						 if statement.zone
+							 _zones << statement.zone
+							 statement.zone.captures[0] = statement.zone.captures[:zone] = nil
+							 true
+						 end
+                    end
+
+					# discard the duplicated parsing structures
+					indexes          = Set.new
+					selected_matches = Array.new
+					top_level_list   = self.matches.last
+					top_level_list.matches.each_with_index do |list_element, index|
+						if list_element.top_level_statement && list_element.top_level_statement.zone
+							indexes << (index + 1)
+						else
+							selected_matches << list_element
+						end
+					end
+
+					top_level_list.captures.except!(*indexes); nil
+					top_level_list.matches.replace(selected_matches)
+
+                    _zones
+                end
+            end
+            alias :domains :zones
+
+            def bind_dir
+                @bind_dir ||= begin
+                    _bind_dir = nil
+                    self.captures[:top_level_statement].each do |statement|
+                         next unless statement.options
+						 statement.options[:options_statements].each do |option_statement|
+							 _bind_dir = option_statement.directory_statement.value if option_statement.directory_statement
+						 end
+                    end
+                    _bind_dir
+                end
+            end
+        }
+    end
+
+    rule top_level_statement
+        (acl | controls | include_ | key | logging | lwres | masters | options | server | statistics_channels | trusted_keys |  managed_keys | view | zone)
+    end
+
+    rule acl
+        'acl' space acl_name space '{' space acl_statements space '}' space ';'
+    end
+
+    rule controls
+        'controls' space '{' space controls_statements space '}' space ';'
+    end
+
+    rule include_
+        'include' space filename space ';'
+    end
+
+    rule key
+        'key' space key_name space '{' space key_statements space '}' space ';'
+    end
+
+    rule logging
+        'logging' space '{' space logging_statements space '}' space ';'
+    end
+
+    rule lwres
+        'lwres' space '{' space lwres_statements space '}' space ';'
+    end
+
+    rule masters
+        'masters' space masters_name space '{' space masters_statements space '}' space ';'
+    end
+
+    rule options
+        'options' space '{' space options_statements space '}' space ';'
+    end
+
+    rule server
+        'server' space server_ipaddr ('/' ipaddr_prefix_length)? space '{' space server_statements space '}' space ';'
+    end
+
+    rule statistics_channels
+        'statistics-channels' space '{' space statistics_channels_statements space '}' space ';'
+    end
+
+    rule trusted_keys
+        'trusted-keys' space '{' space trusted_keys_statements space '}' space ';'
+    end
+
+    rule managed_keys
+        'managed-keys' space '{' space managed_keys_statements space '}' space ';'
+    end
+
+    rule view
+        ('view' space view_name space dns_class? space '{' space (view_statement space)* '}' space ';') {
+            def model
+                @view ||= View.new(:name => self.name, :clients => self.clients, :destinations => self.destinations)
+            end
+
+            def name
+                view_name.value.strip_quotes
+            end
+
+            def clients
+                view_statement.match_clients[:address_match].collect{|am| am.value}.join('; ') if view_statement.match_clients
+            end
+
+            def destinations
+                view_statement.match_destinations[:address_match].collect{|am| am.value}.join('; ') if view_statement.match_destinations
+            end
+
+            def zones
+				@zones ||= begin
+					_zones = Array.new
+					self[:view_statement].reject! do |statement|
+						if statement.zone
+							statement.captures[0] = statement.captures[:zone] = nil
+							_zones << statement
+						end
+					end
+
+					# discard the duplicated parsing structures
+					view_statement = self.matches.find{|m| m.view_statement}
+					view_statement.captures.clear
+					view_statement.matches.clear
+					self.matches.delete(view_statement)
+					self.captures.each_key do |key|
+						self.captures[key] = nil                  if self.captures[key] == view_statement
+						self.captures[key].delete(view_statement) if self.captures[key].is_a?(Array) && self.captures[key].include?(view_statement)
+					end
+
+					_zones
+				end
+            end
+            alias :domains :zones
+
+			def discard_zone(zone)
+				zone.delete_from(view_statement)
+			end
+        }
+    end
+
+    rule zone
+        ('zone' space zone_name space dns_class? space '{' space zone_statements space '}' space ';') {
+            def name
+                @name ||= zone_name.value.strip_quotes
+            end
+
+            def type
+                @type ||= begin
+                    type_statement = zone_statements[:zone_type_statement].last
+                    type_statement ? type_statement.value : nil
+                end
+            end
+
+            def file
+                @file ||= begin
+					file_statement = zone_statements[:zone_file_statement].last
+					file_statement ? file_statement.value : nil
+				end
+            end
+
+            def master
+                @master ||= begin
+					masters_statement = zone_statements[:zone_masters_statement].last
+					masters_statement ? masters_statement.value : nil
+				end
+            end
+
+			def chroot_dir=(dir)
+				@chroot_dir = dir
+			end
+
+			def bind_dir=(dir)
+				@bind_dir = dir
+			end
+
+            def model
+                @domain ||= begin
+                    _domain = Domain.new(:name => self.name, :authority_type => Domain::const_get(self.type.upcase))
+
+                    if _domain.master?
+						abs_path = Pathname.new(self.file).absolute? ? File.join(@chroot_dir, file) : File.join(@chroot_dir, @bind_dir, file)
+						File.exists?(abs_path) or raise Exception.new("[ERROR] zone file not found: \"#{abs_path}\"")
+
+                        zone_file   = Zonefile.from_file(abs_path, name, @chroot_dir, @bind_dir)
+                        _domain.ttl = zone_file.ttl
+						zone_file.all_records.collect do |record|
+                            klass   = record.delete(:type).upcase.constantize
+							params  = record.slice!(:class)
+                            _record = klass.new(params)
+							if klass == SOA
+								_record.serial     = record
+								_domain.soa_record = _record
+							else
+								_domain.records << _record
+							end
+                        end
+
+                    elsif _domain.slave?
+                        _domain.master = self.master
+
+                    elsif _domain.stub?
+
+                    elsif _domain.forward?
+
+                    elsif _domain.hint?
+
+                    end
+
+                    _domain
+                rescue Exception => e
+                    STDERR.puts "#{e}\n#{e.backtrace.join("\n")}"
+                end
+            end
+
+			def reset_model
+				@domain = nil
+			end
+
+			def import_key
+				self.name + ':' + self.file
+			end
+        }
+    end
+
+    rule acl_name
+        name
+    end
+
+    rule acl_statements
+        statement*
+    end
+
+    rule controls_statements
+        statement*
+    end
+
+    rule key_statements
+        statement*
+    end
+
+    rule logging_statements
+        statement*
+    end
+
+    rule lwres_statements
+        statement*
+    end
+
+    rule masters_name
+        name
+    end
+
+    rule masters_statements
+        ((ipaddr (space 'port' space port)? (space 'key' space key_name)? space ';' space)+)
+		# {
+			#port ? "#{ipaddr.value} port #{port.value}" : ipaddr
+		#}
+    end
+
+    rule options_statements
+        (directory_statement | statement)*
+    end
+
+    rule directory_statement
+        ('directory' space filename space ';') {
+            filename.value.strip_quotes
+        }
+    end
+
+    rule server_ipaddr
+        ipaddr
+    end
+
+    rule server_statements
+        statement*
+    end
+
+    rule statistics_channels_statements
+        statement*
+    end
+
+    rule trusted_keys_statements
+        statement*
+    end
+
+    rule managed_keys_statements
+        statement*
+    end
+
+    rule view_name
+        name {
+            strip_quotes
+        }
+    end
+
+    rule dns_class
+        ('IN' | 'in')
+    end
+
+    rule view_statement
+        (match_clients | match_destinations | zone | attach_cache_statement)
+    end
+
+    rule match_clients
+        'match-clients' space '{' space (address_match ';' space)+ '}' space ';' {
+            def to_s
+                elements[4].elements.collect{|e| e.address_match.to_s}.join('; ')
+            end
+        }
+    end
+
+    rule match_destinations
+        'match-destinations' space '{' space (address_match ';' space)+ '}' space ';' {
+            def to_s
+                elements[4].elements.collect{|e| e.address_match.to_s}.join('; ')
+            end
+        }
+    end
+
+    rule attach_cache_statement
+        'attach-cache' space cache_name space ';'
+    end
+
+    rule cache_name
+        name
+    end
+
+    rule zone_name
+        name
+    end
+
+    rule zone_statements
+        ((zone_type_statement | zone_file_statement | zone_masters_statement | statement) space)*
+    end
+
+    rule zone_type_statement
+        ('type' space zone_type_value space ';') {
+            zone_type_value.value.strip_quotes
+        }
+    end
+
+    rule zone_type_value
+        ('slave' | 'master' | 'stub' | 'forward' | 'hint')
+    end
+
+    rule zone_file_statement
+        ('file' space filename space ';') {
+			def value
+				filename.value.strip_quotes
+			end
+
+			def other
+				filename.value.strip_quotes
+			end
+        }
+    end
+
+    rule zone_masters_statement
+        ('masters' space '{' space masters_statements space '}' space ';') {
+            masters_statements.value.strip_quotes
+        }
+    end
+
+    rule zone_allow_update_statement
+        ('allow-update' space '{' space allow_update_values space '}' space ';') {
+            "allow-update { #{allow_update_values} }"
+        }
+    end
+
+    rule allow_update_values
+        (allow_update_value space ';' space)* {
+            def to_s
+                elements.collect{|el| el.allow_update_value}.join(' ')
+            end
+        }
+    end
+
+    rule allow_update_value
+        ('any' | 'none' | '"' allow_update_value '"') {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    # ------------------------------------------------
+    # ------------------ terminals -------------------
+
+    rule space
+        # comment | [\s]* {
+        /\s*/ # [\s]* {
+    end
+
+    # rule comment
+    #     [\s]* '#' [^\r\n]* [\r\n] comment*
+    # end
+
+    rule filename
+        # '"' [\w\./_\-]+ '"' {
+		quoted_string
+    end
+
+    rule statement
+        (space (name space)+ ';' space |
+        space ((name space)+ '{' space statement* space '}' space)+ ';' space) {
+        }
+    end
+
+    rule name
+        (id | quoted_string | server_ipaddr ('/' ipaddr_prefix_length)?)
+    end
+    
+    rule id
+        # [\w\./\-]+ {
+		/[\w\.\/\-_]+/
+    end
+    
+    rule quoted_string
+        # '"' [^"]* '"'
+        /"[^"]*"/
+    end
+
+    rule ipaddr
+        ipv4 | ipv6 {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    rule ipv4
+        [\d]1*3 '.' [\d]1*3 '.' [\d]1*3 '.' [\d]1*3 {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    rule ipv6
+        [\d:]+ {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    rule ipaddr_prefix_length
+        [\d]+ {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    rule port
+        [\d]+ {
+            def to_s
+                text_value
+            end
+        }
+    end
+
+    rule key_name
+        # ('"' [\w\./_\-]+ '"' | [\w\./_\-]) {
+        /"?[\w\.\/\-_]+"?/ {
+            value.strip_quotes
+        }
+    end
+
+    rule address_match
+        ('!'? ipaddr ('/' ipaddr_prefix_length)? space | 'key' space key_name space | acl_name space | '{' space address_match+ space '}' space) {
+            def to_s
+                text_value
+            end
+        }
+    end
+end
