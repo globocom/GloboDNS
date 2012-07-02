@@ -11,6 +11,9 @@ class Exporter
     CONFIG_START_TAG = '### BEGIN GloboDns ###'
     CONFIG_END_TAG   = '### END GloboDns ###'
     GIT_AUTHOR       = 'Globo DNS API <dnsapi@globoi.com>'
+    CHECKCONF_STANDARD_MESSAGES = [
+        /^zone .*?: loaded serial\s+\d+\n/
+    ]
 
     def export_all(master_named_conf_content, slave_named_conf_content, options = {})
         @logger                     = options.delete(:logger) || Rails.logger
@@ -196,8 +199,10 @@ class Exporter
     end
 
     def run_checkconf(tmp_dir)
-        # exec('named-checkconf', Binaries::SUDO, Binaries::CHECKCONF, '-z', '-t', tmp_dir, EXPORT_CONFIG_FILE)
-        exec_as_root('named-checkconf', Binaries::CHECKCONF, '-z', '-t', tmp_dir, EXPORT_CONFIG_FILE).gsub(/^zone .*?: loaded serial\s+\d+\n/, '')
+        output = exec_as_root('named-checkconf', Binaries::CHECKCONF, '-z', '-t', tmp_dir, EXPORT_CONFIG_FILE)
+        clean_checkconf_output(output)
+    rescue ExitStatusError => e
+        raise ExitStatusError.new(clean_checkconf_output(e.message))
     end
 
     def sync_repository_and_commit(chroot_dir, config_dir, tmp_named_dir)
@@ -319,6 +324,12 @@ class Exporter
             @logger.info("[GloboDns::Exporter] resetting #{label} git repository")
             exec_as_bind('git reset', Binaries::GIT,  'reset', '--hard', orig_head) # try to rollback changes
             reload_bind_conf(chroot_dir) rescue nil
+        end
+    end
+
+    def clean_checkconf_output(output)
+        CHECKCONF_STANDARD_MESSAGES.inject(output) do |output, pattern|
+            output.gsub(pattern, '')
         end
     end
 
