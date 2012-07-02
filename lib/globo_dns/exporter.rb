@@ -8,14 +8,14 @@ class Exporter
     CONFIG_START_TAG = '### BEGIN GloboDns ###'
     CONFIG_END_TAG   = '### END GloboDns ###'
 
-    def export_all(named_conf_content, options = {})
+    def export_master(named_conf_content, options = {})
         @options     = options
         @logger      = @options.delete(:logger) || Rails.logger
 
         Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ") unless (@options[:lock_tables] == false)
 
         # get last commit timestamp and the export/current timestamp
-        Dir.chdir(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR))
+        Dir.chdir(File.join(BIND_MASTER_CHROOT_DIR, BIND_CONFIG_DIR))
         @last_commit_date = Time.at(exec('git last commit date', Binaries::GIT, 'log', '-1', '--format=%at').to_i)
         @export_timestamp = Time.now
         @touch_timestamp  = @export_timestamp + 1 # we add 1 second to avoid minor subsecond discrepancies
@@ -29,22 +29,20 @@ class Exporter
 
 
         # FileUtils.cp_r does not preserve directory timestamps; use 'cp -a' instead
-        # FileUtils.cp_r(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR, '.'), tmp_dir, :preserve => true)
-        # exec('rsync chroot', Binaries::SUDO, '-u', BIND_USER, 'rsync', '-a', '--exclude', '.git/', File.join(BIND_CHROOT_DIR, '.'), tmp_dir)
+        # FileUtils.cp_r(File.join(BIND_MASTER_CHROOT_DIR, BIND_CONFIG_DIR, '.'), tmp_dir, :preserve => true)
+        # exec('rsync chroot', Binaries::SUDO, '-u', BIND_USER, 'rsync', '-a', '--exclude', '.git/', File.join(BIND_MASTER_CHROOT_DIR, '.'), tmp_dir)
         # top_level_dir = BIND_CONFIG_DIR.sub(/(#{File::SEPARATOR}.*?)#{File::SEPARATOR}.*/, '\1/') 
-        exec('rsync chroot', 'rsync', '-v', '-a', '--exclude', 'session.key', '--exclude', '.git/', File.join(BIND_CHROOT_DIR, '.'), tmp_dir)
+        exec('rsync chroot', 'rsync', '-v', '-a', '--exclude', 'session.key', '--exclude', '.git/', File.join(BIND_MASTER_CHROOT_DIR, '.'), tmp_dir)
 
         tmp_named_dir = File.join(tmp_dir, BIND_CONFIG_DIR)
 
         # main configuration file
         export_named_conf(named_conf_content, tmp_named_dir) if named_conf_content.present?
 
-
         export_views(tmp_named_dir)
         export_domain_group(tmp_named_dir, ZONES_FILE,   ZONES_DIR,   Domain.noview.master)
         export_domain_group(tmp_named_dir, REVERSE_FILE, REVERSE_DIR, Domain.noview._reverse)
         export_domain_group(tmp_named_dir, SLAVES_FILE,  SLAVES_DIR,  Domain.noview.slave)
-
 
         # remove files that older than the export timestamp; these are the
         # zonefiles from domains that have been removed from the database
@@ -81,15 +79,7 @@ class Exporter
             file.puts
             file.puts CONFIG_START_TAG
             file.puts '# this block is auto generated; do not edit'
-            file.puts
             file.puts "include \"#{File.join(BIND_CONFIG_DIR, VIEWS_FILE)}\";"
-            file.puts
-            file.puts "view \"__any\" {"
-            file.puts "    include \"#{File.join(BIND_CONFIG_DIR, ZONES_FILE)}\";"
-            file.puts "    include \"#{File.join(BIND_CONFIG_DIR, SLAVES_FILE)}\";"
-            file.puts "    include \"#{File.join(BIND_CONFIG_DIR, REVERSE_FILE)}\";"
-            file.puts "};"
-            file.puts
             file.puts CONFIG_END_TAG
         end
         File.utime(@touch_timestamp, @touch_timestamp, named_conf_file)
@@ -153,7 +143,7 @@ class Exporter
 
     def sync_and_commit(tmp_named_dir)
         #--- change to the bind config dir
-        Dir.chdir(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR))
+        Dir.chdir(File.join(BIND_MASTER_CHROOT_DIR, BIND_CONFIG_DIR))
 
         #--- save the current HEAD and dump it to the log
         orig_head = (exec('git rev-parse', Binaries::GIT, 'rev-parse', 'HEAD')).chomp
@@ -180,7 +170,7 @@ class Exporter
                                         "--include=*#{REVERSE_DIR}/***",
                                         '--exclude=*',
                                         File.join(tmp_named_dir, ''),
-                                        File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR, ''))
+                                        File.join(BIND_MASTER_CHROOT_DIR, BIND_CONFIG_DIR, ''))
             @logger.debug "[GloboDns::Exporter][DEBUG] rsync:\n#{rsync_output}"
 
             #--- add all changed files to git's index

@@ -1,29 +1,30 @@
 development: &devconf
-    bind_master_host:  'localhost'
-    bind_master_port:  53
-    bind_slave_host:   'localhost'
-    bind_slave_port:   5353
-    bind_user:         'bind'
-    bind_group:        'bind'
-    bind_config_file:  '/etc/named.conf'
-    bind_config_dir:   '/etc/named/'
-    bind_chroot_dir:   '/var/named/chroot/'
-    bind_error_log:    '/var/named/chroot/var/log/globodns.error.log'
+    bind_master_host:       'localhost'
+    bind_master_port:       5353
+    bind_slave_host:        'localhost'
+    bind_slave_port:        5354
+    bind_user:              'bind'
+    bind_group:             'bind'
+    bind_config_file:       '/etc/named.conf'
+    bind_config_dir:        '/etc/named/'
+    bind_master_chroot_dir: '/var/named/chroot_master/'
+    bind_slave_chroot_dir:  '/var/named/chroot_slave/'
+    bind_error_log:         '/var/named/chroot_master/var/log/globodns.error.log'
 
-    rndc_config_file:  '/var/named/chroot/etc/rndc.conf'
-    rndc_key:          'rndc-key'
+    rndc_config_file:       '/var/named/chroot_master/etc/rndc.conf'
+    rndc_key:               'rndc-key'
 
-    named_conf_file:   'named.conf'
-    zones_dir:         'zones'
-    zones_file:        'zones.conf'
-    reverse_dir:       'reverse'
-    reverse_file:      'reverse.conf'
-    slaves_dir:        'slaves'
-    slaves_file:       'slaves.conf'
-    views_file:        'views.conf'
+    named_conf_file:        'named.conf'
+    zones_dir:              'zones'
+    zones_file:             'zones.conf'
+    reverse_dir:            'reverse'
+    reverse_file:           'reverse.conf'
+    slaves_dir:             'slaves'
+    slaves_file:            'slaves.conf'
+    views_file:             'views.conf'
 
-    nameserver_host:   'localhost'
-    record_order:      [ SOA, NS, MX, A, AAAA, CNAME, LOC, SPF, SRV, PTR, TXT ]
+    nameserver_host:        'localhost'
+    record_order:           [ SOA, NS, MX, A, AAAA, CNAME, LOC, SPF, SRV, PTR, TXT ]
 
     binaries:
         bind:          '/usr/sbin/named'
@@ -41,9 +42,9 @@ test:
     bind_user:         <%= ENV['USER'] %>
     bind_group:        'bind'
     bind_master_host:  'localhost'
-    bind_master_port:  53
+    bind_master_port:  5353
     bind_slave_host:   'localhost'
-    bind_slave_port:   5353
+    bind_slave_port:   5354
     bind_config_file:  '/etc/named.conf'
     bind_config_dir:   '/etc/named/'
     bind_error_log:    '/var/log/globodns.error.log'

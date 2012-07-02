@@ -186,7 +186,7 @@ grammar NamedConf
                             end
                         end
                     else
-                        _zone = Domain.new(:name => zone_name.text_value, :view => view, :authority_type => Domain::SLAVE, :master => master)
+                        _zone = Domain.new(:name => name, :view => view, :authority_type => Domain::SLAVE, :master => master)
                     end
 
                     _zone

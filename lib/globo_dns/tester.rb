@@ -17,7 +17,7 @@ class Tester < ActiveSupport::TestCase
 
     def setup
         # parse diff output and save records to be tested
-        Dir.chdir(File.join(BIND_CHROOT_DIR, BIND_CONFIG_DIR))
+        Dir.chdir(File.join(BIND_MASTER_CHROOT_DIR, BIND_CONFIG_DIR))
 
         log_output = exec('git log', Binaries::GIT, '--no-pager', 'log', '--stat', '-p', '-1')
         # Rails.logger.debug "[GloboDns::Tester::git] git log -1:\n#{log_output}"

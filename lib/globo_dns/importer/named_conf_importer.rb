@@ -82,7 +82,7 @@ class Importer
                 end
 
                 begin
-                    File.open(File.join(BIND_CHROOT_DIR, BIND_CONFIG_FILE), 'w') do |file|
+                    File.open(File.join(BIND_MASTER_CHROOT_DIR, BIND_CONFIG_FILE), 'w') do |file|
                         file.write(root.named_conf)
                     end
                 rescue Exception => e

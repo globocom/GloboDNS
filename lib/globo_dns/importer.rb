@@ -19,7 +19,7 @@ class Importer
 
         IO::popen([Binaries::SUDO,
                    Binaries::CHROOT,
-                   BIND_CHROOT_DIR,
+                   BIND_MASTER_CHROOT_DIR,
                    Binaries::ZONE2SQL,
                    '--gmysql',
                    '--transactions',

@@ -39,13 +39,23 @@ class View < ActiveRecord::Base
     end
 
     def to_bind9_conf(indent = '')
+        match_clients  = ''
+        match_clients << (self.query_ip_address + ';') if self.query_ip_address.present?
+        match_clients << (self.clients + ';')          if self.clients.present?
+
         str  = "#{indent}view \"#{self.name}\" {\n"
-        str << "#{indent}    match-clients      { #{self.clients}; };\n"      if self.clients.present?
+        str << "#{indent}    match-clients      { #{match_clients} };\n"      if match_clients.present?
         str << "#{indent}    match-destinations { #{self.destinations}; };\n" if self.destinations.present?
+        str << "#{indent}    attach-cache       \"globodns-shared-cache\";\n"
         str << "\n"
         str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, self.zones_file)}\";\n"
         str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, self.slaves_file)}\";\n"
         str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, self.reverse_file)}\";\n"
+        str << "\n"
+        str << "#{indent}    # common zones\n"
+        str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, GloboDns::Config::ZONES_FILE)}\";\n"
+        str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, GloboDns::Config::SLAVES_FILE)}\";\n"
+        str << "#{indent}    include \"#{File.join(GloboDns::Config::BIND_CONFIG_DIR, GloboDns::Config::REVERSE_FILE)}\";\n"
         str << "#{indent}};\n\n"
         str
     end
