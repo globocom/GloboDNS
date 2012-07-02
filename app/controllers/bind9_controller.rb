@@ -4,7 +4,7 @@ class Bind9Controller < ApplicationController
     respond_to :html, :json
     responders :flash
 
-    before_filter :admin_or_operator?
+    before_filter :admin?
 
     def index
         get_current_config
