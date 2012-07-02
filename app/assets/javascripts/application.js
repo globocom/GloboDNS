@@ -38,6 +38,14 @@ $(document).ready(function() {
 		}
 		container.html(message).show().delay(2000).fadeOut('slow');
 	};
+
+	// ----------------- ajax pagination ---------------
+	// will_paginate does not support link attributes yet.
+	// See: https://github.com/mislav/will_paginate/pull/100
+	$('.pagination a').live('click', function () {
+		$.rails.handleRemote($(this));
+		return false;
+	});
 });
 
 // ajax activity indicator bound to ajax start/stop document events

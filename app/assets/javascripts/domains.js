@@ -1,12 +1,5 @@
 $(document).ready(function() {
 
-	// ----------------- ajax pagination ---------------
-	// will_paginate does not support link attributes yet.
-	// See: https://github.com/mislav/will_paginate/pull/100
-	$('.pagination a').live('click', function () {
-		$.rails.handleRemote($(this));
-		return false;
-	});
 
 	// ----------------- domains#index -----------------
 	
