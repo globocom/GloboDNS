@@ -16,10 +16,12 @@ $(document).ready(function() {
 
 	// -------------- fix td.changes width -------------
 	var fixChangesColumnWidth = function () {
-		var td    = $('td.changes').first();
+		var td = $('#audits-table td.changes').first();
 		var table = td.closest('table');
 		var width = table.parent().width() - td.position().left + table.position().left - 5;
-		$('td.changes span').width(width);
+		$('#audits-table td.changes span').width(width);
 	};
-	fixChangesColumnWidth();
+
+	if ($('#audits-table').size() > 0)
+		fixChangesColumnWidth();
 });
