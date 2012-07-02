@@ -5,7 +5,7 @@
     = form_for(record, :remote => true, :as => 'record', :url => record_path(record), :method => 'put', :html => {:id => "update-record-form-#{record.id}", :class => 'update-record-form'}) do |g|
       %span
 %tr[ record, :show ]{:class => "#{even_odd} show-record"}
-  %td.name=    record.shortname
+  %td.name=    record.name
   %td.ttl=     record.ttl
   %td.type=    record.type
   %td.prio=    record.supports_prio? ? record.prio : '&nbsp;'.html_safe
