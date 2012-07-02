@@ -9,13 +9,13 @@ $(document).ready(function() {
 
 	$('#audits-table-pagination a').live('ajax:success', function (evt, data, statusStr, xhr) {
 		$('.audits-table-container').replaceWith(data);
-		fixChangesColumnWidth();
+		fixAuditChangesColumnWidth();
 	}).live('ajax:error', function () {
 		alert("[ERROR] unable to retrieve audits");
 	});
 
 	// -------------- fix td.changes width -------------
-	var fixChangesColumnWidth = function () {
+	var fixAuditChangesColumnWidth = function () {
 		var td = $('#audits-table td.changes').first();
 		var table = td.closest('table');
 		var width = table.parent().width() - td.position().left + table.position().left - 5;
@@ -23,5 +23,5 @@ $(document).ready(function() {
 	};
 
 	if ($('#audits-table').size() > 0)
-		fixChangesColumnWidth();
+		fixAuditChangesColumnWidth();
 });

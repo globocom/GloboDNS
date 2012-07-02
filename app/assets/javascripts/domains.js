@@ -172,6 +172,7 @@ $(document).ready(function() {
 
 	$('#records-search-form, #record-table-pagination a').live('ajax:success', function (evt, data, statusStr, xhr) {
 		$('.record-table-container').replaceWith(data);
+		fixRecordContentColumnWidth();
 	}).live('ajax:error', function () {
 		alert("[ERROR] unable to retrieve domains");
 	});
@@ -282,6 +283,19 @@ $(document).ready(function() {
 		$('table#record-table tr.show-record:nth-child(even), table#record-table tr.edit-record:nth-child(odd)').addClass("even").removeClass("odd");
 		$('table#record-table tr.show-record:nth-child(odd), table#record-table tr.edit-record:nth-child(even)').addClass("odd").removeClass("even");
 	}
+
+	// -------------- fix td.content width -------------
+	var fixRecordContentColumnWidth = function () {
+		$('#record-table td.content').width('auto');
+		$('#record-table td.content span').width('1px');
+		var width = $('#record-table td.content').width();
+		// var table = td.closest('table');
+		// var width = table.parent().width() - td.position().left + table.position().left - 5;
+		$('#record-table td.content span').width(width);
+	};
+
+	if ($('#record-table').size() > 0)
+		fixRecordContentColumnWidth();
 
 	// ---------------- New Record form -------------------
 	$('#new-record-form').live('ajax:success', function (evt, data, statusSTr, xhr) {
