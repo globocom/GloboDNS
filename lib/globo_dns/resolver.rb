@@ -12,14 +12,15 @@ class Resolver
     SLAVE  = GloboDns::Resolver.new(BIND_SLAVE_HOST,  BIND_SLAVE_PORT.to_i)
 
     def resolve(record)
-        name   = Record::fqdn(record.name, record.domain.name)
-        source = record.domain.try(:view).try(:query_ip_address)
+        name      = Record::fqdn(record.name, record.domain.name)
+        key_name  = record.domain.try(:query_key_name)
+        key_value = record.domain.try(:query_key)
 
         args  = [Binaries::DIG, '@'+@host, '-p', @port.to_s, '-t', record.type]
-        args += ['-b', source] if source
-        args += [name, '+norecurse', '+time=1'] # , '+short']
+        args += ['-y', "#{key_name}:#{key_value}"] if key_name && key_value
+        args += [name, '+norecurse', '+noauthority', '+time=1'] # , '+short']
 
-        exec('dig', *args)
+        exec!('dig', *args)
     end
 end
 end

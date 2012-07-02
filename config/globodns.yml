@@ -11,7 +11,7 @@ development: &devconf
     bind_slave_chroot_dir:  '/var/named/chroot_slave/'
     bind_error_log:         '/var/named/chroot_master/var/log/globodns.error.log'
 
-    rndc_config_file:       '/var/named/chroot_master/etc/rndc.conf'
+    rndc_config_file:       '/etc/rndc.conf'
     rndc_key:               'rndc-key'
 
     named_conf_file:        'named.conf'
@@ -30,6 +30,7 @@ development: &devconf
         bind:          '/usr/sbin/named'
         named:         '/usr/sbin/named'
         rndc:          '/usr/sbin/rndc'
+        rndc_confgen:  '/usr/sbin/rndc-confgen'
         checkconf:     '/usr/sbin/named-checkconf'
         dig:           '/usr/bin/dig'
         git:           '/usr/bin/git'

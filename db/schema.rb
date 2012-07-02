@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120525183452) do
+ActiveRecord::Schema.define(:version => 20120528162942) do
 
   create_table "audits", :force => true do |t|
     t.integer  "auditable_id"
@@ -105,12 +105,12 @@ ActiveRecord::Schema.define(:version => 20120525183452) do
   end
 
   create_table "views", :force => true do |t|
-    t.string   "name",             :limit => 32,   :null => false
-    t.string   "clients",          :limit => 1024
-    t.string   "destinations",     :limit => 1024
-    t.datetime "created_at",                       :null => false
-    t.datetime "updated_at",                       :null => false
-    t.string   "query_ip_address", :limit => 256
+    t.string   "name",         :limit => 32,   :null => false
+    t.string   "clients",      :limit => 1024
+    t.string   "destinations", :limit => 1024
+    t.datetime "created_at",                   :null => false
+    t.datetime "updated_at",                   :null => false
+    t.string   "key",          :limit => 64
   end
 
 end

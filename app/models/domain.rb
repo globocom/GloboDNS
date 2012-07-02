@@ -139,6 +139,14 @@ class Domain < ActiveRecord::Base
     end
 
     # ------------- 'BIND9 export' utility methods --------------
+    def query_key_name
+        (self.view || View.first).try(:key_name)
+    end
+
+    def query_key
+        (self.view || View.first).try(:key)
+    end
+
     def zonefile_path
 
         dir = if self.slave?
@@ -157,10 +165,11 @@ class Domain < ActiveRecord::Base
     end
 
     def to_bind9_conf(indent = '')
+        view = self.view || View.first
         str  = "#{indent}zone \"#{self.name}\" {\n"
         str << "#{indent}    type    #{self.slave? ? 'slave' : 'master'};\n"
         str << "#{indent}    file    \"#{zonefile_absolute_path}\";\n"
-        str << "#{indent}    masters { #{self.master}; };\n" if self.slave?
+        str << "#{indent}    masters { #{self.master}#{view ? ' key "' + view.key_name + '"' : ''}; };\n" if self.slave?
         str << "#{indent}};\n\n"
         str
     end
