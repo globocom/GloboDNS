@@ -262,7 +262,7 @@ en:
   label_domain_record_ttl: "TTL"
   label_domain_record_type: "Type"
   label_domain_record_priority: "Priority"
-  label_domain_record_data: "Data"
+  label_domain_record_content: "Content"
   label_dns_query: 'Test'
 
 # Domains edit
@@ -438,7 +438,7 @@ en:
   label_template_record_host: "Host"
   label_template_record_ttl: "TTL"
   label_template_record_priority: "Priority"
-  label_template_record_data: "Data"
+  label_template_record_content: "Content"
   label_template_record_primary_ns: "Primary Name Server"
   label_template_record_contact: "Contact"
   label_template_record_refresh: "Refresh"

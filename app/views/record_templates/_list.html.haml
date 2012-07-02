@@ -5,7 +5,7 @@
       %th= t :label_domain_record_ttl
       %th= t :label_domain_record_type
       %th= t :label_domain_record_priority
-      %th= t :label_domain_record_data
+      %th= t :label_domain_record_content
       %th  &nbsp;
     = render :partial => 'record_templates/record_template', :collection => @record_templates
   = will_paginate @record_templates, :id => 'record-templates-table-pagination', :previous_label => '«'.html_safe, :next_label => '»'.html_safe, :params => { :controller => 'record_templates', :action => 'index', :domain_template_id => @domain_template.try(:id) || @record_templates.first.domain_template_id, :id => nil }
