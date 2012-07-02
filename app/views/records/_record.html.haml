@@ -8,8 +8,9 @@
   %td.name=    record.shortname
   %td.ttl=     record.ttl
   %td.type=    record.type
-  %td.prio=    record.prio
-  %td.content= record.content
+  %td.prio=    record.supports_prio? ? record.prio : '&nbsp;'.html_safe
+  %td.content{'title' => record.content}
+    %span= record.content
   %td.actions
     - if current_user.admin? || current_user.operator?
       = link_to '', '#', :class => 'edit-record-button ui-icon-edit', :title => t(:generic_edit)
@@ -19,7 +20,7 @@
 - if current_user.admin? || current_user.operator?
   %tr[ record, :edit ]{:style => 'display: none;', :class => "#{even_odd} edit-record"}
     = form_for(record, :as => 'record', :url => record_path(record)) do |f|
-      %td.name=    f.text_field :shortname
+      %td.name=    f.text_field :name
       %td.ttl=     f.text_field :ttl
       %td.type=    record.type
       %td.prio=    record.supports_prio? ? f.text_field(:prio) : '&nbsp;'.html_safe

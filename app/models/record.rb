@@ -30,6 +30,7 @@ class Record < ActiveRecord::Base
     # before_save     :update_change_date
     # after_save      :update_soa_serial
     after_destroy :update_domain_timestamp
+    before_save   :reset_prio
 
     scope :sorted,        order('name ASC')
     scope :without_soa,   where('type != ?', 'SOA')
@@ -177,6 +178,10 @@ class Record < ActiveRecord::Base
 
     def update_domain_timestamp
         self.domain.touch
+    end
+
+    def reset_prio
+        self.prio = nil unless supports_prio?
     end
 
     # append the domain name to the +name+ field if missing
