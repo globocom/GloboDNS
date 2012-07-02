@@ -107,6 +107,7 @@ en:
   generic_create: "Create"
   generic_update: "Update"
   generic_export: "Export"
+  generic_export_all: "Export All"
   generic_reset: "Reset"
   generic_reload: "Reload"
   generic_close: "Close"
@@ -497,8 +498,8 @@ en:
 
 # Bind9
   title_bind_configuration: BIND Configuration
-  title_bind_export: Export
-  label_export_all: Export All
+  title_master_named_conf: "Master's \"named.conf\""
+  title_slave_named_conf: "Slave's \"named.conf\""
   desc_bind_export: Export BIND configuration and reload server
   desc_export_output: 'Export output:'
   title_bind_test: Test

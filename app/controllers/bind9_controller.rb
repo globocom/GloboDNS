@@ -19,7 +19,14 @@ class Bind9Controller < ApplicationController
 
     def export
         begin
-            GloboDns::Exporter.new.export_all(params[:named_conf], :logger => Logger.new(sio = StringIO.new('', 'w')), :test_changes => false)
+            GloboDns::Exporter.new.export_all(params['master-named-conf'],
+                                              params['slave-named-conf'],
+                                              :all                   => params['export-all'],
+                                              :keep_tmp_dir          => true,
+                                              :abort_on_rndc_failure => false,
+                                              :logger                => Logger.new(sio = StringIO.new('', 'w')))
+
+            # GloboDns::Exporter.new.export_all(params[:named_conf], :logger => Logger.new(sio = StringIO.new('', 'w')), :test_changes => false)
             @output = sio.string
             status = :ok
         rescue Exception => e
@@ -44,6 +51,7 @@ class Bind9Controller < ApplicationController
     private
 
     def get_current_config
-        @current_config = IO.read(File.join(EXPORT_CHROOT_DIR, EXPORT_CONFIG_FILE)).sub(/\n*#{GloboDns::Exporter::CONFIG_START_TAG}.*#{GloboDns::Exporter::CONFIG_END_TAG}\n*/m, "\n")
+        @master_named_conf = File.read(File.join(EXPORT_MASTER_CHROOT_DIR, EXPORT_CONFIG_FILE)).sub(/\n*#{GloboDns::Exporter::CONFIG_START_TAG}.*#{GloboDns::Exporter::CONFIG_END_TAG}\n*/m, "\n")
+        @slave_named_conf  = File.read(File.join(EXPORT_SLAVE_CHROOT_DIR,  EXPORT_CONFIG_FILE)).sub(/\n*#{GloboDns::Exporter::CONFIG_START_TAG}.*#{GloboDns::Exporter::CONFIG_END_TAG}\n*/m, "\n")
     end
 end

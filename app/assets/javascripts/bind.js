@@ -25,4 +25,8 @@ $(document).ready(function() {
 		} else
 			alert("[ERROR] export failed");
 	});
+
+	$('.export-all-bind-button').bind('click', function () {
+		$('.bind9-export-formi #export-all').val(true);
+	});
 });
