@@ -34,8 +34,15 @@ class Record < ActiveRecord::Base
 
     scope :sorted,        order('name ASC')
     scope :without_soa,   where('type != ?', 'SOA')
-    scope :matching,      lambda { |query|     where('name LIKE ? OR content LIKE ?', "%#{query}%", "%#{query}%") }
     scope :updated_since, lambda { |timestamp| where('updated_at > ?', timestamp) }
+    scope :matching,      lambda { |query|
+        if query.index('*')
+            query.gsub!(/\*/, '%')
+            where('name LIKE ? OR content LIKE ?', query, query)
+        else
+            where('name = ? OR content = ?', query, query)
+        end
+    }
 
     # known record types
     @@record_types = %w(AAAA A CERT CNAME DLV DNSKEY DS IPSECKEY KEY KX LOC MX NSEC3PARAM NSEC3 NSEC NS PTR RRSIG SIG SOA SPF SRV TA TKEY TSIG TXT)
