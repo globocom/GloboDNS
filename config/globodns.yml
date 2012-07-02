@@ -1,7 +1,7 @@
 development: &devconf
-    bind_master_host:       'localhost'
+    bind_master_host:       '127.0.0.1'
     bind_master_port:       5353
-    bind_slave_host:        'localhost'
+    bind_slave_host:        '127.0.0.1'
     bind_slave_port:        5354
     bind_user:              'bind'
     bind_group:             'bind'
@@ -41,9 +41,9 @@ development: &devconf
 test:
     bind_user:         <%= ENV['USER'] %>
     bind_group:        'bind'
-    bind_master_host:  'localhost'
+    bind_master_host:  '127.0.0.1'
     bind_master_port:  5353
-    bind_slave_host:   'localhost'
+    bind_slave_host:   '127.0.0.1'
     bind_slave_port:   5354
     bind_config_file:  '/etc/named.conf'
     bind_config_dir:   '/etc/named/'
