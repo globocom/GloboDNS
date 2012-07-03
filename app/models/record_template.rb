@@ -2,19 +2,16 @@ class RecordTemplate < ActiveRecord::Base
     belongs_to :domain_template, :inverse_of => :record_templates
 
     # General validations
-    validates_presence_of :domain_template, :name, :ttl
+    validates_presence_of :domain_template, :name
     validates_presence_of :record_type
 
     before_validation     :build_content, :if => :soa?
     before_validation     :set_soa_name,  :if => :soa?
     before_validation     :set_serial,    :if => :soa?
-    before_validation     :inherit_ttl
     after_initialize      :update_convenience_accessors
     validate              :validate_record_template
 
     scope :without_soa, where('record_type != ?', 'SOA')
-
-    # attr_accessible :name, :record_type, :ttl, :prio, :content, :primary_ns, :contact, :refresh, :retry, :expire, :minimum
 
     # We need to cope with the SOA convenience
     SOA::SOA_FIELDS.each do |field|
@@ -30,7 +27,7 @@ class RecordTemplate < ActiveRecord::Base
         self.record_type
     end
 
-    # Hook into #reload
+    # hook into #reload
     def reload_with_content
         reload_without_content
         update_convenience_accessors
@@ -40,15 +37,17 @@ class RecordTemplate < ActiveRecord::Base
     # Convert this template record into a instance +record_type+ with the
     # attributes of the template copied over to the instance
     def build(domain_name = nil)
-        # build_content if soa? # rebuild the 'content' attribute from the broken attributes ('primary_ns', 'contact', etc)
-
         klass       = self.record_type.constantize
         attr_names  = klass.accessible_attributes.to_a.any? ? klass.accessible_attributes : klass.column_names
         attr_names -= klass.protected_attributes.to_a
         attr_names -= ['content'] if soa?
 
         attrs = attr_names.inject(Hash.new) do |hash, attr_name|
-            hash[attr_name] = self.send(attr_name.to_sym) if self.respond_to?(attr_name.to_sym)
+            if self.respond_to?(attr_name.to_sym)
+                value = self.send(attr_name.to_sym)
+                value = value.gsub('%ZONE%', domain_name) if domain_name && value.is_a?(String)
+                hash[attr_name] = value
+            end
             hash
         end
         hash
@@ -60,21 +59,7 @@ class RecordTemplate < ActiveRecord::Base
     end
 
     def soa?
-        self.try(:record_type) == 'SOA'
-    end
-
-    # def content
-    #     soa? ? build_content : self.content
-    # end
-
-    # manage TTL inheritance here
-    def inherit_ttl
-        self.ttl ||= self.domain_template.ttl if self.domain_template
-    end
-
-    # Manage SOA content
-    def update_soa_content #:nodoc:
-        self[:content] = content
+        self.record_type == 'SOA'
     end
 
     # Here we perform some magic to inherit the validations from the "destination"
