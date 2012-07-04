@@ -107,7 +107,6 @@ en:
   generic_create: "Create"
   generic_update: "Update"
   generic_export: "Export"
-  generic_export_all: "Export All"
   generic_reset: "Reset"
   generic_reload: "Reload"
   generic_close: "Close"
@@ -506,6 +505,11 @@ en:
   desc_bind_test: Test the latest exported changes
   message_export_successful: Export successful
   message_export_failure: Export failed
+  export_scheduled: "BIND export scheduled for %{timestamp}"
+  no_export_scheduled: "No BIND export scheduled."
+  label_export_now: "Export Now"
+  label_export_all: "Export All"
+  label_schedule_export: "Schedule Export"
 
 # Views
   title_views: Views

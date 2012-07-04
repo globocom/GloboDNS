@@ -57,8 +57,6 @@ $(document).ajaxStart(function() {
 
 
 $(document).ajaxComplete(function(evt, xhr, options) {
-	if (console) { console.log("[global ajax complete]"); console.log("evt: ", evt); console.log("xhr: ", xhr); console.log("opt: ", options); }
-	if (console) { console.log("[all response headers]", xhr.getAllResponseHeaders()); }
 	$.fn.flashMessage(xhr);
 });
 

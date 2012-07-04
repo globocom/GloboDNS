@@ -49,6 +49,10 @@ class Record < ActiveRecord::Base
 
     cattr_reader :record_types
 
+    def self.last_update
+        select('updated_at').order('updated_at DESC').limit(1).first.updated_at
+    end
+
     class << self
 
         # Restrict the SOA serial number updates to just one during the execution

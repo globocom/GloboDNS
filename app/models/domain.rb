@@ -90,6 +90,10 @@ class Domain < ActiveRecord::Base
         end
     }
 
+    def self.last_update
+        select('updated_at').order('updated_at DESC').limit(1).first.updated_at
+    end
+
     # instantiate soa_record association on domain creation (this is required as
     # we delegate several attributes to the 'soa_record' association and want to
     # be able to set these attributes on 'Domain.new')

@@ -1,6 +1,6 @@
 $(document).ready(function() {
 	// ------------------- BIND -------------------
-	$('.reload-bind-config-button').live('click', function () {
+	$('.reload-bind-config-button, .bind-export-button').live('click', function () {
 		$.rails.handleRemote($(this));
 		return false;
 	});
@@ -12,7 +12,7 @@ $(document).ready(function() {
 		alert("[ERROR] reload failed");
 	});
 
-	$('.bind9-export-form').live('ajax:beforeSend', function (xhr, settings) {
+	$('.bind-export-button').live('ajax:beforeSend', function (xhr, settings) {
 		$('.export-output').hide();
 		$('.export-output').html();
 	}).live('ajax:success', function (evt, data, statusStr, xhr) {
@@ -24,9 +24,5 @@ $(document).ready(function() {
 			$('.export-output').show();
 		} else
 			alert("[ERROR] export failed");
-	});
-
-	$('.export-all-bind-button').bind('click', function () {
-		$('.bind9-export-formi #export-all').val(true);
 	});
 });
