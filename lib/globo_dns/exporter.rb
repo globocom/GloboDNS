@@ -24,13 +24,12 @@ class Exporter
         slave_named_conf_content = master_named_conf_content if (options[:use_master_named_conf_for_slave] == true)
 
         Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ") unless (lock_tables == false)
-        master_new_head, master_orig_head = export_master(master_named_conf_content, options.merge(:slave => false))
-        slave_new_head,  slave_orig_head  = export_slave(slave_named_conf_content,   options.merge(:slave => true))
+        export_master(master_named_conf_content)
+        export_slave(slave_named_conf_content)
     rescue Exception => e
-        @logger.error("[GloboDns::Exporter][ERROR] " + e.to_s + e.backtrace.join("\n"))
-        unless reset_repository_on_failure == false
-            reset_repository(master_orig_head, EXPORT_MASTER_CHROOT_DIR, 'master') if master_orig_head
-            reset_repository(slave_orig_head,  EXPORT_SLAVE_CHROOT_DIR,  'slave')  if slave_orig_head
+        if @reset_repository_data && @options[:reset_repository_on_failure] != false
+            @logger.error(e.to_s + e.backtrace.join("\n"))
+            @reset_repository_data.each {|data| reset_repository(data) }
         end
         raise e
     ensure
@@ -39,13 +38,15 @@ class Exporter
 
     def export_master(named_conf_content, options = {})
         export(named_conf_content, options.merge(:chroot_dir => EXPORT_MASTER_CHROOT_DIR,
-                                                 :remote     => {:user => BIND_MASTER_USER, :host => BIND_MASTER_HOST, :chroot_dir => BIND_MASTER_CHROOT_DIR, :named_conf => BIND_MASTER_NAMED_CONF_FILE},
+                                                 :remote     => {:user => BIND_MASTER_USER, :host => BIND_MASTER_HOST, :zones_dir => File.join(BIND_MASTER_CHROOT_DIR, BIND_MASTER_ZONES_DIR, ''), :named_conf => File.join(BIND_MASTER_CHROOT_DIR, BIND_MASTER_NAMED_CONF_FILE)},
+                                                 :label      => 'master',
                                                  :slave      => false))
     end
 
     def export_slave(named_conf_content, options = {})
         export(named_conf_content, options.merge(:chroot_dir => EXPORT_SLAVE_CHROOT_DIR,
-                                                 :remote     => {:user => BIND_SLAVE_USER, :host => BIND_SLAVE_HOST, :chroot_dir => BIND_SLAVE_CHROOT_DIR, :named_conf => BIND_SLAVE_NAMED_CONF_FILE},
+                                                 :remote     => {:user => BIND_SLAVE_USER, :host => BIND_SLAVE_HOST, :zones_dir => File.join(BIND_SLAVE_CHROOT_DIR, BIND_SLAVE_ZONES_DIR, ''), :named_conf => File.join(BIND_SLAVE_CHROOT_DIR, BIND_SLAVE_NAMED_CONF_FILE)},
+                                                 :label      => 'slave',
                                                  :slave      => true))
     end
 
@@ -110,6 +111,12 @@ class Exporter
 
         # sync files in chroot repository to remote dir on the actual BIND server
         sync_remote_bind_and_reload(chroot_dir, remote)
+    rescue Exception => e
+        if @reset_repository_data && @options[:reset_repository_on_failure] != false
+            @logger.error(e.to_s + e.backtrace.join("\n"))
+            @reset_repository_data.each {|data| reset_repository(data) }
+        end
+        raise e
     ensure
         # FileUtils.remove_entry_secure tmp_dir unless tmp_dir.nil? || @options[:keep_tmp_dir] == true
         Domain.connection.execute('UNLOCK TABLES') unless (@options[:lock_tables] == false)
@@ -220,9 +227,11 @@ class Exporter
         #--- change to the bind config dir
         Dir.chdir(config_dir)
 
-        #--- save the current HEAD and dump it to the log
+        #--- save data required to revert the respository to the current version
         orig_head = (exec('git rev-parse', Binaries::GIT, 'rev-parse', 'HEAD')).chomp
         @logger.info "[GloboDns::Exporter][INFO] git repository ORIG_HEAD: #{orig_head}"
+        @reset_repository_data ||= []
+        @reset_repository_data  << {:revision => orig_head, :chroot_dir => chroot_dir, :label => @options[:label]}
 
         #--- sync to Bind9's data dir
         # rsync_output = exec_as_bind('rsync',
@@ -265,17 +274,6 @@ class Exporter
         #--- get the new HEAD and dump it to the log
         new_head = (exec('git rev-parse', Binaries::GIT, 'rev-parse', 'HEAD')).chomp
         @logger.info "[GloboDns::Exporter][INFO] git repository new HEAD: #{new_head}"
-
-        # reload_output = reload_bind_conf(chroot_dir)
-        # @logger.info "[GloboDns::Exporter][INFO] bind configuration reloaded:\n#{reload_output}"
-
-        [new_head, orig_head]
-    rescue Exception => e
-        if orig_head && (@options[:reset_repository_on_failure] != false)
-            @logger.error(e.to_s + e.backtrace.join("\n"))
-            reset_repository(orig_head, chroot_dir, (@options[:slave] == true) ? 'slave' : 'master')
-        end
-        raise e
     end
 
     def sync_remote_bind_and_reload(chroot_dir, remote)
@@ -299,7 +297,7 @@ class Exporter
                             "--include=*#{REVERSE_DIR}/***",
                             '--exclude=*',
                             File.join(chroot_dir, EXPORT_CONFIG_DIR, ''),
-                            "#{remote[:user]}@#{remote[:host]}:#{File.join(remote[:chroot_dir], EXPORT_CONFIG_DIR, '')}")
+                            "#{remote[:user]}@#{remote[:host]}:#{remote[:zones_dir]}")
 
         rsync_output = exec('remote rsync',
                             Binaries::RSYNC,
@@ -309,13 +307,10 @@ class Exporter
                             '--no-perms',
                             '--verbose',
                             File.join(chroot_dir, EXPORT_CONFIG_DIR, File.basename(EXPORT_CONFIG_FILE)),
-                            "#{remote[:user]}@#{remote[:host]}:#{File.join(remote[:chroot_dir], remote[:named_conf])}")
+                            "#{remote[:user]}@#{remote[:host]}:#{remote[:named_conf]}")
 
         reload_output = reload_bind_conf(chroot_dir)
         @logger.info "[GloboDns::Exporter][INFO] bind configuration reloaded:\n#{reload_output}"
-    rescue Exception => e
-        @logger.error(e.to_s + e.backtrace.join("\n"))
-        raise e
     end
 
     def reload_bind_conf(chroot_dir)
@@ -327,11 +322,11 @@ class Exporter
         end
     end
 
-    def reset_repository(orig_head, chroot_dir, label = '')
-        Dir.chdir(File.join(chroot_dir, EXPORT_CONFIG_DIR)) do
-            @logger.info("[GloboDns::Exporter] resetting #{label} git repository")
-            exec_as_bind('git reset', Binaries::GIT,  'reset', '--hard', orig_head) # try to rollback changes
-            reload_bind_conf(chroot_dir) rescue nil
+    def reset_repository(data)
+        Dir.chdir(File.join(data[:chroot_dir], EXPORT_CONFIG_DIR)) do
+            @logger.info("[GloboDns::Exporter] resetting #{data[:label]} git repository")
+            exec('git reset', Binaries::GIT,  'reset', '--hard', data[:revision]) # try to rollback changes
+            reload_bind_conf(data[:chroot_dir]) rescue nil
         end
     end
 

@@ -4,6 +4,7 @@ development: &devconf
     bind_master_ipaddr:          '127.0.0.1'
     bind_master_port:            5353
     bind_master_chroot_dir:      '/var/named/external_chroot_master'
+    bind_master_zones_dir:       '/etc/named'
     bind_master_named_conf_file: '/etc/named.conf'
 
     bind_slave_user:             'named'
@@ -11,6 +12,7 @@ development: &devconf
     bind_slave_ipaddr:           '127.0.0.1'
     bind_slave_port:             5354
     bind_slave_chroot_dir:       '/var/named/external_chroot_slave'
+    bind_slave_zones_dir:        '/etc/named'
     bind_slave_named_conf_file:  '/etc/named.conf'
 
     bind_user:                   'named'
