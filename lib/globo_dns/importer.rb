@@ -79,8 +79,9 @@ class Importer
             raise RuntimeError.new("[ERROR] unable to parse canonical slave BIND configuration (line #{e.line_number}, column #{e.line_offset}: #{e.line})")
         end
 
-        slave_config = slave_root.config
-        slave_root   = nil
+        slave_config   = slave_root.config
+        slave_rndc_key = slave_root.rndc_key
+        slave_root     = nil
         if options[:debug]
             File.open('/tmp/globodns.filtered.slave.named.conf.' + ('%x' % (rand * 999999)), 'w') do |file|
                 file.write(slave_config)
@@ -96,14 +97,14 @@ class Importer
             raise RuntimeError.new("[ERROR] unable to parse canonical master BIND configuration (line #{e.line_number}, column #{e.line_offset}: #{e.line})")
         end
 
-        master_config = master_root.config
+        master_config   = master_root.config
+        master_rndc_key = master_root.rndc_key
         if options[:debug]
             # write filtered/parsed representation to a tmp file, for debugging purposes
             File.open('/tmp/globodns.filtered.master.named.conf.' + ('%x' % (rand * 999999)), 'w') do |file|
                 file.write(master_config)
                 puts "[DEBUG] filtered master BIND configuration written to \"#{file.path}\""
             end
-
         end
 
         # disable auditing on all affected models
@@ -177,6 +178,21 @@ class Importer
             domain.reset_model
         end
 
+        # generate rdnc.conf files
+        if master_rndc_key
+            write_rndc_conf(EXPORT_MASTER_CHROOT_DIR, master_rndc_key, BIND_MASTER_IPADDR, BIND_MASTER_RNDC_PORT)
+        else
+            STDERR.puts "[WARNING] no rndc key found in master's named.conf"
+            FileUtils.rm(File.join(EXPORT_MASTER_CHROOT_DIR, RNDC_CONFIG_FILE))
+        end
+
+        if slave_rndc_key
+            write_rndc_conf(EXPORT_SLAVE_CHROOT_DIR, slave_rndc_key, BIND_SLAVE_IPADDR, BIND_SLAVE_RNDC_PORT)
+        else
+            STDERR.puts "[WARNING] no rndc key found in slave's named.conf"
+            FileUtils.rm(File.join(EXPORT_SLAVE_CHROOT_DIR, RNDC_CONFIG_FILE))
+        end
+
         # finally, regenerate/export the updated database
         if options[:export]
             # GloboDns::Exporter.new.export_all(master_config, slave_config,
@@ -198,6 +214,18 @@ class Importer
     # ensure
         # FileUtils.remove_entry_secure master_tmp_dir unless master_tmp_dir.nil? || @options[:keep_tmp_dir] == true
         # FileUtils.remove_entry_secure slave_tmp_dir  unless slave_tmp_dir.nil?  || @options[:keep_tmp_dir] == true
+    end
+
+    def write_rndc_conf(chroot_dir, key_str, bind_host, bind_port)
+        File.open(File.join(chroot_dir, RNDC_CONFIG_FILE), 'w')  do |file|
+            file.puts key_str
+            file.puts ""
+            file.puts "options {"
+            file.puts "    default-key    \"#{RNDC_KEY_NAME}\";"
+            file.puts "    default-server #{bind_host};"
+            file.puts "    default-port   #{bind_port};" if bind_port
+            file.puts "};"
+        end
     end
 
 end # class Importer

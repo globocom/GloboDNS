@@ -314,7 +314,7 @@ class Exporter
     end
 
     def reload_bind_conf(chroot_dir)
-        cmd_args = ['rndc reload', Binaries::RNDC, '-c', File.join(chroot_dir, RNDC_CONFIG_FILE), '-y', RNDC_KEY, 'reload']
+        cmd_args = ['rndc reload', Binaries::RNDC, '-c', File.join(chroot_dir, RNDC_CONFIG_FILE), '-y', RNDC_KEY_NAME, 'reload']
         if @options[:abort_on_rndc_failure] == false
             exec!(*cmd_args)
         else
