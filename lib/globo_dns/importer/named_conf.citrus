@@ -215,38 +215,45 @@ grammar NamedConf
 
             def model
                 @domain ||= begin
-                    _domain = Domain.new(:name => self.name, :authority_type => Domain::const_get(self.type.upcase))
+                    domain = Domain.new(:name => self.name, :authority_type => Domain::const_get(self.type.upcase))
 
-                    if _domain.master?
+                    if domain.master?
                         abs_path = Pathname.new(self.file).absolute? ? File.join(@chroot_dir, file) : File.join(@chroot_dir, @bind_dir, file)
                         File.exists?(abs_path) or raise Exception.new("[ERROR] zone file not found: \"#{abs_path}\"")
 
-                        zone_file   = Zonefile.from_file(abs_path, name, @chroot_dir, @bind_dir)
-                        _domain.ttl = zone_file.ttl
-                        zone_file.all_records.collect do |record|
-                            klass   = record.delete(:type).upcase.constantize
-                            params  = record.slice!(:class)
-                            _record = klass.new(params)
+                        zone_file  = Zonefile.from_file(abs_path, name, @chroot_dir, @bind_dir)
+                        domain.ttl = zone_file.ttl
+
+                        zone_file.all_records.collect do |record_attrs|
+                            klass  = record_attrs.delete(:type).upcase.constantize
+                            serial = record_attrs.delete(:serial)
+                            params = record_attrs.slice!(:class)
+                            record = klass.new(params)
                             if klass == SOA
-                                _record.serial     = record
-                                _domain.soa_record = _record
+                                record.serial     = serial
+                                domain.soa_record = record
                             else
-                                _domain.records << _record
+                                domain.records << record
                             end
                         end
 
-                    elsif _domain.slave?
-                        _domain.master = self.master
+                        invalid_records, domain.records = domain.records.partition { |record| !record.valid? }
+                        invalid_records.each do |invalid_record|
+                            STDERR.puts "[WARNING] skipping invalid Record \"#{invalid_record.inspect}\" from domain: \"#{domain.name}\"; errors: #{invalid_record.errors.full_messages}"
+                        end
 
-                    elsif _domain.stub?
+                    elsif domain.slave?
+                        domain.master = self.master
 
-                    elsif _domain.forward?
+                    elsif domain.stub?
 
-                    elsif _domain.hint?
+                    elsif domain.forward?
+
+                    elsif domain.hint?
 
                     end
 
-                    _domain
+                    domain
                 rescue Exception => e
                     STDERR.puts "#{e}\n#{e.backtrace.join("\n")}"
                 end
