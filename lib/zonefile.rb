@@ -131,25 +131,12 @@ class Zonefile
     # Compact a zonefile content - removes empty lines, comments, 
     # converts tabs into spaces etc...
     def self.simplify(zf)
-        # zf.gsub(/("(""|[^"])*")|;.*$/, '\1').gsub(/[\r\n]+/, "\n").gsub(/(\(.*?\))/m){ $1.gsub(/\s+/, ' ') }.gsub(/\s*[\n\r]\s*/, "\n").strip
-        zf.gsub(/("(""|[^"])*")|;.*$/, '\1').gsub(/[\r\n]+/, "\n").gsub(/(\(.*?\))/m){ $1.gsub(/\s+/, ' ') }.strip
-
-        # # concatenate everything split over multiple lines in parentheses - remove ;-comments in block
-        # zf = zf.gsub(/(\([^\)]*?\))/) { |m| m.split(/\n/).map { |l| l.gsub(/\;.*$/, '') }.join("\n").gsub(/[\r\n]/, '') }
-
-        # zf.split(/\n/).map do |line|
-        #     r = line.gsub(/\t/, ' ')
-        #     r = r.gsub(/\s+/, ' ')
-        #     # FIXME: this is ugly and not accurate, couldn't find proper regex:
-        #     #   Don't strip ';' if it's quoted. Happens a lot in TXT records.
-        #     (0..(r.length - 1)).find_all { |i| r[i].chr == ';' }.each do |comment_idx|
-        #         if !r[(comment_idx+1)..-1].index(/['"]/) then
-        #             r = r[0..(comment_idx-1)]
-        #             break
-        #         end
-        #     end
-        #     r
-        # end.delete_if { |line| line.empty? || line[0].chr == ';'}.join("\n")
+        zf.gsub(/("(""|[^"])*")|;.*$/, '\1') # strip comments (unless the ; is inside quotes)
+          .gsub(/\r/, '')                    # strip carriage return characters
+          .gsub(/\n+\s*\n+/, "\n")           # strip blank lines
+          .gsub(/(\(.*?\))/m) {              # join content split into multiple lines using parentheses
+              $1.gsub(/\s+/, ' ')
+          }.strip                            # remove trailing whitespace
     end
 
     # create a new zonefile object by passing the content of the zonefile
@@ -301,7 +288,7 @@ class Zonefile
             add_record($4, :name => $1, :ttl => $2, :class => $3, :content => $5)
 
         else
-            STDERR.puts "[WARNING][Zonefile.parse] unparseable line: \"#{line}\""
+            STDERR.puts "[WARNING][Zonefile.parse][#{@filename}/#{@origin}] unparseable line: \"#{line}\""
 
         end
     end
