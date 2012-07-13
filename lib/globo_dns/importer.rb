@@ -229,10 +229,11 @@ class Importer
                 file.write(content)
             end
 
-            exec('git add', Binaries::GIT, 'add', File.basename(named_conf_file))
-
-            commit_output = exec('git commit', Binaries::GIT, 'commit', "--author=#{GIT_AUTHOR}", "--date=#{timestamp}", '-m', '"[GloboDns::importer]"')
-            puts "[GloboDns::Importer] changes committed:\n#{commit_output}"
+            add_output = exec('git add', Binaries::GIT, 'add', '--verbose', File.basename(named_conf_file))
+            unless add_output.blank?
+                commit_output = exec('git commit', Binaries::GIT, 'commit', "--author=#{GIT_AUTHOR}", "--date=#{timestamp}", '-m', '"[GloboDns::importer]"')
+                puts "[GloboDns::Importer] changes committed:\n#{commit_output}"
+            end
         end
     end
 
