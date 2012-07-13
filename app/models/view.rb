@@ -46,8 +46,7 @@ class View < ActiveRecord::Base
         self.name + '-key'
     end
 
-    def to_bind9_conf(indent = '')
-        puts "[DEBUG] exporting view \"#{self.name}\""
+    def to_bind9_conf(zones_dir, indent = '')
         match_clients = self.clients.present? ? self.clients.split(/\s*;\s*/) : Array.new
         if self.key.present?
             key_str = "key \"#{self.key_name}\""
@@ -66,14 +65,14 @@ class View < ActiveRecord::Base
         str << "#{indent}    match-clients      { #{match_clients.uniq.join('; ')}; };\n" if match_clients.present?
         str << "#{indent}    match-destinations { #{self.destinations}; };\n"        if self.destinations.present?
         str << "\n"
-        str << "#{indent}    include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, self.zones_file)}\";\n"
-        str << "#{indent}    include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, self.slaves_file)}\";\n"
-        str << "#{indent}    include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, self.reverse_file)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, self.zones_file)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, self.slaves_file)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, self.reverse_file)}\";\n"
         str << "\n"
         str << "#{indent}    # common zones\n"
-        str << "#{indent}    include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, GloboDns::Config::ZONES_FILE)}\";\n"
-        str << "#{indent}    include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, GloboDns::Config::SLAVES_FILE)}\";\n"
-        str << "#{indent}    include \"#{File.join(GloboDns::Config::EXPORT_CONFIG_DIR, GloboDns::Config::REVERSE_FILE)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::ZONES_FILE)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::SLAVES_FILE)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::REVERSE_FILE)}\";\n"
         str << "#{indent}};\n\n"
         str
     end

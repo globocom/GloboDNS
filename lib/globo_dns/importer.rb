@@ -7,6 +7,7 @@ class Importer
     include GloboDns::Util
 
     def import(options = {})
+        import_timestamp       = Time.now
         master_chroot_dir      = options.delete(:master_chroot_dir)      || BIND_MASTER_CHROOT_DIR
         master_named_conf_path = options.delete(:master_named_conf_file) || BIND_MASTER_NAMED_CONF_FILE
         slave_chroot_dir       = options.delete(:slave_chroot_dir)       || BIND_SLAVE_CHROOT_DIR
@@ -195,21 +196,14 @@ class Importer
 
         # finally, regenerate/export the updated database
         if options[:export]
-            # GloboDns::Exporter.new.export_all(master_config, slave_config,
-            GloboDns::Exporter.new.export_all(master_config, '',
+            GloboDns::Exporter.new.export_all(master_config, slave_config,
                                               :all                   => true,
                                               :keep_tmp_dir          => true,
                                               :abort_on_rndc_failure => false,
                                               :logger                => Logger.new(STDOUT))
         else
-            # save the new named.conf files to the local chroots
-            File.open(File.join(EXPORT_MASTER_CHROOT_DIR, EXPORT_CONFIG_FILE), 'w')  do |file|
-                file.write(master_config)
-            end
-
-            File.open(File.join(EXPORT_SLAVE_CHROOT_DIR, EXPORT_CONFIG_FILE), 'w')  do |file|
-                file.write(slave_config)
-            end
+            save_config(master_config, EXPORT_MASTER_CHROOT_DIR, BIND_MASTER_ZONES_DIR, BIND_MASTER_NAMED_CONF_FILE, import_timestamp)
+            save_config(slave_config,  EXPORT_SLAVE_CHROOT_DIR,  BIND_SLAVE_ZONES_DIR,  BIND_SLAVE_NAMED_CONF_FILE,  import_timestamp)
         end
     # ensure
         # FileUtils.remove_entry_secure master_tmp_dir unless master_tmp_dir.nil? || @options[:keep_tmp_dir] == true
@@ -217,7 +211,7 @@ class Importer
     end
 
     def write_rndc_conf(chroot_dir, key_str, bind_host, bind_port)
-        File.open(File.join(chroot_dir, RNDC_CONFIG_FILE), 'w')  do |file|
+        File.open(File.join(chroot_dir, RNDC_CONFIG_FILE), 'w') do |file|
             file.puts key_str
             file.puts ""
             file.puts "options {"
@@ -225,6 +219,20 @@ class Importer
             file.puts "    default-server #{bind_host};"
             file.puts "    default-port   #{bind_port};" if bind_port
             file.puts "};"
+        end
+    end
+
+    # saves *and commits the changes to git*
+    def save_config(content, chroot_dir, zones_dir, named_conf_file, timestamp)
+        Dir.chdir(File.join(chroot_dir, zones_dir)) do
+            File.open(File.basename(named_conf_file), 'w') do |file|
+                file.write(content)
+            end
+
+            exec('git add', Binaries::GIT, 'add', File.basename(named_conf_file))
+
+            commit_output = exec('git commit', Binaries::GIT, 'commit', "--author=#{GIT_AUTHOR}", "--date=#{timestamp}", '-m', '"[GloboDns::importer]"')
+            puts "[GloboDns::Importer] changes committed:\n#{commit_output}"
         end
     end
 

@@ -168,15 +168,11 @@ class Domain < ActiveRecord::Base
         File.join(dir, 'db.' + self.name)
     end
 
-    def zonefile_absolute_path
-        File.join(GloboDns::Config::EXPORT_CONFIG_DIR, zonefile_path)
-    end
-
-    def to_bind9_conf(indent = '')
+    def to_bind9_conf(zones_dir, indent = '')
         view = self.view || View.first
         str  = "#{indent}zone \"#{self.name}\" {\n"
         str << "#{indent}    type    #{self.slave? ? 'slave' : 'master'};\n"
-        str << "#{indent}    file    \"#{zonefile_absolute_path}\";\n"
+        str << "#{indent}    file    \"#{File.join(zones_dir, zonefile_path)}\";\n"
         str << "#{indent}    masters { #{self.master.strip.chomp(';')}; };\n" if self.slave?
         str << "#{indent}};\n\n"
         str

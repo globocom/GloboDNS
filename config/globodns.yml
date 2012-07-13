@@ -20,13 +20,9 @@ development: &devconf
     bind_user:                   'named'
     bind_group:                  'named'
 
-    export_config_file:          '/etc/dnsapi.conf'
-    export_config_dir:           '/etc/dnsapi/'
-    export_master_chroot_dir: <%= Rails.root.join('tmp', 'named', 'chroot_master') %>
-    export_slave_chroot_dir:  <%= Rails.root.join('tmp', 'named', 'chroot_slave') %>
+    export_master_chroot_dir:    <%= Rails.root.join('tmp', 'named', 'chroot_master') %>
+    export_slave_chroot_dir:     <%= Rails.root.join('tmp', 'named', 'chroot_slave') %>
 
-    # bind_master_chroot_dir: '/var/named/chroot_master/'
-    # bind_slave_chroot_dir:  '/var/named/chroot_slave/'
     bind_error_log:         '/var/named/chroot_master/var/log/globodns.error.log'
 
     rndc_config_file:       '/etc/rndc.conf'

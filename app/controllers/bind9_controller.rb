@@ -51,8 +51,8 @@ class Bind9Controller < ApplicationController
     private
 
     def get_current_config
-        @master_named_conf = File.read(File.join(EXPORT_MASTER_CHROOT_DIR, EXPORT_CONFIG_FILE)).sub(/\n*#{GloboDns::Exporter::CONFIG_START_TAG}.*#{GloboDns::Exporter::CONFIG_END_TAG}\n*/m, "\n")
-        @slave_named_conf  = File.read(File.join(EXPORT_SLAVE_CHROOT_DIR,  EXPORT_CONFIG_FILE)).sub(/\n*#{GloboDns::Exporter::CONFIG_START_TAG}.*#{GloboDns::Exporter::CONFIG_END_TAG}\n*/m, "\n")
+        @master_named_conf = GloboDns::Exporter.load_named_conf(EXPORT_MASTER_CHROOT_DIR, BIND_MASTER_NAMED_CONF_FILE)
+        @slave_named_conf  = GloboDns::Exporter.load_named_conf(EXPORT_SLAVE_CHROOT_DIR,  BIND_SLAVE_NAMED_CONF_FILE)
     end
 
     def run_export
