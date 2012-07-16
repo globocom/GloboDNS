@@ -95,6 +95,7 @@ en:
         greater_than_start_date: "must be greater than start date"
         not_same_project: "doesn't belong to the same project"
         circular_dependency: "This relation would create a circular dependency"
+        indirect_local_cname_mx: "Indirect local CNAME reference (\"%{name}\" may be replaced by \"%{replacement}\")"
 
 # Generic texts
   generic_save: "Save"

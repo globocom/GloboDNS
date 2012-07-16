@@ -8,24 +8,35 @@
 #
 class MX < Record
 
-  validates_numericality_of :prio,
-    :greater_than_or_equal_to => 0,
-    :less_than_or_equal_to => 65535,
-    :only_integer => true
+    validates_numericality_of :prio, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 65535, :only_integer => true
+    validates                 :content, :presence => true, :hostname => true
 
-  validates :content, :presence => true, :hostname => true
+    validation_scope :warnings do |scope|
+        scope.validate :validate_indirect_local_cname
+    end
 
-  def supports_prio?
-    true
-  end
+    def supports_prio?
+        true
+    end
 
-  def resolv_resource_class
-    Resolv::DNS::Resource::IN::MX
-  end
+    def resolv_resource_class
+        Resolv::DNS::Resource::IN::MX
+    end
 
-  def match_resolv_resource(resource)
-    resource.preference == self.prio &&
-    (resource.exchange.to_s == self.content.chomp('.') ||
-     resource.exchange.to_s == (self.content + '.' + self.domain.name))
-  end
+    def match_resolv_resource(resource)
+        resource.preference == self.prio &&
+        (resource.exchange.to_s == self.content.chomp('.') ||
+         resource.exchange.to_s == (self.content + '.' + self.domain.name))
+    end
+
+    def validate_indirect_local_cname
+        unless self.fqdn_content?
+            cname = CNAME.where('domain_id' => self.domain_id, 'name' => self.content).first
+            unless cname.nil? || cname.fqdn_content?
+                self.warnings.add(:base, I18n.t('indirect_local_cname_mx', :scope => 'activerecord.errors.messages', :name => self.content, :replacement => cname.content))
+                return false
+            end
+        end
+        true
+    end
 end
