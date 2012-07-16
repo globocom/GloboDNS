@@ -6,6 +6,7 @@
 class Record < ActiveRecord::Base
     include SyslogHelper
     include BindTimeFormatHelper
+    include ModelSerializationWithWarnings
 
     belongs_to :domain, :inverse_of => :records
 
@@ -89,12 +90,6 @@ class Record < ActiveRecord::Base
         (name == self.domain.name) ? '@' : (shortname.presence || (name + '.'))
     end
 
-    # Nicer representation of the domain as XML
-    def to_xml_with_cleanup(options = {}, &block)
-        to_xml_without_cleanup(options, &block)
-    end
-    alias_method_chain :to_xml, :cleanup
-
     # pull in the name & TTL from the domain if missing
     def inherit_attributes_from_domain #:nodoc:
         self.ttl ||= self.domain.ttl if self.domain
@@ -167,6 +162,10 @@ class Record < ActiveRecord::Base
 
     def fqdn
         self.class.fqdn(self.name, self.domain.name)
+    end
+
+    def fqdn_content?
+        !self.content.nil? && self.content[-1] == '.'
     end
 
     def to_zonefile(output, format)

@@ -11,6 +11,7 @@ gem 'awesome_print'
 gem 'responders'
 gem 'syslogger'
 gem 'citrus'
+gem 'validation_scopes'
 
 group :assets do
     gem 'sass-rails',   '~> 3.2.3'

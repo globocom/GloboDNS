@@ -202,8 +202,14 @@ ul.errors li {
 .flash-notice, .flash-info, .flash-ajax-notice, .flash-ajax-info {
     color: #2a2;
 }
-.flash-alert, .flash-error, .flash-warning, .flash-ajax-error {
+.flash-alert, .flash-error, .flash-ajax-error {
     color: #a22;
+}
+.flash-warning {
+    color: #aa0;
+}
+.flash-warning .icon {
+	font-size: 1.2em;
 }
 .small {
     font-size: 90%;

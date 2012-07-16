@@ -36,6 +36,9 @@ class ApplicationController < ActionController::Base
         if flash[:error].present?
             response.headers['x-flash']      = flash[:error]
             response.headers['x-flash-type'] = 'error'
+        elsif flash[:warning].present?
+            response.headers['x-flash']      = flash[:warning]
+            response.headers['x-flash-type'] = 'warning'
         elsif flash[:notice].present?
             response.headers['x-flash']      = flash[:notice]
             response.headers['x-flash-type'] = 'notice'

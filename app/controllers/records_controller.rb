@@ -34,6 +34,7 @@ class RecordsController < ApplicationController
         @record = params[:record][:type].constantize.new(params[:record])
         @record.domain_id = params[:domain_id]
         @record.save
+        flash[:warning] = "#{@record.warnings.full_messages * '; '}" if @record.has_warnings?
         respond_with(@record.becomes(Record)) do |format|
             format.html { render :status  => @record.valid? ? :ok     : :unprocessable_entity,
                                  :partial => @record.valid? ? @record : 'errors' } if request.xhr?
@@ -43,6 +44,7 @@ class RecordsController < ApplicationController
     def update
         @record = Record.find(params[:id])
         @record.update_attributes(params[:record])
+        flash[:warning] = "#{@record.warnings.full_messages * '; '}" if @record.has_warnings?
         respond_with(@record.becomes(Record)) do |format|
             format.html { render :status  => @record.valid? ? :ok     : :unprocessable_entity,
                                  :partial => @record.valid? ? @record : 'errors' } if request.xhr?

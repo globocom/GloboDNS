@@ -24,6 +24,16 @@ $(document).ready(function() {
         });
     });
 
+	var flashMessageDelay = {
+		error:   5000,
+		warning: 5000,
+		notice:  2000
+	};
+	var flashMessageIcon = {
+		error:   'warning-sign',
+		warning: 'warning-sign',
+		notice:  'info-sign'
+	};
 	$.fn.flashMessage = function(xhr) {
 		var message     = xhr.getResponseHeader('x-flash');
 		var messageType = xhr.getResponseHeader('x-flash-type');
@@ -33,10 +43,11 @@ $(document).ready(function() {
 
 		var container = $('.flash-ajax.flash-' + messageType);
 		if (container.empty()) {
-			var container = $('<div class="flash-ajax flash-' + messageType + '"></div>');
+			var container = $('<div class="flash-ajax flash-' + messageType + '"><span class="icon ui-icon-' + flashMessageIcon[messageType] + '"></span><span class="message"></span></div>');
 			$('body').append(container);
 		}
-		container.html(message).show().delay(2000).fadeOut('slow');
+		container.find('.message').html(message);
+		container.show().delay(flashMessageDelay[messageType]).fadeOut('slow');
 	};
 
 	// ----------------- ajax pagination ---------------

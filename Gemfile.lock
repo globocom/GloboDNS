@@ -123,6 +123,7 @@ GEM
     uglifier (1.0.4)
       execjs (>= 0.3.0)
       multi_json (>= 1.0.2)
+    validation_scopes (0.4.1)
     warden (1.1.1)
       rack (>= 1.0)
     will_paginate (3.0.2)
@@ -146,4 +147,5 @@ DEPENDENCIES
   tconsole
   therubyracer
   uglifier (~> 1.0.3)
+  validation_scopes
   will_paginate
