@@ -11,7 +11,7 @@
       %tbody
         %tr
           %td= f.label :type, t(:label_domain_record_type)
-          %td= f.select :type, Record::record_types - ['SOA']
+          %td= f.select :type, Record::high_priority_types + (Record::record_types - ['SOA'] - Record::high_priority_types)
         %tr
           %td= f.label :host, t(:label_domain_record_host)
           %td= f.text_field :name

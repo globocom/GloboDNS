@@ -49,9 +49,11 @@ class Record < ActiveRecord::Base
     }
 
     # known record types
-    @@record_types = %w(AAAA A CERT CNAME DLV DNSKEY DS IPSECKEY KEY KX LOC MX NSEC3PARAM NSEC3 NSEC NS PTR RRSIG SIG SOA SPF SRV TA TKEY TSIG TXT)
+    @@record_types        = %w(AAAA A CERT CNAME DLV DNSKEY DS IPSECKEY KEY KX LOC MX NSEC3PARAM NSEC3 NSEC NS PTR RRSIG SIG SOA SPF SRV TA TKEY TSIG TXT)
+    @@high_priority_types = %w(A MX CNAME TXT NS)
 
     cattr_reader :record_types
+    cattr_reader :high_priority_types
 
     def self.last_update
         select('updated_at').order('updated_at DESC').limit(1).first.updated_at
