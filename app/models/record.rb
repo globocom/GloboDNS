@@ -16,6 +16,7 @@ class Record < ActiveRecord::Base
     validates_presence_of      :domain
     validates_presence_of      :name
     validates_bind_time_format :ttl
+    validate                   :validate_name_format
     validation_scope :warnings do |scope|
         scope.validate :validate_same_name_and_type
     end
@@ -184,6 +185,17 @@ class Record < ActiveRecord::Base
             prio = (self.type == 'MX' || (self.prio && (self.prio > 0)) ? self.prio : '')
 
         output.printf(format, self.name, self.ttl.to_s || '', self.type, prio || '', content)
+    end
+
+    def validate_name_format
+        return if self.name.blank? || self.name == '@'
+
+        self.name.split('.').each_with_index do |part, index|
+            unless (index == 0 && part == '*') || part =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?<!-)$/
+                self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+                return
+            end
+        end
     end
 
     def validate_same_name_and_type
