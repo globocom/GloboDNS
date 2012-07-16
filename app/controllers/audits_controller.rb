@@ -2,7 +2,7 @@ class AuditsController < ApplicationController
     respond_to :html, :json
     responders :flash
 
-    before_filter :admin?
+    before_filter :admin_or_operator?
 
     def index
         @audits = Audited::Adapters::ActiveRecord::Audit.includes(:user).reorder('id DESC').limit(20)
