@@ -12,6 +12,7 @@ class MX < Record
     validates                 :content, :presence => true, :hostname => true
 
     validation_scope :warnings do |scope|
+        scope.validate :validate_same_name_and_type   # validation_scopes doesn't support inheritance; we have to redefine this validation
         scope.validate :validate_indirect_local_cname
     end
 

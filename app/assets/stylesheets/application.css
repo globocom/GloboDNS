@@ -208,8 +208,12 @@ ul.errors li {
 .flash-warning {
     color: #aa0;
 }
-.flash-warning .icon {
-	font-size: 1.2em;
+.flash-ajax .icon {
+	font-size: 1.4em;
+	font-weight: normal;
+	height: 1px;
+	float: left;
+	display: block;
 }
 .small {
     font-size: 90%;

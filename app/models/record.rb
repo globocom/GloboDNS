@@ -16,7 +16,9 @@ class Record < ActiveRecord::Base
     validates_presence_of      :domain
     validates_presence_of      :name
     validates_bind_time_format :ttl
-    # validates_numericality_of :ttl, :greater_than_or_equal_to => 0, :only_integer => true, :allow_nil => true
+    validation_scope :warnings do |scope|
+        scope.validate :validate_same_name_and_type
+    end
 
     class_attribute :batch_soa_updates
 
@@ -182,6 +184,12 @@ class Record < ActiveRecord::Base
             prio = (self.type == 'MX' || (self.prio && (self.prio > 0)) ? self.prio : '')
 
         output.printf(format, self.name, self.ttl.to_s || '', self.type, prio || '', content)
+    end
+
+    def validate_same_name_and_type
+        if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first
+            self.warnings.add(:base, I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
+        end
     end
 
     private
