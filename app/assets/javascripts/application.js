@@ -24,6 +24,15 @@ $(document).ready(function() {
         });
     });
 
+    // setup tooltips of search boxes
+    $('.search-field').each(function(i, field) {
+        $(field).tipTip({
+            content: $("#" + $(field).data("help")).text(),
+			delay: 2000,
+			activation: "click"
+        });
+    });
+
 	var flashMessageDelay = {
 		error:   5000,
 		warning: 5000,

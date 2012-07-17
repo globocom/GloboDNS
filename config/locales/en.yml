@@ -132,6 +132,9 @@ en:
   layout_menu_views: "Views"
   layout_menu_logout: "Logout"
 
+  help_search:
+    Enter terms to search by domain name. Use the * character as wildcard.
+
 # Sign in
   title_sign_in: Sign In
   button_sign_in: Sign in
@@ -241,6 +244,8 @@ en:
     Change or remove the owner of this domain
   help_delete_reset:
     Do not delete this domain.
+  help_records_search:
+    Enter terms to search by record name or content. Use the * character as wildcard.
 
   warning_this_domain_has_owner: "This domain has an owner! Please make sure that you want to delete it."
   confirm_delete_this_domain: "Yes I am sure I want to delete this domain."

@@ -14,8 +14,11 @@
       .nav
         - if current_user
           #search-bar
+            %div.hidden
+              #help-search= t(:help_search)
+
             = form_tag(domains_path, { :method => :get }) do
-              = text_field_tag :query, params[:query] || ''
+              = text_field_tag :query, params[:query] || '', :class => 'search-field', 'data-help' => 'help-search'
               %span.search-icon
         %ul
           %li= link_to((t :layout_menu_home), root_url)
