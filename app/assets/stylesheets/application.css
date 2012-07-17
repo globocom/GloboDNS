@@ -190,12 +190,12 @@ ul.errors li {
 }
 .flash-ajax {
     position: fixed;
-    top: 10px;
+    top: -1px;
     left: 50%;
     margin: 0 auto;
     width: 600px;
     margin-left: -300px;
-    box-shadow: 0px 0px 4px #888;
+    box-shadow: 0px 0px 8px #888;
     -moz-border-radius: 2px;
     -webkit-border-radius: 2px;
 }
@@ -209,11 +209,13 @@ ul.errors li {
     color: #aa0;
 }
 .flash-ajax .icon {
+	position: absolute;
 	font-size: 1.4em;
-	font-weight: normal;
-	height: 1px;
-	float: left;
-	display: block;
+	margin-top: -0.125em;
+}
+.flash-ajax .message {
+	display: inline-block;
+	margin-left: 2em;
 }
 .small {
     font-size: 90%;

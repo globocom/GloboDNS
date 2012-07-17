@@ -14,7 +14,7 @@
 //= require_self
 
 $(document).ready(function() {
-    // ajax activity indicator
+    // ----------------- ajax activity indicator -----------------
     $('body').append('<div id="ajaxBusy"><img src="/assets/loading.gif"></div>');
 
     // setup tooltips where required
@@ -24,7 +24,7 @@ $(document).ready(function() {
         });
     });
 
-    // setup tooltips of search boxes
+    // ----------------- setup tooltips of search boxes -----------------
     $('.search-field').each(function(i, field) {
         $(field).tipTip({
             content: $("#" + $(field).data("help")).text(),
@@ -33,6 +33,7 @@ $(document).ready(function() {
         });
     });
 
+	// ----------------- ajax flash messages -----------------
 	var flashMessageDelay = {
 		error:   5000,
 		warning: 5000,
@@ -43,20 +44,16 @@ $(document).ready(function() {
 		warning: 'warning-sign',
 		notice:  'info-sign'
 	};
-	$.fn.flashMessage = function(xhr) {
-		var message     = xhr.getResponseHeader('x-flash');
-		var messageType = xhr.getResponseHeader('x-flash-type');
-
-		if (!message || !messageType)
-			return;
-
+	$.fn.flashMessage = function(message, messageType, delay) {
 		var container = $('.flash-ajax.flash-' + messageType);
-		if (container.empty()) {
+		if (container.length == 0) {
+			if (console) console.log('creating flash container (type: ' + messageType + ')');
 			var container = $('<div class="flash-ajax flash-' + messageType + '"><span class="icon ui-icon-' + flashMessageIcon[messageType] + '"></span><span class="message"></span></div>');
+			container.hide();
 			$('body').append(container);
 		}
 		container.find('.message').html(message);
-		container.show().delay(flashMessageDelay[messageType]).fadeOut('slow');
+		container.fadeIn().delay(delay || flashMessageDelay[messageType]).fadeOut('slow');
 	};
 
 	// ----------------- ajax pagination ---------------
@@ -75,9 +72,12 @@ $(document).ajaxStart(function() {
     $('#ajaxBusy').hide();
 });
 
-
 $(document).ajaxComplete(function(evt, xhr, options) {
-	$.fn.flashMessage(xhr);
+	var message     = xhr.getResponseHeader('x-flash');
+	var messageType = xhr.getResponseHeader('x-flash-type');
+
+	if (message && messageType)
+		$.fn.flashMessage(message, messageType);
 });
 
 //* rest of file omitted */
