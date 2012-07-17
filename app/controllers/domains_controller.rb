@@ -7,7 +7,7 @@ class DomainsController < ApplicationController
     def index
         session[:show_reverse_domains] = (params[:reverse] == 'true') if params.has_key?(:reverse)
         @domains = session[:show_reverse_domains] ? Domain.scoped : Domain.nonreverse
-        @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
+        @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => 5) if navigation_format?
         @domains = @domains.matching(params[:query]) if params[:query].present?
         respond_with(@domains) do |format|
             format.html { render :partial => 'list', :object => @domains, :as => :domains if request.xhr? }
@@ -47,6 +47,7 @@ class DomainsController < ApplicationController
         end
 
         @domain.save
+        flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && request.navigational_format?
 
         respond_with(@domain) do |format|
             format.html { render :status  => @domain.valid? ? :ok     : :unprocessable_entity,
@@ -57,6 +58,8 @@ class DomainsController < ApplicationController
     def update
         @domain = Domain.find(params[:id])
         @domain.update_attributes(params[:domain])
+        flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
+
         respond_with(@domain) do |format|
             format.html { render :status  => @domain.valid? ? :ok     : :unprocessable_entity,
                                  :partial => @domain.valid? ? 'form'  : 'errors',

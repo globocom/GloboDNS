@@ -74,4 +74,8 @@ class ApplicationController < ActionController::Base
             format.html { raise(exception) }
         end
     end
+
+    def navigation_format?
+        request.format.html? || request.format.js?
+    end
 end

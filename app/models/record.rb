@@ -17,6 +17,7 @@ class Record < ActiveRecord::Base
     validates_presence_of      :name
     validates_bind_time_format :ttl
     validate                   :validate_name_format
+    validate                   :validate_recursive_subdomains
     validation_scope :warnings do |scope|
         scope.validate :validate_same_name_and_type
     end
@@ -203,6 +204,24 @@ class Record < ActiveRecord::Base
     def validate_same_name_and_type
         if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first
             self.warnings.add(:base, I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
+        end
+    end
+
+    def validate_recursive_subdomains
+        return if self.domain.nil? || self.domain.name.blank?   || self.name.blank? ||
+                  self.name == '@' || self.name.index('.').nil? || self.name[-1] == '.'
+
+        domain_name = self.domain.name
+        conditions  = nil
+
+        self.name.split('.').reverse_each do |part|
+            domain_name = "#{part}.#{domain_name}"
+            condition   = Domain.arel_table[:name].eq(domain_name)
+            conditions  = conditions ? conditions.or(condition) : condition
+        end
+
+        if domain = Domain.where(conditions).first
+            self.errors.add(:name, I18n.t('recursive_subdomain', :domain => domain.name, :scope => 'activerecord.errors.messages'))
         end
     end
 

@@ -68,6 +68,9 @@ class Domain < ActiveRecord::Base
     validates_bind_time_format :ttl,        :if => :master?
     validates_associated       :soa_record, :if => :master?
     validates_presence_of      :master,     :if => :slave?
+    validation_scope :warnings do |scope|
+        scope.validate :check_recursive_subdomains
+    end
 
     # callbacks
     after_save :save_soa_record
@@ -201,6 +204,23 @@ class Domain < ActiveRecord::Base
         self.name.to_s + ':' + self.import_file_name.to_s
     end
 
+    def check_recursive_subdomains
+        puts "[check_recursive_subdomains]"
+        return if self.name.blank?
+
+        domain_name = self.name.clone
+        while record_name = domain_name.slice!(/.*?\./).try(:chop)
+            records = Record.joins(:domain).
+                             where("#{Record.table_name}.name = ? OR #{Record.table_name}.name LIKE ?", record_name, "%.#{record_name}").
+                             where("#{Domain.table_name}.name = ?", domain_name).all
+            if records.any?
+                records_excerpt = self.class.truncate(records.collect {|r| "\"#{r.name} #{r.type} #{r.content}\" from \"#{r.domain.name}\"" }.join(', '))
+                self.warnings.add(:base, I18n.t('records_unreachable_by_domain', :records => records_excerpt, :scope => 'activerecord.errors.messages'))
+                return
+            end
+        end
+    end
+
     private
 
     def set_addressing_type
@@ -213,5 +233,9 @@ class Domain < ActiveRecord::Base
     def records_format
         sizes = self.records.select('MAX(LENGTH(name)) AS name, LENGTH(MAX(ttl)) AS ttl, MAX(LENGTH(type)) AS mtype, LENGTH(MAX(prio)) AS prio').first
         "%-#{sizes.name}s %-#{sizes.ttl}s IN %-#{sizes.mtype}s %-#{sizes.prio}s %s\n"
+    end
+
+    def self.truncate(str, limit = 80)
+        str.size > limit ? str[0..limit] + '...' : str
     end
 end
