@@ -49,7 +49,7 @@ class DomainsController < ApplicationController
         end
 
         @domain.save
-        flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && request.navigational_format?
+        flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
 
         respond_with(@domain) do |format|
             format.html { render :status  => @domain.valid? ? :ok     : :unprocessable_entity,
