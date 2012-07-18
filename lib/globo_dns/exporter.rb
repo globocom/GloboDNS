@@ -71,7 +71,7 @@ class Exporter
             # ignore the current git content and export all records
             @last_commit_date = Time.at(0)
         else
-            @last_commit_date = Time.at(exec('git last commit date', Binaries::GIT, 'log', '-1', '--format=%at').to_i)
+            @last_commit_date = last_export_timestamp
         end
         @export_timestamp = Time.now
         @touch_timestamp  = @export_timestamp + 1 # we add 1 second to avoid minor subsecond discrepancies

@@ -135,8 +135,10 @@ en:
   layout_menu_views: "Views"
   layout_menu_logout: "Logout"
 
-  help_search:
-    Enter terms to search by domain name. Use the * character as wildcard.
+  help_search: "Enter terms to search by domain name. Use the * character as wildcard."
+  last_export: "Last export: %{timestamp}"
+  pending_updates: "%{count} changes pending"
+
 
 # Sign in
   title_sign_in: Sign In

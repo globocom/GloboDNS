@@ -34,6 +34,16 @@ body {
     padding: 0;
     margin: 0;
 }
+.header .status {
+   float: right;
+   float: right;
+   color: #aaa;
+   font-size: 8pt;
+}
+.header .status span {
+   display: block;
+   text-align: right;
+}
 .nav {
     padding: 1em 3em;
 }

@@ -50,6 +50,10 @@ module Util
         exec(command_id, *args)
     end
 
+    def self.last_export_timestamp
+        @last_commit_date = Time.at(exec('git last commit date', GloboDns::Config::Binaries::GIT, 'log', '-1', '--format=%at').to_i)
+    end
+
     def self.included(base)
         base.send(:include, InstanceMethods)
     end
@@ -69,6 +73,10 @@ module Util
 
         def exec_as_root(command_id, *args)
             GloboDns::Util::exec_as_root(command_id, *args)
+        end
+
+        def last_export_timestamp
+            GloboDns::Util::last_export_timestamp
         end
     end
 

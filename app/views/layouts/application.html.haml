@@ -8,6 +8,9 @@
   %body
     .container
       .header
+        %div.status
+          %span= t(:last_export, :timestamp => last_export_timestamp.to_formatted_s(:short))
+          %span= t(:pending_updates, :count => num_pending_updates)
         %h1
           /t :layout_main_title
           %img{'src' => image_path('logo_small.png')}

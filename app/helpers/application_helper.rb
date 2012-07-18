@@ -1,5 +1,12 @@
 # Methods added to this helper will be available to all templates in the application.
 module ApplicationHelper
+  def last_export_timestamp
+    @last_export_timestamp ||= GloboDns::Util::last_export_timestamp
+  end
+
+  def num_pending_updates
+    @num_pending_updates ||= Audited::Adapters::ActiveRecord::Audit.where('created_at > ?', last_export_timestamp).count
+  end
 
   # Outputs a page title with +@page_title+ appended
   def page_title
