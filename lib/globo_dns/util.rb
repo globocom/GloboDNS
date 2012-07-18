@@ -51,7 +51,9 @@ module Util
     end
 
     def self.last_export_timestamp
-        @last_commit_date = Time.at(exec('git last commit date', GloboDns::Config::Binaries::GIT, 'log', '-1', '--format=%at').to_i)
+        Dir.chdir(File.join(GloboDns::Config::EXPORT_MASTER_CHROOT_DIR, GloboDns::Config::BIND_MASTER_ZONES_DIR)) do
+            Time.at(exec('git last commit date', GloboDns::Config::Binaries::GIT, 'log', '-1', '--format=%at').to_i)
+        end
     end
 
     def self.included(base)
