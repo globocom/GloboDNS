@@ -4,7 +4,7 @@ class RecordsController < ApplicationController
 
     before_filter :admin_or_operator?, :except => [:index, :show]
     
-    DEFAULT_PAGE_SIZE = 10
+    DEFAULT_PAGE_SIZE = 25
 
     def index
         @records = Record.where(:domain_id => params[:domain_id])

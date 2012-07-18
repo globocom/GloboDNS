@@ -4,10 +4,12 @@ class DomainsController < ApplicationController
 
     before_filter :admin_or_operator?, :except => [:index, :show]
 
+    DEFAULT_PAGE_SIZE = 25
+
     def index
         session[:show_reverse_domains] = (params[:reverse] == 'true') if params.has_key?(:reverse)
         @domains = session[:show_reverse_domains] ? Domain.scoped : Domain.nonreverse
-        @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => 5) if navigation_format?
+        @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE) if navigation_format?
         @domains = @domains.matching(params[:query]) if params[:query].present?
         respond_with(@domains) do |format|
             format.html { render :partial => 'list', :object => @domains, :as => :domains if request.xhr? }
@@ -18,7 +20,7 @@ class DomainsController < ApplicationController
         @domain = Domain.find(params[:id])
         unless request.xhr?
             query    = params[:record].blank? ? nil : params[:record]
-            @records = @domain.records.without_soa.paginate(:page => params[:page], :per_page => 10)
+            @records = @domain.records.without_soa.paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
         end
         respond_with(@domain)
     end
