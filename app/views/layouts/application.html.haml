@@ -31,7 +31,10 @@
               %li= link_to((t :layout_menu_logs), audits_path)
             - if current_user.admin?
               %li= link_to((t :layout_menu_users), users_path)
+            - if current_user.admin?
               %li= link_to((t :layout_menu_bind), bind9_path)
+            - else
+              %li= link_to((t :layout_menu_export), bind9_schedule_export_path(:format => :json), :remote => true, :method => :post, :class => 'export-menu-item')
             %li= link_to((t :layout_menu_logout), destroy_user_session_path, :method => :delete)
       %hr
       .body

@@ -25,4 +25,11 @@ $(document).ready(function() {
 		} else
 			alert("[ERROR] export failed");
 	});
+
+	// -- Export menu item; show only to "operator" users
+	$('.export-menu-item').live('ajax:success', function(evt, data, statusStr, xhr) {
+		$.fn.flashMessage(data.output, 'notice', 5000);
+	}).live('ajax:error', function (evt, xhr, statusStr, error) {
+		alert("[ERROR] export failed");
+	});
 });

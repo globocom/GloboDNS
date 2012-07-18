@@ -131,6 +131,7 @@ en:
   layout_menu_users: "Users"
   layout_menu_reports: "Reports"
   layout_menu_bind: "BIND"
+  layout_menu_export: "Export"
   layout_menu_views: "Views"
   layout_menu_logout: "Logout"
 

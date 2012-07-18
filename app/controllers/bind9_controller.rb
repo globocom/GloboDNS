@@ -4,7 +4,8 @@ class Bind9Controller < ApplicationController
     respond_to :html, :json
     responders :flash
 
-    before_filter :admin?
+    before_filter :admin?,             :except => :schedule_export
+    before_filter :admin_or_operator?, :only   => :schedule_export
 
     def index
         get_current_config
@@ -41,7 +42,7 @@ class Bind9Controller < ApplicationController
 
     def schedule_export
         FileUtils.touch(EXPORT_STAMP_FILE)
-        @output = I18n.t('export_scheduled', :timestamp => export_timestamp(File.stat(EXPORT_STAMP_FILE).mtime + EXPORT_DELAY))
+        @output = I18n.t('export_scheduled', :timestamp => export_timestamp(File.stat(EXPORT_STAMP_FILE).mtime + EXPORT_DELAY).to_formatted_s(:short))
         respond_to do |format|
             format.html { render :status => status, :layout => false } if request.xhr?
             format.json { render :status => status, :json   => { 'output' => @output } }
