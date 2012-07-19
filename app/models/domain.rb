@@ -205,14 +205,15 @@ class Domain < ActiveRecord::Base
     end
 
     def check_recursive_subdomains
-        puts "[check_recursive_subdomains]"
         return if self.name.blank?
 
+        record_name = nil
         domain_name = self.name.clone
-        while record_name = domain_name.slice!(/.*?\./).try(:chop)
-            records = Record.joins(:domain).
-                             where("#{Record.table_name}.name = ? OR #{Record.table_name}.name LIKE ?", record_name, "%.#{record_name}").
-                             where("#{Domain.table_name}.name = ?", domain_name).all
+        while suffix = domain_name.slice!(/.*?\./).try(:chop)
+            record_name = record_name ? "#{record_name}.#{suffix}" : suffix
+            records     = Record.joins(:domain).
+                                  where("#{Record.table_name}.name = ? OR #{Record.table_name}.name LIKE ?", record_name, "%.#{record_name}").
+                                  where("#{Domain.table_name}.name = ?", domain_name).all
             if records.any?
                 records_excerpt = self.class.truncate(records.collect {|r| "\"#{r.name} #{r.type} #{r.content}\" from \"#{r.domain.name}\"" }.join(', '))
                 self.warnings.add(:base, I18n.t('records_unreachable_by_domain', :records => records_excerpt, :scope => 'activerecord.errors.messages'))
