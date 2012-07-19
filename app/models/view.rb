@@ -42,8 +42,12 @@ class View < ActiveRecord::Base
         self.name + '-' + GloboDns::Config::REVERSE_FILE
     end
 
+    def self.key_name(view_name)
+        view_name + '-key'
+    end
+
     def key_name
-        self.name + '-key'
+        self.class.key_name(self.name)
     end
 
     def to_bind9_conf(zones_dir, indent = '')

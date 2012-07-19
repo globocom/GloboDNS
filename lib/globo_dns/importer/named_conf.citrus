@@ -7,13 +7,13 @@ grammar NamedConf
                     view_keys = Array.new
 
                     self[:top_level_statement].each do |statement|
-                        view_keys << statement.view.view_name.value if statement.view && statement.view.view_name
+                        view_keys << View::key_name(statement.view.view_name.value) if statement.view && statement.view.view_name
                     end
 
                     self[:top_level_statement].each do |statement|
                         next if statement.zone ||
                                 statement.view ||
-                                (statement.key && statement.key.key_name && view_keys.include?(statement.key.key_name))
+                                (statement.key && statement.key.key_name && view_keys.include?(statement.key.key_name.value))
                         _config << statement.value << "\n\n"
                     end
 
