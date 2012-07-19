@@ -227,13 +227,14 @@ class Importer
         Dir.chdir(File.join(chroot_dir, zones_dir)) do
             File.open(File.basename(named_conf_file), 'w') do |file|
                 file.write(content)
+                file.puts GloboDns::Exporter::CONFIG_START_TAG
+                file.puts "# imported on #{timestamp}"
+                file.puts GloboDns::Exporter::CONFIG_END_TAG
             end
 
-            add_output = exec('git add', Binaries::GIT, 'add', '--verbose', File.basename(named_conf_file))
-            unless add_output.blank?
-                commit_output = exec('git commit', Binaries::GIT, 'commit', "--author=#{GIT_AUTHOR}", "--date=#{timestamp}", '-m', '"[GloboDns::importer]"')
-                puts "[GloboDns::Importer] changes committed:\n#{commit_output}"
-            end
+            exec('git add', Binaries::GIT, 'add', File.basename(named_conf_file))
+            commit_output = exec('git commit', Binaries::GIT, 'commit', "--author=#{GIT_AUTHOR}", "--date=#{timestamp}", '-m', '"[GloboDns::importer]"')
+            puts "[GloboDns::Importer] changes committed:\n#{commit_output}"
         end
     end
 
