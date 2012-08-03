@@ -9,8 +9,6 @@
 # Obtained from http://www.zytrax.com/books/dns/ch8/key.html
 
 class KEY < Record
-    validates_presence_of :content
-
     def resolv_resource_class
         Resolv::DNS::Resource::IN::KEY
     end

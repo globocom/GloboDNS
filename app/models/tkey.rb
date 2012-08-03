@@ -4,8 +4,6 @@
 # under the public key in an accompanying KEY RR.[9]
 
 class TKEY < Record
-    validates_presence_of :content
-
     def resolv_resource_class
         Resolv::DNS::Resource::IN::TKEY
     end

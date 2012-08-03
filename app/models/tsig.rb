@@ -5,8 +5,6 @@
 # server[10] similar to DNSSEC.
 
 class TSIG < Record
-    validates_presence_of :content
-
     def resolv_resource_class
         Resolv::DNS::Resource::IN::TSIG
     end

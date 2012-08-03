@@ -1,5 +1,3 @@
-# See #NS
-
 # = Name Server Record (NS)
 #
 # Defined in RFC 1035. NS RRs appear in two places. Within the zone file, in
@@ -18,16 +16,24 @@
 # zones parent where they are required to allow referral to take place.
 #
 # Obtained from http://www.zytrax.com/books/dns/ch8/ns.html
-#
+
 class NS < Record
-  validates :content, :presence => true, :hostname => true
+    include RecordPatterns
 
-  def resolv_resource_class
-    Resolv::DNS::Resource::IN::NS
-  end
+    validates_with HostnameValidator, :attributes => :content
 
-  def match_resolv_resource(resource)
-    resource.name.to_s == self.content.chomp('.') ||
-    resource.name.to_s == (self.content + '.' + self.domain.name)
-  end
+    def resolv_resource_class
+        Resolv::DNS::Resource::IN::NS
+    end
+
+    def match_resolv_resource(resource)
+        resource.name.to_s == self.content.chomp('.') ||
+        resource.name.to_s == (self.content + '.' + self.domain.name)
+    end
+
+    def validate_name_format
+        unless self.name.blank? || self.name == '@' || hostname?(self.name) || reverse_ipv4_fragment?(self.name) || reverse_ipv6_fragment?(self.name)
+            self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+        end
+    end
 end

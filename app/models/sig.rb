@@ -4,8 +4,6 @@
 # designated RRSIG as the replacement for SIG for use within DNSSEC.[7]
 
 class SIG < Record
-    validates_presence_of :content
-
     def resolv_resource_class
         Resolv::DNS::Resource::IN::SIG
     end

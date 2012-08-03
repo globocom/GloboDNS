@@ -5,8 +5,6 @@
 # record.
 
 class TA < Record
-    validates_presence_of :content
-
     def resolv_resource_class
         Resolv::DNS::Resource::IN::TA
     end

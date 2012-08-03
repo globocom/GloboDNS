@@ -1,5 +1,3 @@
-# See #AAAA
-
 # = IPv6 Address Record (AAAA)
 #
 # The current IETF recommendation is to use AAAA (Quad A) RR for forward mapping
@@ -9,17 +7,15 @@
 # and operational concerns.
 #
 # Obtained from http://www.zytrax.com/books/dns/ch8/aaaa.html
-#
+
 class AAAA < Record
+    validates_with IpAddressValidator, :attributes => :content, :ipv6 => true
 
-  # Only accept valid IPv6 addresses
-  validates :content, :presence => true, :ip_address => { :ipv6 => true }
+    def resolv_resource_class
+        Resolv::DNS::Resource::IN::AAAA
+    end
 
-  def resolv_resource_class
-    Resolv::DNS::Resource::IN::AAAA
-  end
-
-  def match_resolv_resource(resource)
-    resource.address.to_s == self.content
-  end
+    def match_resolv_resource(resource)
+        resource.address.to_s == self.content
+    end
 end

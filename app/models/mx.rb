@@ -7,10 +7,8 @@
 # Obtained from http://www.zytrax.com/books/dns/ch8/mx.html
 #
 class MX < Record
-
     validates_numericality_of :prio, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 65535, :only_integer => true
-    validates                 :content, :presence => true, :hostname => true
-
+    validates_with HostnameValidator, :attributes => :content
     validation_scope :warnings do |scope|
         scope.validate :validate_same_name_and_type   # validation_scopes doesn't support inheritance; we have to redefine this validation
         scope.validate :validate_indirect_local_cname
@@ -31,13 +29,11 @@ class MX < Record
     end
 
     def validate_indirect_local_cname
-        unless self.fqdn_content?
-            cname = CNAME.where('domain_id' => self.domain_id, 'name' => self.content).first
-            unless cname.nil? || cname.fqdn_content?
-                self.warnings.add(:base, I18n.t('indirect_local_cname_mx', :scope => 'activerecord.errors.messages', :name => self.content, :replacement => cname.content))
-                return false
-            end
+        return if self.fqdn_content?
+
+        cname = CNAME.where('domain_id' => self.domain_id, 'name' => self.content).first
+        unless cname.nil? || cname.fqdn_content?
+            self.warnings.add(:base, I18n.t('indirect_local_cname_mx', :scope => 'activerecord.errors.messages', :name => self.content, :replacement => cname.content))
         end
-        true
     end
 end

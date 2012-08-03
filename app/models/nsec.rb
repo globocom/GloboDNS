@@ -9,8 +9,6 @@
 # Obtained from http://www.zytrax.com/books/dns/ch8/nsec.html
 
 class NSEC < Record
-    validates_presence_of :content
-
     def resolv_resource_class
         Resolv::DNS::Resource::IN::NSEC
     end

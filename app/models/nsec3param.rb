@@ -3,8 +3,6 @@
 # Parameter record for use with NSEC3
 
 class NSEC3PARAM < Record
-    validates_presence_of :content
-
     def resolv_resource_class
         Resolv::DNS::Resource::IN::NSEC3PARAM
     end

@@ -11,7 +11,4 @@
 # Obtained from http://en.wikipedia.org/wiki/LOC_record
 #
 class LOC < Record
-
-  validates_presence_of :content
-
 end

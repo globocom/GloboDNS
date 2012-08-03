@@ -68,9 +68,7 @@ class Domain < ActiveRecord::Base
     validates_bind_time_format :ttl,        :if => :master?
     validates_associated       :soa_record, :if => :master?
     validates_presence_of      :master,     :if => :slave?
-    validation_scope :warnings do |scope|
-        scope.validate :check_recursive_subdomains
-    end
+    validate                   :validate_recursive_subdomains
 
     # callbacks
     after_save :save_soa_record
@@ -204,7 +202,7 @@ class Domain < ActiveRecord::Base
         self.name.to_s + ':' + self.import_file_name.to_s
     end
 
-    def check_recursive_subdomains
+    def validate_recursive_subdomains
         return if self.name.blank?
 
         record_name = nil
@@ -216,7 +214,7 @@ class Domain < ActiveRecord::Base
                                   where("#{Domain.table_name}.name = ?", domain_name).all
             if records.any?
                 records_excerpt = self.class.truncate(records.collect {|r| "\"#{r.name} #{r.type} #{r.content}\" from \"#{r.domain.name}\"" }.join(', '))
-                self.warnings.add(:base, I18n.t('records_unreachable_by_domain', :records => records_excerpt, :scope => 'activerecord.errors.messages'))
+                self.errors.add(:base, I18n.t('records_unreachable_by_domain', :records => records_excerpt, :scope => 'activerecord.errors.messages'))
                 return
             end
         end

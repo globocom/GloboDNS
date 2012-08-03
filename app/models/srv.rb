@@ -1,5 +1,3 @@
-# See #SRV
-
 # = Service Record (SRV)
 #
 # An SRV record or Service record is a category of data in the Internet Domain
@@ -10,22 +8,21 @@
 # Obtained from http://en.wikipedia.org/wiki/SRV_record
 # 
 # See also http://www.zytrax.com/books/dns/ch8/srv.html
-#
+
 class SRV < Record
-  # validates_numericality_of :prio, :greater_than_or_equal_to => 0
-  validates_presence_of     :content
-  
-  # We support priorities
-  # def supports_prio?
-  #   true
-  # end
+    # validates_numericality_of :prio, :greater_than_or_equal_to => 0
 
-  def resolv_resource_class
-    Resolv::DNS::Resource::IN::SRV
-  end
+    # We support priorities
+    # def supports_prio?
+    #   true
+    # end
 
-  def match_resolv_resource(resource)
-    # TODO: break down SRV records into multiple attributes?
-    "#{resource.priority} #{resource.weight} #{resources.port} #{resource.target}" == self.content.chomp('.')
-  end
+    def resolv_resource_class
+        Resolv::DNS::Resource::IN::SRV
+    end
+
+    def match_resolv_resource(resource)
+        # TODO: break down SRV records into multiple attributes?
+        "#{resource.priority} #{resource.weight} #{resources.port} #{resource.target}" == self.content.chomp('.')
+    end
 end

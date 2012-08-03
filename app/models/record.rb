@@ -15,6 +15,7 @@ class Record < ActiveRecord::Base
 
     validates_presence_of      :domain
     validates_presence_of      :name
+    validates_presence_of      :content
     validates_bind_time_format :ttl
     validate                   :validate_name_format
     validate                   :validate_recursive_subdomains
@@ -191,6 +192,7 @@ class Record < ActiveRecord::Base
     end
 
     def validate_name_format
+        # default implementation: validation of 'hostnames'
         return if self.name.blank? || self.name == '@'
 
         self.name.split('.').each_with_index do |part, index|

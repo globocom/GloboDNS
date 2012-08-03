@@ -1,5 +1,3 @@
-# See #SPF
-
 # = Text Record (SPF)
 #
 # In computing, Sender Policy Framework (SPF) allows software to identify
@@ -9,9 +7,6 @@
 # spam and result in backscatter. SPF is defined in RFC 4408
 #
 # Obtained from http://en.wikipedia.org/wiki/Sender_Policy_Framework
-#
+
 class SPF < Record
-
-  validates_presence_of :content
-
 end

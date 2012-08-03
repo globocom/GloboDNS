@@ -1,5 +1,3 @@
-# See #A
-
 # = IPv4 Address Record (A)
 #
 # Defined in RFC 1035. Forward maps a host name to IPv4 address. The only
@@ -9,17 +7,15 @@
 # is substituted.
 #
 # Obtained from http://www.zytrax.com/books/dns/ch8/a.html
-#
+
 class A < Record
+    validates_with IpAddressValidator, :attributes => :content
 
-  # Only accept valid IPv4 addresses
-  validates :content, :presence => true, :ip_address => true
+    def resolv_resource_class
+        Resolv::DNS::Resource::IN::A
+    end
 
-  def resolv_resource_class
-    Resolv::DNS::Resource::IN::A
-  end
-
-  def match_resolv_resource(resource)
-    resource.address.to_s == self.content
-  end
+    def match_resolv_resource(resource)
+        resource.address.to_s == self.content
+    end
 end
