@@ -12,11 +12,17 @@ module ModelSerializationWithWarnings
 
     included do
         def as_json(options = nil)
-            self.has_warnings? ? super.merge!('warnings' => self.warnings.as_json) : super
+            self.warnings.any? ? super.merge!('warnings' => self.warnings.as_json) : super
         end
 
         def to_xml(options = {})
-            self.has_warnings? ? super(:methods => [:warnings]) : super
+            self.warnings.any? ? super(:methods => [:warnings]) : super
+        end
+
+        def becomes(klass)
+            became = super(klass)
+            became.instance_variable_set("@warnings", @warnings)
+            became
         end
     end
 end
