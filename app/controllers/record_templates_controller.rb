@@ -4,9 +4,11 @@ class RecordTemplatesController < ApplicationController
 
     before_filter :admin?
 
+    DEFAULT_PAGE_SIZE = 25
+
     def index
         @record_templates = RecordTemplate.where(:domain_template_id => params[:domain_template_id])
-        @record_templates = @record_templates.without_soa.paginate(:page => params[:page], :per_page => 10) if request.format.html? || request.format.js?
+        @record_templates = @record_templates.without_soa.paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
         respond_with(@record_templates) do |format|
             format.html { render :partial => 'list', :object => @record_templates, :as => :record_templates if request.xhr? }
         end

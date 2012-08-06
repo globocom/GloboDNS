@@ -4,9 +4,11 @@ class DomainTemplatesController < ApplicationController
 
     before_filter :admin?
 
+    DEFAULT_PAGE_SIZE = 25
+
     def index
         @domain_templates = DomainTemplate.scoped
-        @domain_templates = @domain_templates.includes(:record_templates).paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
+        @domain_templates = @domain_templates.includes(:record_templates).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
         respond_with(@domain_templates) do |format|
             format.html { render :partial => 'list', :object => @domain_templates, :as => :domain_templates if request.xhr? }
         end
@@ -16,7 +18,7 @@ class DomainTemplatesController < ApplicationController
         @domain_template = DomainTemplate.find(params[:id])
         unless request.xhr?
             @soa_record_template = @domain_template.record_templates.where('record_type =  ?', 'SOA').first
-            @record_templates    = @domain_template.record_templates.where('record_type != ?', 'SOA').paginate(:page => params[:page], :per_page => 10)
+            @record_templates    = @domain_template.record_templates.where('record_type != ?', 'SOA').paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
         end
         respond_with(@domain_template)
     end
