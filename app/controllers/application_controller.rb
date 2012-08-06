@@ -4,11 +4,11 @@ class ApplicationController < ActionController::Base
     before_filter :authenticate_user!  # all pages require a login
     after_filter  :flash_headers
 
+    rescue_from Exception,                           :with => :render_500
     rescue_from ActiveRecord::RecordNotFound,        :with => :render_404
     rescue_from ActionController::RoutingError,      :with => :render_404
     rescue_from ActionController::UnknownController, :with => :render_404
     rescue_from AbstractController::ActionNotFound,  :with => :render_404
-    rescue_from Exception,                           :with => :render_500
 
     helper_method :admin?, :operator?, :admin_or_operator?, :viewer?
 
