@@ -96,7 +96,7 @@ class Domain < ActiveRecord::Base
     }
 
     def self.last_update
-        select('updated_at').order('updated_at DESC').limit(1).first.updated_at
+        select('updated_at').reorder('updated_at DESC').limit(1).first.updated_at
     end
 
     # instantiate soa_record association on domain creation (this is required as
