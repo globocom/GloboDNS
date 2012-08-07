@@ -19,7 +19,6 @@ class SOA < Record
     validates                  :name,    :presence => true, :hostname => true
 
     # before_validation :update_serial
-    before_validation :set_initial_serial, :on => :create
     before_validation :set_name
     before_validation :set_content
     after_initialize  :update_convenience_accessors
@@ -43,16 +42,17 @@ class SOA < Record
         end
     end
 
+    def initialize(*args)
+        super(*args)
+        self.serial = 0
+    end
+
     # hook into #reload
     def reload_with_content
         reload_without_content
         update_convenience_accessors
     end
     alias_method_chain :reload, :content
-
-    def set_initial_serial
-        self.serial = 0
-    end
 
     # def update_serial
     #     update_serial! if self.new_record? || self.changed?
