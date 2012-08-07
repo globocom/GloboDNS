@@ -53,7 +53,7 @@ class RecordsControllerTest < ActionController::TestCase
         assert_response :unprocessable_entity # no name
         assert          assigns(:record).errors.keys.include?(:name)
 
-        xhr :post, :create, { :record => params.merge!(:name => 'new_a_name'), :domain_id => domains(:dom1) }
+        xhr :post, :create, { :record => params.merge!(:name => 'new-a-name'), :domain_id => domains(:dom1) }
         assert_response :success
         assert_not_nil  assigns(:record)
         assert_empty    assigns(:record).errors
@@ -71,7 +71,7 @@ class RecordsControllerTest < ActionController::TestCase
 
     test 'create MX' do
         params = {
-            :name    => 'new_mx',
+            :name    => 'new-mx',
             :type    => 'MX',
             :content => records(:dom1_a1).name,
             :ttl     => 86402
@@ -92,7 +92,7 @@ class RecordsControllerTest < ActionController::TestCase
         assert         record.name    == params[:name]
         assert         record.type    == params[:type]
         assert         record.content == params[:content]
-        assert         record.ttl     == params[:ttl]
+        assert         record.ttl     == params[:ttl].to_s
         assert         record.prio    == params[:prio]
     end
 
@@ -108,7 +108,7 @@ class RecordsControllerTest < ActionController::TestCase
         assert_response :unprocessable_entity # no name
         assert          assigns(:record).errors.keys.include?(:name)
 
-        xhr :put, :update, { :record => params.merge!(:name => 'new_a_name') , :id => records(:dom1_a1) }
+        xhr :put, :update, { :record => params.merge!(:name => 'new-a-name') , :id => records(:dom1_a1) }
         assert_response :success
         assert_not_nil  assigns(:record)
         assert_empty    assigns(:record).errors
@@ -119,7 +119,7 @@ class RecordsControllerTest < ActionController::TestCase
         assert         record.name    == params[:name]
         assert         record.type    == params[:type]
         assert         record.content == params[:content]
-        assert         record.ttl     == params[:ttl]
+        assert         record.ttl     == params[:ttl].to_s
         assert         record.prio.blank?
     end
 

@@ -56,33 +56,54 @@ development: &devconf
         chroot:        '/usr/sbin/chroot'
 
 test:
-    bind_user:         <%= ENV['USER'] %>
-    bind_group:        'bind'
-    bind_master_host:  '127.0.0.1'
-    bind_master_port:  5353
-    bind_slave_host:   '127.0.0.1'
-    bind_slave_port:   5354
-    bind_config_file:  '/etc/named.conf'
-    bind_config_dir:   '/etc/named/'
-    bind_error_log:    '/var/log/globodns.error.log'
-    bind_chroot_dir:   <%= Rails.root.join('test', 'mock', 'named_chroot') %>
-    rndc_config_file:  <%= Rails.root.join('test', 'mock', 'named_chroot', 'etc', 'rndc.conf') %>
-    rndc_key:          'rndc-key'
-    named_conf_file:   'named.conf'
-    zones_dir:         'zones'
-    zones_file:        'zones.conf'
-    reverse_dir:       'reverse'
-    reverse_file:      'reverse.conf'
-    slaves_dir:        'slaves'
-    slaves_file:       'slaves.conf'
-    views_file:        'views.conf'
-    nameserver_host:   'localhost'
-    record_order:      [ SOA, NS, MX, A, AAAA, CNAME, LOC, SPF, SRV, PTR, TXT ]
+    bind_master_user:            <%= ENV['USER'] %>
+    bind_master_host:            'localbindmaster'
+    bind_master_ipaddr:          '127.0.0.1'
+    bind_master_port:            5353
+    bind_master_rndc_port:       5953
+    bind_master_chroot_dir:      <%= Rails.root.join('test', 'mock', 'chroot_master') %>
+    bind_master_zones_dir:       '/etc/named'
+    bind_master_named_conf_file: '/etc/named.conf'
+
+    bind_slave_user:             'bind'
+    bind_slave_host:             'localbindslave'
+    bind_slave_ipaddr:           '127.0.0.1'
+    bind_slave_port:             5354
+    bind_slave_rndc_port:        5954
+    bind_slave_chroot_dir:      <%= Rails.root.join('test', 'mock', 'chroot_slave') %>
+    bind_slave_zones_dir:        '/etc/named'
+    bind_slave_named_conf_file:  '/etc/named.conf'
+
+    bind_user:                   'bind'
+    bind_group:                  'bind'
+
+    export_master_chroot_dir:    <%= Rails.root.join('test', 'mock', 'exported_chroot_master') %>
+    export_slave_chroot_dir:     <%= Rails.root.join('test', 'mock', 'exported_chroot_slave') %>
+
+    rndc_config_file:       '/etc/rndc.conf'
+    rndc_key_name:          'rndc-key'
+
+    named_conf_file:        'named.conf'
+    zones_dir:              'zones'
+    zones_file:             'zones.conf'
+    reverse_dir:            'reverse'
+    reverse_file:           'reverse.conf'
+    slaves_dir:             'slaves'
+    slaves_file:            'slaves.conf'
+    views_file:             'views.conf'
+
+    record_order:           [ SOA, NS, MX, A, AAAA, CNAME, LOC, SPF, SRV, PTR, TXT ]
+    git_author:             'Globo DNS API <dnsapi@globoi.com>'
+    export_stamp_file:      <%= Rails.root.join('test', 'mock', 'bind9.export.txt') %>
+    export_delay:           300  # in seconds
+
     binaries:
         bind:          '/usr/sbin/named'
         named:         '/usr/sbin/named'
         rndc:          '/usr/sbin/rndc'
+        rndc_confgen:  '/usr/sbin/rndc-confgen'
         checkconf:     '/usr/sbin/named-checkconf'
+        dig:           '/usr/bin/dig'
         git:           '/usr/bin/git'
         zone2sql:      '/usr/bin/zone2sql'
         rsync:         '/usr/bin/rsync'
