@@ -70,6 +70,10 @@ class Domain < ActiveRecord::Base
     validates_presence_of      :master,     :if => :slave?
     validate                   :validate_recursive_subdomains
 
+    # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
+    # validation_scope :warnings do |scope|
+    # end
+
     # callbacks
     after_save :save_soa_record
 

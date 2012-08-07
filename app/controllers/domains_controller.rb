@@ -49,7 +49,7 @@ class DomainsController < ApplicationController
         end
 
         @domain.save
-        flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
+        # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
 
         respond_with(@domain) do |format|
             format.html { render :status  => @domain.valid? ? :ok     : :unprocessable_entity,
@@ -60,7 +60,7 @@ class DomainsController < ApplicationController
     def update
         @domain = Domain.find(params[:id])
         @domain.update_attributes(params[:domain])
-        flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
+        # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
 
         respond_with(@domain) do |format|
             format.html { render :status  => @domain.valid? ? :ok     : :unprocessable_entity,

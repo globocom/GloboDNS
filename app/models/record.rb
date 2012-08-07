@@ -19,6 +19,8 @@ class Record < ActiveRecord::Base
     validates_bind_time_format :ttl
     validate                   :validate_name_format
     validate                   :validate_recursive_subdomains
+
+    # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
         scope.validate :validate_same_name_and_type
     end
