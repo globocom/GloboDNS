@@ -17,7 +17,6 @@ module Util
         output = nil
         self.logger.info  "[GloboDns::Util::exec] #{args.join(' ')}"
         Rails.logger.info "[GloboDns::Util::exec] #{args.join(' ')}"
-        puts              "[GloboDns::Util::exec] #{args.join(' ')}"
         IO::popen(args) do |io|
             output = io.read
         end
@@ -29,12 +28,10 @@ module Util
     def self.exec!(command_id, *args)
         output = nil
         self.logger.info "[GloboDns::Util::exec!] #{args.join(' ')}"
-        puts "[GloboDns::Util::exec!] #{args.join(' ')}"
+        Rails.logger.info "[GloboDns::Util::exec!] #{args.join(' ')}"
         IO::popen(args) do |io|
             output = io.read
         end
-        puts "$?: #{$?}"
-        puts "$?.exitstatus: #{$?.exitstatus}"
         output
     rescue Exception => e
         "#{output}\n#{e}\n#{e.backtrace}"
