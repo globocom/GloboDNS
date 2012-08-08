@@ -41,6 +41,7 @@ development: &devconf
     git_author:             'Globo DNS API <dnsapi@globoi.com>'
     export_stamp_file:      <%= Rails.root.join('tmp', 'bind9.export.txt') %>
     export_delay:           300  # in seconds
+    mail_recipients:        [ 'Gustavo Gama <gama@igenesis.com.br>' ]
 
     binaries:
         bind:          '/usr/sbin/named'
@@ -96,6 +97,7 @@ test:
     git_author:             'Globo DNS API <dnsapi@globoi.com>'
     export_stamp_file:      <%= Rails.root.join('test', 'mock', 'bind9.export.txt') %>
     export_delay:           300  # in seconds
+    mail_recipients:        [ 'Gustavo Gama <gama@igenesis.com.br>' ]
 
     binaries:
         bind:          '/usr/sbin/named'

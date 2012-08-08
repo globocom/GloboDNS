@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'optparse'
+require File.expand_path('../../config/environment',  __FILE__)
 
 import_options = Hash.new
 opts = OptionParser.new do |opts|
@@ -26,6 +26,9 @@ opts = OptionParser.new do |opts|
     end
     opts.on '--export' do
         import_options[:export] = true
+    end
+    opts.on '--log-file FILE' do |file|
+        import_options[:logger] = ActiveSupport::BufferedLogger.new(file, ActiveSupport::BufferedLogger::INFO)
     end
     opts.on '--debug' do
         import_options[:debug] = true

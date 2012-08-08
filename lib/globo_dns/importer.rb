@@ -1,10 +1,13 @@
 require File.expand_path('../importer/util', __FILE__)
 
 module GloboDns
-class Importer
 
+class Importer
     include GloboDns::Config
     include GloboDns::Util
+    include SyslogHelper
+
+    attr_reader :logger
 
     def import(options = {})
         import_timestamp       = Time.now
@@ -12,10 +15,12 @@ class Importer
         master_named_conf_path = options.delete(:master_named_conf_file) || BIND_MASTER_NAMED_CONF_FILE
         slave_chroot_dir       = options.delete(:slave_chroot_dir)       || BIND_SLAVE_CHROOT_DIR
         slave_named_conf_path  = options.delete(:slave_named_conf_file)  || BIND_SLAVE_NAMED_CONF_FILE
+        @logger                = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
+        @logger.level          = Logger::DEBUG if options[:debug]
 
         if options[:remote]
             master_tmp_dir = Dir.mktmpdir
-            puts "[DEBUG] syncing master chroot dir to \"#{master_tmp_dir}\""
+            logger.debug "syncing master chroot dir to \"#{master_tmp_dir}\""
             exec('rsync remote master',
                  Binaries::RSYNC,
                  '--archive',
@@ -28,7 +33,7 @@ class Importer
             master_chroot_dir = master_tmp_dir
 
             slave_tmp_dir = Dir.mktmpdir
-            puts "[DEBUG] syncing slave chroot dir to \"#{slave_tmp_dir}\""
+            logger.debug "syncing slave chroot dir to \"#{slave_tmp_dir}\""
             exec('rsync remote slave',
                  Binaries::RSYNC,
                  '--archive',
@@ -42,10 +47,10 @@ class Importer
         end
 
         named_conf_path = File.join(master_chroot_dir, master_named_conf_path)
-        File.exists?(named_conf_path) or raise "[ERROR] master BIND configuration file not found (\"#{named_conf_path}\")"
+        File.exists?(named_conf_path) or raise "master BIND configuration file not found (\"#{named_conf_path}\")"
 
         named_conf_path = File.join(slave_chroot_dir, slave_named_conf_path)
-        File.exists?(named_conf_path) or raise "[ERROR] slave BIND configuration file not found (\"#{named_conf_path}\")"
+        File.exists?(named_conf_path) or raise "slave BIND configuration file not found (\"#{named_conf_path}\")"
 
         # test zone files
         exec_as_root('named-checkconf', Binaries::CHECKCONF, '-z', '-t', master_chroot_dir, master_named_conf_path)
@@ -59,12 +64,12 @@ class Importer
             # write canonical representation to a tmp file, for debugging purposes
             File.open('/tmp/globodns.canonical.master.named.conf.' + ('%x' % (rand * 999999)), 'w') do |file|
                 file.write(master_canonical_named_conf)
-                puts "[DEBUG] canonical master BIND configuration written to \"#{file.path}\""
+                logger.debug "canonical master BIND configuration written to \"#{file.path}\""
             end
 
             File.open('/tmp/globodns.canonical.slave.named.conf.' + ('%x' % (rand * 999999)), 'w') do |file|
                 file.write(slave_canonical_named_conf)
-                puts "[DEBUG] canonical slave BIND configuration written to \"#{file.path}\""
+                logger.debug "canonical slave BIND configuration written to \"#{file.path}\""
             end
         end
 
@@ -86,7 +91,7 @@ class Importer
         if options[:debug]
             File.open('/tmp/globodns.filtered.slave.named.conf.' + ('%x' % (rand * 999999)), 'w') do |file|
                 file.write(slave_config)
-                puts "[DEBUG] filtered slave BIND configuration written to \"#{file.path}\""
+                logger.debug "filtered slave BIND configuration written to \"#{file.path}\""
             end
         end
 
@@ -104,7 +109,7 @@ class Importer
             # write filtered/parsed representation to a tmp file, for debugging purposes
             File.open('/tmp/globodns.filtered.master.named.conf.' + ('%x' % (rand * 999999)), 'w') do |file|
                 file.write(master_config)
-                puts "[DEBUG] filtered master BIND configuration written to \"#{file.path}\""
+                logger.debug "filtered master BIND configuration written to \"#{file.path}\""
             end
         end
 
@@ -130,25 +135,25 @@ class Importer
             end
         end
         common_domains = domain_views.select { |domain_key, views|
-            puts "[select common domains] domain: #{domain_key}; views.size: #{views.size}; master_root.views.size: #{master_root.views.size}"
             views.size == master_root.views.size
         }
-        puts "common domains:\n    #{common_domains.keys.join("    \n")}"
 
         # save each view and its respective domains
         master_root.views.each do |view|
+            logger.info "saving view: #{view.model.inspect}"
             unless view.model.save
-                STDERR.puts("[ERROR] unable to save view #{view.name}: #{view.model.errors.full_messages}")
+                logger.error("unable to save view #{view.name}: #{view.model.errors.full_messages}")
                 next
             end
 
             while domain = view.domains.shift
                 domain.chroot_dir = master_chroot_dir
                 domain.bind_dir   = master_root.bind_dir
+                domain.logger     = logger
                 domain_views      = common_domains[domain.import_key]
 
                 unless domain.model && domain.model.soa_record
-                    STDERR.puts "[ERROR] unable to build DB model from zone statement: #{domain.to_str}"
+                    logger.error "unable to build DB model from zone statement: #{domain.to_str}"
                     next
                 end
 
@@ -160,22 +165,26 @@ class Importer
                     domain.model.view_id = view.model.id
                 end
 
-                puts "[view] saving domain: #{domain.model.inspect} (soa: #{domain.model.soa_record.inspect})"
-                domain.model.save or STDERR.puts("[ERROR] unable to save domain #{domain.model.name}: #{domain.model.errors.full_messages} (soa: #{domain.model.soa_record.errors.full_messages})")
+                logger.info "  saving domain: #{domain.model.inspect} (soa: #{domain.model.soa_record.inspect})"
+                domain.model.save or logger.error("unable to save domain #{domain.model.name}: #{domain.model.errors.full_messages} (soa: #{domain.model.soa_record.errors.full_messages})")
                 domain.reset_model
             end
         end
 
         # save domains outside any views
+        logger.info "viewless domains:"
         while domain = master_root.domains.shift
             domain.chroot_dir = master_chroot_dir
             domain.bind_dir   = master_root.bind_dir
+            domain.logger     = logger
+
             unless domain.model && domain.model.soa_record
-                STDERR.puts "[ERROR} unable to build DB model from zone statement: #{domain.to_str}"
+                logger.error "unable to build DB model from zone statement: #{domain.to_str}"
                 next
             end
-            puts "[standalone] saving domain: #{domain.model.inspect} (soa: #{domain.model.soa_record.inspect})"
-            domain.model.save or STDERR.puts("[ERROR] unable to save domain #{domain.model.name}: #{domain.model.errors.full_messages} (soa: #{domain.model.soa_record.errors.full_messages})")
+
+            logger.info "  saving domain: #{domain.model.inspect} (soa: #{domain.model.soa_record.inspect})"
+            domain.model.save or logger.error("unable to save domain #{domain.model.name}: #{domain.model.errors.full_messages} (soa: #{domain.model.soa_record.errors.full_messages})")
             domain.reset_model
         end
 
@@ -183,14 +192,14 @@ class Importer
         if master_rndc_key
             write_rndc_conf(EXPORT_MASTER_CHROOT_DIR, master_rndc_key, BIND_MASTER_IPADDR, BIND_MASTER_RNDC_PORT)
         else
-            STDERR.puts "[WARNING] no rndc key found in master's named.conf"
+            logger.warn "no rndc key found in master's named.conf"
             FileUtils.rm(File.join(EXPORT_MASTER_CHROOT_DIR, RNDC_CONFIG_FILE))
         end
 
         if slave_rndc_key
             write_rndc_conf(EXPORT_SLAVE_CHROOT_DIR, slave_rndc_key, BIND_SLAVE_IPADDR, BIND_SLAVE_RNDC_PORT)
         else
-            STDERR.puts "[WARNING] no rndc key found in slave's named.conf"
+            logger.warn "no rndc key found in slave's named.conf"
             FileUtils.rm(File.join(EXPORT_SLAVE_CHROOT_DIR, RNDC_CONFIG_FILE))
         end
 
@@ -200,11 +209,18 @@ class Importer
                                               :all                   => true,
                                               :keep_tmp_dir          => true,
                                               :abort_on_rndc_failure => false,
-                                              :logger                => Logger.new(STDOUT))
+                                              :logger                => logger)
         else
             save_config(master_config, EXPORT_MASTER_CHROOT_DIR, BIND_MASTER_ZONES_DIR, BIND_MASTER_NAMED_CONF_FILE, import_timestamp)
             save_config(slave_config,  EXPORT_SLAVE_CHROOT_DIR,  BIND_SLAVE_ZONES_DIR,  BIND_SLAVE_NAMED_CONF_FILE,  import_timestamp)
         end
+
+        syslog_info('import successful')
+        Notifier.import_successful(logger.string).deliver
+    rescue Exception => e
+        syslog_error 'import failed'
+        Notifier.import_failed("#{e}\n\n#{logger.string}\n\nBacktrace:\n#{e.backtrace.join("\n")}").deliver
+        raise e
     # ensure
         # FileUtils.remove_entry_secure master_tmp_dir unless master_tmp_dir.nil? || @options[:keep_tmp_dir] == true
         # FileUtils.remove_entry_secure slave_tmp_dir  unless slave_tmp_dir.nil?  || @options[:keep_tmp_dir] == true
@@ -234,9 +250,9 @@ class Importer
 
             exec('git add', Binaries::GIT, 'add', File.basename(named_conf_file))
             commit_output = exec('git commit', Binaries::GIT, 'commit', "--author=#{GIT_AUTHOR}", "--date=#{timestamp}", '-m', '"[GloboDns::importer]"')
-            puts "[GloboDns::Importer] changes committed:\n#{commit_output}"
+            logger.info "import changes committed:\n#{commit_output}"
         end
     end
-
 end # class Importer
+
 end # module GloboDns

@@ -57,15 +57,11 @@ class Bind9Controller < ApplicationController
     end
 
     def run_export
-        GloboDns::Exporter.new.export_all(params['master-named-conf'],
-                                          params['slave-named-conf'],
-                                          :all                   => params['all'] == 'true',
-                                          :keep_tmp_dir          => true,
-                                          :logger                => Logger.new(sio = StringIO.new('', 'w')))
-                                          # :abort_on_rndc_failure => false,
-        [ sio.string, :ok ]
+        exporter = GloboDns::Exporter.new
+        exporter.export_all(params['master-named-conf'], params['slave-named-conf'], :all => params['all'] == 'true', :keep_tmp_dir => true) # :abort_on_rndc_failure => false,
+        [ exporter.logger.string, :ok ]
     rescue Exception => e
-        logger.error "[ERROR] export failed: #{e}\n#{sio ? sio.string : ''}\nbacktrace:\n#{e.backtrace.join("\n")}"
+        logger.error "[ERROR] export failed: #{e}\n#{exporter.logger.string}\nbacktrace:\n#{e.backtrace.join("\n")}"
         [ e.to_s, :unprocessable_entity ]
     ensure
         File.unlink(EXPORT_STAMP_FILE) rescue nil

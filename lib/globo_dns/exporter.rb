@@ -7,6 +7,9 @@ class RevertableError < ::Exception; end
 class Exporter
     include GloboDns::Config
     include GloboDns::Util
+    include SyslogHelper
+
+    attr_reader :logger
 
     CONFIG_START_TAG = '### BEGIN GloboDns ###'
     CONFIG_END_TAG   = '### END GloboDns ###'
@@ -16,7 +19,8 @@ class Exporter
     ]
 
     def export_all(master_named_conf_content, slave_named_conf_content, options = {})
-        @logger                     = options.delete(:logger) || Rails.logger
+        @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
+
         lock_tables                 = options.delete(:lock_tables)
         reset_repository_on_failure = options.delete(:reset_repository_on_failure)
         options.merge!({ :lock_tables => false, :reset_repository_on_failure => false })
@@ -26,11 +30,18 @@ class Exporter
         Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ") unless (lock_tables == false)
         export_master(master_named_conf_content)
         export_slave(slave_named_conf_content)
+
+        syslog_info('export successful')
+        Notifier.export_successful(@logger.string).deliver
     rescue Exception => e
         if @reset_repository_data && @options[:reset_repository_on_failure] != false
             @logger.error(e.to_s + e.backtrace.join("\n"))
             @reset_repository_data.each {|data| reset_repository(data) }
         end
+
+        syslog_error('export failed')
+        Notifier.export_failed("#{e}\n\n#{@logger.string}\n\nBacktrace:\n#{e.backtrace.join("\n")}").deliver
+
         raise e
     ensure
         Domain.connection.execute('UNLOCK TABLES') unless (lock_tables == false)

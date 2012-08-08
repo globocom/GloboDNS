@@ -598,3 +598,10 @@ en:
 # user_mailer
   message_user_activated: "Your account has been activated!"
   message_user_activate_account: "Please activate your new account"
+
+
+### Mailers
+  mail_subject_import_successful: '[DNSAPI][INFO] Import successful'
+  mail_subject_import_failed: '[DNSAPI][ERROR] Import failed'
+  mail_subject_export_successful: '[DNSAPI][INFO] Export successful'
+  mail_subject_export_failed: '[DNSAPI][ERROR] Export failed'

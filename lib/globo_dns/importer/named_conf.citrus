@@ -213,6 +213,10 @@ grammar NamedConf
                 @bind_dir = dir
             end
 
+            def logger=(logger)
+                @logger = logger
+            end
+
             def model
                 @domain ||= begin
                     domain = Domain.new(:name => self.name, :authority_type => Domain::const_get(self.type.upcase))
@@ -239,8 +243,8 @@ grammar NamedConf
 
                         invalid_records, domain.records = domain.records.partition { |record| !record.valid? }
                         invalid_records.each do |invalid_record|
-                            STDERR.puts "[WARNING] skipping invalid Record \"#{invalid_record.inspect}\" from domain: \"#{domain.name}\"; errors: #{invalid_record.errors.full_messages}"
-                        end
+                            @logger.warn "skipping invalid Record \"#{invalid_record.inspect}\" from domain: \"#{domain.name}\"; errors: #{invalid_record.errors.full_messages}"
+                        end if @logger
 
                     elsif domain.slave?
                         domain.master = self.master
@@ -254,8 +258,6 @@ grammar NamedConf
                     end
 
                     domain
-                rescue Exception => e
-                    STDERR.puts "#{e}\n#{e.backtrace.join("\n")}"
                 end
             end
 
