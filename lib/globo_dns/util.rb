@@ -15,9 +15,8 @@ module Util
     # raises and exception if the return code is not '0' (success)
     def self.exec(command_id, *args)
         output = nil
-        self.logger.info  "[GloboDns::Util::exec] #{args.join(' ')}"
-        Rails.logger.info "[GloboDns::Util::exec] #{args.join(' ')}"
-        IO::popen(args) do |io|
+        self.logger.info "[GloboDns::Util::exec] #{args.join(' ')}"
+        IO::popen(args + [:err => [:child, :out]]) do |io|
             output = io.read
         end
         $?.exitstatus == 0 or raise ExitStatusError.new("[ERROR] '#{command_id}' failed: #{$?} (#{output})")
@@ -28,8 +27,7 @@ module Util
     def self.exec!(command_id, *args)
         output = nil
         self.logger.info "[GloboDns::Util::exec!] #{args.join(' ')}"
-        Rails.logger.info "[GloboDns::Util::exec!] #{args.join(' ')}"
-        IO::popen(args) do |io|
+        IO::popen(args + [:err => [:child, :out]]) do |io|
             output = io.read
         end
         output
