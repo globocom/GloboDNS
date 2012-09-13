@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120619223235) do
+ActiveRecord::Schema.define(:version => 20120913150000) do
 
   create_table "audits", :force => true do |t|
     t.integer  "auditable_id"
@@ -33,6 +33,7 @@ ActiveRecord::Schema.define(:version => 20120619223235) do
   add_index "audits", ["auditable_id", "auditable_type"], :name => "auditable_index"
   add_index "audits", ["created_at"], :name => "index_audits_on_created_at"
   add_index "audits", ["user_id", "user_type"], :name => "user_index"
+  add_index "audits", ["user_id"], :name => "fk_audits_users1"
 
   create_table "domain_templates", :force => true do |t|
     t.string   "name"
@@ -41,6 +42,8 @@ ActiveRecord::Schema.define(:version => 20120619223235) do
     t.datetime "updated_at", :null => false
     t.integer  "view_id"
   end
+
+  add_index "domain_templates", ["view_id"], :name => "fk_domain_templates_views2"
 
   create_table "domains", :force => true do |t|
     t.integer  "user_id"
@@ -59,6 +62,8 @@ ActiveRecord::Schema.define(:version => 20120619223235) do
   end
 
   add_index "domains", ["name"], :name => "index_domains_on_name"
+  add_index "domains", ["user_id"], :name => "fk_domains_users2"
+  add_index "domains", ["view_id"], :name => "fk_domains_views2"
 
   create_table "record_templates", :force => true do |t|
     t.integer  "domain_template_id"
@@ -71,6 +76,8 @@ ActiveRecord::Schema.define(:version => 20120619223235) do
     t.datetime "updated_at",         :null => false
   end
 
+  add_index "record_templates", ["domain_template_id"], :name => "fk_record_templates_domain_templates2"
+
   create_table "records", :force => true do |t|
     t.integer  "domain_id",                  :null => false
     t.string   "name",                       :null => false
@@ -82,6 +89,7 @@ ActiveRecord::Schema.define(:version => 20120619223235) do
     t.datetime "updated_at",                 :null => false
   end
 
+  add_index "records", ["domain_id"], :name => "fk_records_domains2"
   add_index "records", ["domain_id"], :name => "index_records_on_domain_id"
   add_index "records", ["name", "type"], :name => "index_records_on_name_and_type"
   add_index "records", ["name"], :name => "index_records_on_name"
