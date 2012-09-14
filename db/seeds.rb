@@ -17,6 +17,7 @@ if Rails.env == "development"
 	domain_template.soa_record_template.retry      = '7200'
 	domain_template.soa_record_template.expire     = '604800'
 	domain_template.soa_record_template.minimum    = '10800'
+	domain_template.soa_record_template.ttl        = '86400'
 	domain_template.save!
 
 	# Clean and re-populate the domain template
@@ -27,13 +28,15 @@ if Rails.env == "development"
 	  :domain_template => domain_template,
 	  :record_type     => 'NS',
 	  :name            => '@',
-	  :content         => 'ns1.%ZONE%'
+	  :content         => 'ns1.%ZONE%',
+	  :ttl             => 86400
 	})
 	RecordTemplate.create!({
 	  :domain_template => domain_template,
 	  :record_type     => 'NS',
 	  :name            => '@',
-	  :content         => 'ns2.%ZONE%'
+	  :content         => 'ns2.%ZONE%',
+	  :ttl             => 86400
 	})
 
 	# Assorted A records
@@ -41,32 +44,37 @@ if Rails.env == "development"
 	  :domain_template => domain_template,
 	  :record_type     => 'A',
 	  :name            => 'ns1',
-	  :content         => '10.0.0.1'
+	  :content         => '10.0.0.1',
+	  :ttl             => 86400
 	})
 	RecordTemplate.create!({
 	  :domain_template => domain_template,
 	  :record_type     => 'A',
 	  :name            => 'ns2',
-	  :content         => '10.0.0.2'
+	  :content         => '10.0.0.2',
+	  :ttl             => 86400
 	})
 	RecordTemplate.create!({
 	  :domain_template => domain_template,
 	  :record_type     => 'A',
 	  :name            => 'host1',
-	  :content         => '10.0.0.3'
+	  :content         => '10.0.0.3',
+	  :ttl             => 86400
 	})
 	RecordTemplate.create!({
 	  :domain_template => domain_template,
 	  :record_type     => 'A',
 	  :name            => 'mail',
-	  :content         => '10.0.0.4'
+	  :content         => '10.0.0.4',
+	  :ttl             => 86400
 	})
 	RecordTemplate.create!({
 	  :domain_template => domain_template,
 	  :record_type     => 'MX',
 	  :name            => '@',
 	  :content         => 'mail',
-	  :prio            => 10
+	  :prio            => 10,
+	  :ttl             => 86400
 	})
 
 	# And add our example.com records
