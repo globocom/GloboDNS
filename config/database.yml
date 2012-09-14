@@ -4,9 +4,9 @@
 development:
   adapter:  mysql2
   database: globodns
-  socket:   /var/lib/mysql/mysql.sock
-  username: globodns
-  password: "globodns@globoi.com"
+  hostname: localhost
+  username: root
+  password: 
 
 # Warning: The database defined as 'test' will be erased and
 # re-generated from your development database when you run 'rake'.
@@ -14,9 +14,9 @@ development:
 test:
   adapter:  mysql2
   database: globodns_test
-  socket:   /var/lib/mysql/mysql.sock
-  username: globodns
-  password: "globodns@globoi.com"
+  hostname: localhost
+  username: root
+  password: 
 
 production:
   adapter:  mysql2
