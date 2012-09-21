@@ -25,3 +25,12 @@ production:
   username: globodns
   password: "globodns@globoi.com"
 
+<%
+  additional_environments = '/mnt/dbmigrate/dnsapi/dnsapi.yml'
+  if File.readable?(additional_environments)
+%>
+<%= File.read(additional_environments) %>
+<% else %>
+# no file <%= additional_environments %>
+<% end %>
+
