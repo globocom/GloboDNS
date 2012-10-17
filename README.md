@@ -4,8 +4,8 @@ DNSAPI
 Welcome to DNSAPI
 -----------------
 
-DNSAPI is a Ruby on Rails application designed to manage domain name services based on [Bind](https://www.isc.org/software/bind) with a RESTful api and using MySQL as persistent storage backend. 
-The project is a adaptation of [PowerDNS-on-rails](https://github.com/kennethkalmer/powerdns-on-rails) developed by 
+DNSAPI is a Ruby on Rails application designed to manage domain name services based on [Bind](https://www.isc.org/software/bind) with a RESTful API and using MySQL as persistent storage backend. 
+The project is an adaptation of [PowerDNS-on-rails](https://github.com/kennethkalmer/powerdns-on-rails) developed by 
 [Kenneth Kalmer](kenneth.kalmer@gmail.com) plus some features like UI, job queue and Bind specific importation script.
 
 # Overview
