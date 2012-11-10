@@ -1,8 +1,11 @@
 class ApplicationController < ActionController::Base
-    protect_from_forgery
+    HTTP_AUTH_TOKEN_HEADER = 'X-Auth-Token'
 
+    before_filter :set_token_param_from_http_headers
     before_filter :authenticate_user!  # all pages require a login
     after_filter  :flash_headers
+
+    protect_from_forgery
 
     rescue_from Exception,                           :with => :render_500
     rescue_from ActiveRecord::RecordNotFound,        :with => :render_404
@@ -29,6 +32,10 @@ class ApplicationController < ActionController::Base
     end
 
     protected
+
+    def set_token_param_from_http_headers
+        params[:auth_token] = request.headers[HTTP_AUTH_TOKEN_HEADER] if params[:auth_token].blank? && request.headers[HTTP_AUTH_TOKEN_HEADER].present?
+    end
 
     def flash_headers
         return unless request.xhr?
