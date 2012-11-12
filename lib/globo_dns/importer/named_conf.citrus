@@ -219,7 +219,7 @@ grammar NamedConf
 
             def model
                 @domain ||= begin
-                    domain = Domain.new(:name => self.name, :authority_type => Domain::const_get(self.type.upcase))
+                    domain = Domain.new(:name => self.name, :authority_type => Domain::const_get(self.type.upcase), :importing => true)
 
                     if domain.master?
                         abs_path = Pathname.new(self.file).absolute? ? File.join(@chroot_dir, file) : File.join(@chroot_dir, @bind_dir, file)
@@ -231,7 +231,7 @@ grammar NamedConf
                         zone_file.all_records.collect do |record_attrs|
                             klass  = record_attrs.delete(:type).upcase.constantize
                             serial = record_attrs.delete(:serial)
-                            params = record_attrs.slice!(:class)
+                            params = record_attrs.slice!(:class).merge(:importing => true)
                             record = klass.new(params)
                             if klass == SOA
                                 record.serial     = serial

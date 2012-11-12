@@ -10,6 +10,8 @@ class Record < ActiveRecord::Base
 
     belongs_to :domain, :inverse_of => :records
 
+    attr_accessor :importing
+
     audited :associated_with => :domain
     self.non_audited_columns.delete(self.inheritance_column) # audit the 'type' column
 
@@ -17,8 +19,8 @@ class Record < ActiveRecord::Base
     validates_presence_of      :name
     validates_presence_of      :content
     validates_bind_time_format :ttl
-    validate                   :validate_name_format
-    validate                   :validate_recursive_subdomains
+    validate                   :validate_name_format,          :unless => :importing?
+    validate                   :validate_recursive_subdomains, :unless => :importing?
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
@@ -191,6 +193,10 @@ class Record < ActiveRecord::Base
             prio = (self.type == 'MX' || (self.prio && (self.prio > 0)) ? self.prio : '')
 
         output.printf(format, self.name, self.ttl.to_s || '', self.type, prio || '', content)
+    end
+
+    def importing?
+        !!importing
     end
 
     def validate_name_format

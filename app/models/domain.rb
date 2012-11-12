@@ -24,7 +24,7 @@ class Domain < ActiveRecord::Base
         delegate field.to_sym, (field.to_s + '=').to_sym, :to => :soa_record
     end
 
-    attr_accessor :import_file_name
+    attr_accessor :importing
 
     audited :protect => false
     has_associated_audits
@@ -68,7 +68,7 @@ class Domain < ActiveRecord::Base
     validates_bind_time_format :ttl,        :if => :master?
     validates_associated       :soa_record, :if => :master?
     validates_presence_of      :master,     :if => :slave?
-    validate                   :validate_recursive_subdomains
+    validate                   :validate_recursive_subdomains, :unless => :importing?
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     # validation_scope :warnings do |scope|
@@ -124,6 +124,10 @@ class Domain < ActiveRecord::Base
 
     def addressing_type
         read_attribute('addressing_type').presence || set_addressing_type
+    end
+
+    def importing?
+        !!importing
     end
 
     # expand our validations to include SOA details
@@ -200,10 +204,6 @@ class Domain < ActiveRecord::Base
         end
     ensure
         output.close
-    end
-
-    def import_key
-        self.name.to_s + ':' + self.import_file_name.to_s
     end
 
     def validate_recursive_subdomains
