@@ -28,6 +28,7 @@ class Importer
                  '--no-group',
                  '--no-perms',
                  '--verbose',
+                 '--exclude=session.key',
                  "#{BIND_MASTER_USER}@#{BIND_MASTER_HOST}:#{File.join(master_chroot_dir, '')}",
                  master_tmp_dir)
             master_chroot_dir = master_tmp_dir
@@ -41,6 +42,7 @@ class Importer
                  '--no-group',
                  '--no-perms',
                  '--verbose',
+                 '--exclude=session.key',
                  "#{BIND_SLAVE_USER}@#{BIND_SLAVE_HOST}:#{File.join(slave_chroot_dir, '')}",
                  slave_tmp_dir)
             slave_chroot_dir = slave_tmp_dir
