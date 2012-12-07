@@ -24,4 +24,7 @@ GloboDns::Application.routes.draw do
     match '/audits(/:action(/:id))' => 'audits#index', :as => :audits, :via => :get
 
     root :to => 'dashboard#index'
+    
+    get 'healthcheck' => lambda { |env| [200, {"Content-Type" => "text/plain"}, ["WORKING"]] }
+    
 end
