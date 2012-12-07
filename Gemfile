@@ -9,9 +9,9 @@ gem 'audited-activerecord', '~> 3.0.0.rc1'
 gem 'devise'
 gem 'awesome_print'
 gem 'responders'
-gem 'syslogger'
 gem 'citrus'
 gem 'validation_scopes'
+gem 'SyslogLogger', '1.4.1'
 
 group :assets do
     gem 'sass-rails',   '~> 3.2.3'
@@ -24,6 +24,7 @@ group :development, :test do
     # gem 'rspec-rails', '~> 2.6.0'
     # gem 'RedCloth', '>= 4.1.1'
 end
+
 
 group :test do
     gem 'tconsole'
