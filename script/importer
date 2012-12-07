@@ -33,8 +33,18 @@ opts = OptionParser.new do |opts|
     opts.on '--debug' do
         import_options[:debug] = true
     end
+    opts.on '--force' do
+        import_options[:force] = true
+    end
 end
 opts.parse!
 
-require File.expand_path('../../config/environment',  __FILE__)
+if not import_options[:force]
+  print "WARNING!!! This command will overwrite all database content. Are you sure? (y/N): "
+  if STDIN.getc != "y"
+    puts "Aborting"
+    exit 1
+  end
+end
+
 GloboDns::Importer.new.import(import_options)
