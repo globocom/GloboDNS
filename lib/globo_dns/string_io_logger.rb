@@ -1,6 +1,7 @@
 module GloboDns
 
-class StringIOLogger < Rails.logger.class
+class StringIOLogger < ActiveSupport::TaggedLogging
+  
     def initialize(logger)
         super(logger)
         @sio        = StringIO.new('', 'w')
