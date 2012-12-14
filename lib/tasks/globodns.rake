@@ -28,7 +28,9 @@ namespace :globodns do
                 FileUtils.mkdir_p(File.join(base, 'var', 'run', 'named'))
                 FileUtils.mkdir_p(File.join(base, 'var', 'tmp'))
 
-                FileUtils.ln_s(Pathname.new(zones_dir).join(Pathname.new(named_conf_file).basename).relative_path_from(Pathname.new(zones_dir).dirname), File.join(base, named_conf_file))
+                Dir.chdir(File.join(base, 'etc')) do
+                  FileUtils.ln_s(File.join('..', zones_dir, File.basename(named_conf_file)), File.join(base, named_conf_file))
+                end
                 Dir.chdir(File.join(base, zones_dir)) do
                     FileUtils.touch(File.basename(named_conf_file))
                     exec('git init',   'git', 'init', '.')
