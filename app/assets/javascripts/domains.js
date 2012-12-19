@@ -60,13 +60,19 @@ $(document).ready(function() {
 	$('select#domain_authority_type').live('change', function (evt) {
 		if ($(this).val() == 'M') {
 			$(this).closest('tbody').find('tr.master').removeClass('hidden-by-authority-type');
-			$(this).closest('tbody').find('tr').not('.master').addClass('hidden-by-authority-type');
+			$(this).closest('tbody').find('tr').not('.master').addClass('hidden-by-authority-type')
+			$(this).closest('tbody').find('tr.master').find('input').removeAttr('disabled');
+			$(this).closest('tbody').find('tr').not('.master').find('input').val('').attr('disabled', 'disabled');
 		} else if ($(this).val() == 'S') {
-			$(this).closest('tbody').find('tr.slave').removeClass('hidden-by-authority-type');
-			$(this).closest('tbody').find('tr').not('.slave').addClass('hidden-by-authority-type');
+			$(this).closest('tbody').find('tr.slave').removeClass('hidden-by-authority-type').attr('disabled', 'enabled');
+			$(this).closest('tbody').find('tr').not('.slave').addClass('hidden-by-authority-type').attr('disabled', 'disabled');
+			$(this).closest('tbody').find('tr.slave').find('input').removeAttr('disabled');
+			$(this).closest('tbody').find('tr').not('.slave').find('input').val('').attr('disabled', 'disabled');
 		} else if ($(this).val() == 'F') {
-			$(this).closest('tbody').find('tr.forward').removeClass('hidden-by-authority-type');
-			$(this).closest('tbody').find('tr').not('.forward').addClass('hidden-by-authority-type');
+			$(this).closest('tbody').find('tr.forward').removeClass('hidden-by-authority-type').attr('disabled', 'enabled');
+			$(this).closest('tbody').find('tr').not('.forward').addClass('hidden-by-authority-type').attr('disabled', 'disabled');
+			$(this).closest('tbody').find('tr.forward').find('input').removeAttr('disabled');
+			$(this).closest('tbody').find('tr').not('.forward').find('input').val('').attr('disabled', 'disabled');
 		}
 		$(this).blur();
 	});

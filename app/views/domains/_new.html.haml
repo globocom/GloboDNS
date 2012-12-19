@@ -43,9 +43,9 @@
           %td= f.label :master, t(:label_domain_master_address)
           %td= f.text_field :master
           %td= help_icon('help-master')
-        %tr#master-address.notemplate.forward
-          %td= f.label :master, t(:label_domain_forwarder)
-          %td= f.text_field :master
+        %tr#forward-address.notemplate.forward
+          %td= f.label :forwarder, t(:label_domain_forwarder)
+          %td= f.text_field :forwarder
           %td= help_icon('help-forwarder')
         %tr.notemplate.master.slave.forward
           %td= f.label :view, t(:label_domain_view)

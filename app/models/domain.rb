@@ -127,6 +127,11 @@ class Domain < ActiveRecord::Base
         read_attribute('addressing_type').presence || set_addressing_type
     end
 
+    # aliases to mascarade the fact that we're reusing the "master" attribute
+    # to hold the "forwarder" values of domains with "forward" type
+    def forwarder; self.master; end
+    def forwarder=(val); self.master = val; end
+
     def importing?
         !!importing
     end
@@ -185,7 +190,7 @@ class Domain < ActiveRecord::Base
         str << "#{indent}    type       #{self.authority_type_str.downcase};\n"
         str << "#{indent}    file       \"#{File.join(zones_dir, zonefile_path)}\";\n" unless self.forward?
         str << "#{indent}    masters    { #{self.master.strip.chomp(';')}; };\n"       if self.slave?   && self.master
-        str << "#{indent}    forwarders { #{self.master.strip.chomp(';')}; };\n"       if self.forward? && self.master
+        str << "#{indent}    forwarders { #{self.forwarder.strip.chomp(';')}; };\n"    if self.forward? && self.master
         str << "#{indent}};\n\n"
         str
     end
