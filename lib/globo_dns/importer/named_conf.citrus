@@ -201,17 +201,16 @@ grammar NamedConf
             def master
                 @master ||= begin
                     masters_statement = zone_statements[:zone_masters_statement].last
-                    masters_statement ? masters_statement.value.sub(/[\s;]+$/, '') : nil
+                    masters_statement ? masters_statement.value.gsub(/\s*;\s*/s, '; ').strip : nil
                 end
             end
 
             def forwarder
                 @master ||= begin
                     forwarders_statement = zone_statements[:zone_forwarders_statement].last
-                    forwarders_statement ? forwarders_statement.value.sub(/[\s;]+$/, '') : nil
+                    forwarders_statement ? forwarders_statement.value.gsub(/\s*;\s*/s, '; ').strip : nil
                 end
             end
-
 
             def chroot_dir=(dir)
                 @chroot_dir = dir
