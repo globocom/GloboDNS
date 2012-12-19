@@ -11,7 +11,7 @@ class User < ActiveRecord::Base
            # :recoverable,
            # :confirmable,
 
-    ROLES = define_enum([:ADMIN, :OPERATOR, :VIEWER], :role)
+    ROLES = define_enum(:role, [:ADMIN, :OPERATOR, :VIEWER])
 
     # before_save :check_auth_tokens
     before_save   :ensure_authentication_token

@@ -12,8 +12,8 @@ class Domain < ActiveRecord::Base
     include BindTimeFormatHelper
 
     # define helper constants and methods to handle domain types
-    AUTHORITY_TYPES  = define_enum([:MASTER, :SLAVE, :FORWARD, :STUB, :HINT], :authority_type)
-    ADDRESSING_TYPES = define_enum([:REVERSE, :NORMAL], :addressing_type)
+    AUTHORITY_TYPES  = define_enum(:authority_type,  [:MASTER, :SLAVE, :FORWARD, :STUB, :HINT], ['M', 'S', 'F', 'U', 'H'])
+    ADDRESSING_TYPES = define_enum(:addressing_type, [:REVERSE, :NORMAL], ['R', 'N'])
 
     REVERSE_DOMAIN_SUFFIXES = ['.in-addr.arpa', '.ip6.arpa']
 
