@@ -1,18 +1,20 @@
 $(document).ready(function() {
 	// ------------------- BIND -------------------
-	$('.reload-bind-config-button, .bind-export-button').live('click', function () {
+	$('.reload-bind-config-button').live('click', function () {
 		$.rails.handleRemote($(this));
 		return false;
-	});
-
-	$('.reload-bind-config-button').live('ajax:success', function (evt, data, statusStr, xhr) {
+	}).live('ajax:success', function (evt, data, statusStr, xhr) {
 		$('textarea#named_conf').val(data);
 		return false;
 	}).live('ajax:error', function (evt, xhr, statusStr, error) {
 		alert("[ERROR] reload failed");
 	});
 
-	$('.bind-export-button').live('ajax:beforeSend', function (xhr, settings) {
+	$('.bind-export-button').live('click', function () {
+		$(this).data('params', $(this).data('params') + '&' + $('textarea#master-named-conf').serialize() + '&' + $('textarea#slave-named-conf').serialize());
+		$.rails.handleRemote($(this));
+		return false;
+	}).live('ajax:beforeSend', function (xhr, settings) {
 		$('.export-output').hide();
 		$('.export-output').html();
 	}).live('ajax:success', function (evt, data, statusStr, xhr) {
