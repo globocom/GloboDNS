@@ -13,6 +13,10 @@
       %tr
         %td= label_tag :master, t(:label_domain_master_server)
         %td= domain.master
+    - if domain.forward?
+      %tr
+        %td= label_tag :forwarder, t(:label_domain_forwarder)
+        %td= domain.forwarder
     - else
       %tr
         %td= label_tag :ttl, t(:label_domain_ttl)
