@@ -31,8 +31,17 @@ class View < ActiveRecord::Base
     def slaves_dir
         self.name + '-' + GloboDns::Config::SLAVES_DIR
     end
+
     def slaves_file
         self.name + '-' + GloboDns::Config::SLAVES_FILE
+    end
+
+    def forwards_dir
+        self.name + '-' + GloboDns::Config::FORWARDS_DIR
+    end
+
+    def forwards_file
+        self.name + '-' + GloboDns::Config::FORWARDS_FILE
     end
 
     def reverse_dir
@@ -71,11 +80,13 @@ class View < ActiveRecord::Base
         str << "\n"
         str << "#{indent}    include \"#{File.join(zones_dir, self.zones_file)}\";\n"
         str << "#{indent}    include \"#{File.join(zones_dir, self.slaves_file)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, self.forwards_file)}\";\n"
         str << "#{indent}    include \"#{File.join(zones_dir, self.reverse_file)}\";\n"
         str << "\n"
         str << "#{indent}    # common zones\n"
         str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::ZONES_FILE)}\";\n"
         str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::SLAVES_FILE)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::FORWARDS_FILE)}\";\n"
         str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::REVERSE_FILE)}\";\n"
         str << "#{indent}};\n\n"
         str

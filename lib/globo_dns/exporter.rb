@@ -106,13 +106,15 @@ class Exporter
 
         # export each view-less domain group to a separate file
         if @slave == true
-            export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,   ZONES_DIR,   [], true)
-            export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE, REVERSE_DIR, [], true)
-            export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,  SLAVES_DIR,  Domain.noview.nonslave)
+            export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    [], true)
+            export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  [], true)
+            export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.nonslave)
+            export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, [], true)
         else
-            export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,   ZONES_DIR,   Domain.noview.master)
-            export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE, REVERSE_DIR, Domain.noview._reverse)
-            export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,  SLAVES_DIR,  Domain.noview.slave)
+            export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    Domain.noview.master)
+            export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  Domain.noview._reverse)
+            export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.slave)
+            export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward)
         end
 
         # remove files that older than the export timestamp; these are the
@@ -164,6 +166,7 @@ class Exporter
             else
                 file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::ZONES_FILE)}\";\n"
                 file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::SLAVES_FILE)}\";\n"
+                file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::FORWARDS_FILE)}\";\n"
                 file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::REVERSE_FILE)}\";\n"
             end
             file.puts CONFIG_END_TAG
@@ -179,13 +182,15 @@ class Exporter
             View.all.each do |view|
                 file.puts view.to_bind9_conf(zones_root_dir)
                 if @slave == true
-                    export_domain_group(chroot_dir, zones_root_dir, view.zones_file,   view.zones_dir,   [],                    true)
-                    export_domain_group(chroot_dir, zones_root_dir, view.reverse_file, view.reverse_dir, [],                    true)
-                    export_domain_group(chroot_dir, zones_root_dir, view.slaves_file,  view.slaves_dir,  view.domains.nonslave, view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir, zones_root_dir, view.zones_file,    view.zones_dir,    [],                    true)
+                    export_domain_group(chroot_dir, zones_root_dir, view.reverse_file,  view.reverse_dir,  [],                    true)
+                    export_domain_group(chroot_dir, zones_root_dir, view.slaves_file,   view.slaves_dir,   view.domains.nonslave, view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir, zones_root_dir, view.forwards_file, view.forwards_dir, [],                    true)
                 else
-                    export_domain_group(chroot_dir, zones_root_dir, view.zones_file,   view.zones_dir,   view.domains.master,   view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir, zones_root_dir, view.reverse_file, view.reverse_dir, view.domains._reverse, view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir, zones_root_dir, view.slaves_file,  view.slaves_dir,  view.domains.slave,    view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir, zones_root_dir, view.zones_file,    view.zones_dir,    view.domains.master,   view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir, zones_root_dir, view.reverse_file,  view.reverse_dir,  view.domains._reverse, view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir, zones_root_dir, view.slaves_file,   view.slaves_dir,   view.domains.slave,    view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir, zones_root_dir, view.forwards_file, view.forwards_dir, view.domains.forward,  view.updated_since?(@last_commit_date))
                 end
             end
         end
@@ -219,7 +224,7 @@ class Exporter
                     domain.master += " port #{BIND_MASTER_PORT}" if defined?(BIND_MASTER_PORT)
                 end
                 file.puts domain.to_bind9_conf(zones_root_dir)
-                File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zones_root_dir, domain.zonefile_path)) unless domain.slave?
+                File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zones_root_dir, domain.zonefile_path)) unless domain.slave? || domain.forward?
             end
         end
 
@@ -281,9 +286,11 @@ class Exporter
                             "--include=#{VIEWS_FILE}",
                             "--include=*#{ZONES_FILE}",
                             "--include=*#{SLAVES_FILE}",
+                            "--include=*#{FORWARDS_FILE}",
                             "--include=*#{REVERSE_FILE}",
                             "--include=*#{ZONES_DIR}/***",
                             "--include=*#{SLAVES_DIR}/***",
+                            "--include=*#{FORWARDS_DIR}/***",
                             "--include=*#{REVERSE_DIR}/***",
                             '--exclude=*',
                             abs_tmp_zones_root_dir,
@@ -324,9 +331,11 @@ class Exporter
                             "--include=#{VIEWS_FILE}",
                             "--include=*#{ZONES_FILE}",
                             "--include=*#{SLAVES_FILE}",
+                            "--include=*#{FORWARDS_FILE}",
                             "--include=*#{REVERSE_FILE}",
                             "--include=*#{ZONES_DIR}/***",
                             "--include=*#{SLAVES_DIR}/***",
+                            "--include=*#{FORWARDS_DIR}/***",
                             "--include=*#{REVERSE_DIR}/***",
                             '--exclude=*',
                             abs_repository_zones_dir,

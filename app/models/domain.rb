@@ -81,6 +81,7 @@ class Domain < ActiveRecord::Base
     default_scope         order("#{self.table_name}.name")
     scope :master,        where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", NORMAL)
     scope :slave,         where("#{self.table_name}.authority_type   = ?", SLAVE)
+    scope :forward,       where("#{self.table_name}.authority_type   = ?", FORWARD)
     scope :nonslave,      where("#{self.table_name}.authority_type  != ?", SLAVE)
     scope :reverse,       where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", REVERSE)
     scope :nonreverse,    where("#{self.table_name}.addressing_type  = ?", NORMAL)
@@ -165,13 +166,14 @@ class Domain < ActiveRecord::Base
     end
 
     def zonefile_path
-
         dir = if self.slave?
-                  self.view ? self.view.slaves_dir  : GloboDns::Config::SLAVES_DIR
+                  self.view ? self.view.slaves_dir   : GloboDns::Config::SLAVES_DIR
+              elsif self.forward?
+                  self.view ? self.view.forwards_dir : GloboDns::Config::FORWARDS_DIR
               elsif self.reverse?
-                  self.view ? self.view.reverse_dir : GloboDns::Config::REVERSE_DIR
+                  self.view ? self.view.reverse_dir  : GloboDns::Config::REVERSE_DIR
               else
-                  self.view ? self.view.zones_dir   : GloboDns::Config::ZONES_DIR
+                  self.view ? self.view.zones_dir    : GloboDns::Config::ZONES_DIR
               end
 
         File.join(dir, 'db.' + self.name)
@@ -180,15 +182,16 @@ class Domain < ActiveRecord::Base
     def to_bind9_conf(zones_dir, indent = '')
         view = self.view || View.first
         str  = "#{indent}zone \"#{self.name}\" {\n"
-        str << "#{indent}    type    #{self.slave? ? 'slave' : 'master'};\n"
-        str << "#{indent}    file    \"#{File.join(zones_dir, zonefile_path)}\";\n"
-        str << "#{indent}    masters { #{self.master.strip.chomp(';')}; };\n" if self.slave?
+        str << "#{indent}    type       #{self.authority_type_str.downcase};\n"
+        str << "#{indent}    file       \"#{File.join(zones_dir, zonefile_path)}\";\n" unless self.forward?
+        str << "#{indent}    masters    { #{self.master.strip.chomp(';')}; };\n"       if self.slave?   && self.master
+        str << "#{indent}    forwarders { #{self.master.strip.chomp(';')}; };\n"       if self.forward? && self.master
         str << "#{indent}};\n\n"
         str
     end
 
     def to_zonefile(output)
-        logger.warn "[WARN] called 'to_zonefile' on slave domain (#{self.id})" and return if slave?
+        logger.warn "[WARN] called 'to_zonefile' on slave/forward domain (#{self.id})" and return if slave? || forward?
 
         output = File.open(output, 'w') if output.is_a?(String) || output.is_a?(Pathname)
 
@@ -203,7 +206,7 @@ class Domain < ActiveRecord::Base
             record.to_zonefile(output, format)
         end
     ensure
-        output.close
+        output.close if output.is_a?(File)
     end
 
     def validate_recursive_subdomains

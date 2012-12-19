@@ -201,9 +201,17 @@ grammar NamedConf
             def master
                 @master ||= begin
                     masters_statement = zone_statements[:zone_masters_statement].last
-                    masters_statement ? masters_statement.value : nil
+                    masters_statement ? masters_statement.value.sub(/[\s;]+$/, '') : nil
                 end
             end
+
+            def forwarder
+                @master ||= begin
+                    forwarders_statement = zone_statements[:zone_forwarders_statement].last
+                    forwarders_statement ? forwarders_statement.value.sub(/[\s;]+$/, '') : nil
+                end
+            end
+
 
             def chroot_dir=(dir)
                 @chroot_dir = dir
@@ -249,9 +257,10 @@ grammar NamedConf
                     elsif domain.slave?
                         domain.master = self.master
 
-                    elsif domain.stub?
+					elsif domain.forward?
+                        domain.master = self.forwarder
 
-                    elsif domain.forward?
+                    elsif domain.stub?
 
                     elsif domain.hint?
 
@@ -266,7 +275,7 @@ grammar NamedConf
             end
 
             def import_key
-                self.name + ':' + self.file
+                self.name + ':' + (self.file || '') # forward zones have no "file" option
             end
         }
     end
@@ -301,10 +310,12 @@ grammar NamedConf
 
     rule masters_statements
         ((ipaddr (space 'port' space port)? (space 'key' space key_name)? space ';' space)+)
-        # {
-            #port ? "#{ipaddr.value} port #{port.value}" : ipaddr
-        #}
     end
+
+    rule forwarders_statements
+        ((ipaddr (space 'port' space port)? (space 'key' space key_name)? space ';' space)+)
+    end
+
 
     rule options_statements
         (directory_statement | statement)*
@@ -379,7 +390,7 @@ grammar NamedConf
     end
 
     rule zone_statements
-        ((zone_type_statement | zone_file_statement | zone_masters_statement | statement) space)*
+        ((zone_type_statement | zone_file_statement | zone_masters_statement | zone_forwarders_statement | statement) space)*
     end
 
     rule zone_type_statement
@@ -407,6 +418,12 @@ grammar NamedConf
     rule zone_masters_statement
         ('masters' space '{' space masters_statements space '}' space ';') {
             masters_statements.value.strip_quotes
+        }
+    end
+
+    rule zone_forwarders_statement
+        ('forwarders' space '{' space forwarders_statements space '}' space ';') {
+            forwarders_statements.value.strip_quotes
         }
     end
 
