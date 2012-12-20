@@ -221,7 +221,8 @@ class Exporter
                     domain = domain.clone
                     domain.slave!
                     domain.master  = "#{BIND_MASTER_IPADDR}"
-                    domain.master += " port #{BIND_MASTER_PORT}" if defined?(BIND_MASTER_PORT)
+                    domain.master += " port #{BIND_MASTER_PORT}"     if defined?(BIND_MASTER_PORT)
+                    domain.master += " key #{domain.query_key_name}" if domain.query_key_name
                 end
                 file.puts domain.to_bind9_conf(zones_root_dir)
                 File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zones_root_dir, domain.zonefile_path)) unless domain.slave? || domain.forward?

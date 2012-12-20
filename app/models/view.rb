@@ -61,7 +61,24 @@ class View < ActiveRecord::Base
 
     def to_bind9_conf(zones_dir, indent = '')
         match_clients = self.clients.present? ? self.clients.split(/\s*;\s*/) : Array.new
+
         if self.key.present?
+            # use some "magic" to figure out the local address used to connect
+            # to the master server
+            # local_ipaddr = %x(ip route get #{GloboDns::Config::BIND_MASTER_IPADDR})
+            local_ipaddr = IO::popen([GloboDns::Config::Binaries::IP, 'route', 'get', GloboDns::Config::BIND_MASTER_IPADDR]) { |io| io.read }
+            local_ipaddr = local_ipaddr[/src (#{RecordPatterns::IPV4}|#{RecordPatterns::IPV6})/, 1]
+
+            # then, exclude this address from the list of "match-client"
+            # addresses to force the view match using the "key" property
+            match_clients.delete("!#{local_ipaddr}")
+            match_clients.unshift("!#{local_ipaddr}")
+
+            # additionally, exclude the slave's server address (to enable it to
+            # transfer the zones from the view that doesn't match its IP address)
+            match_clients.delete("!#{GloboDns::Config::BIND_SLAVE_IPADDR}")
+            match_clients.unshift("!#{GloboDns::Config::BIND_SLAVE_IPADDR}")
+
             key_str = "key \"#{self.key_name}\""
             match_clients.delete(key_str)
             match_clients.unshift(key_str)
@@ -76,7 +93,7 @@ class View < ActiveRecord::Base
         str << "#{indent}    attach-cache       \"globodns-shared-cache\";\n"
         str << "\n"
         str << "#{indent}    match-clients      { #{match_clients.uniq.join('; ')}; };\n" if match_clients.present?
-        str << "#{indent}    match-destinations { #{self.destinations}; };\n"        if self.destinations.present?
+        str << "#{indent}    match-destinations { #{self.destinations}; };\n"             if self.destinations.present?
         str << "\n"
         str << "#{indent}    include \"#{File.join(zones_dir, self.zones_file)}\";\n"
         str << "#{indent}    include \"#{File.join(zones_dir, self.slaves_file)}\";\n"
