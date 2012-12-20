@@ -109,7 +109,7 @@ class Exporter
             export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    [], true)
             export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  [], true)
             export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.master_or_reverse)
-            export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, [], true)
+            eexport_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward)
         else
             export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    Domain.noview.master)
             export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  Domain.noview._reverse)
