@@ -20,13 +20,13 @@ class DomainTemplate < ActiveRecord::Base
     # scope :user, lambda { |user| user.admin? ? nil : where(:user_id => user.id) }
 
     def soa_record_template
-        super || (self.soa_record_template = RecordTemplate.new('record_type' => 'SOA').tap{ |soa|
+        super || (self.soa_record_template = RecordTemplate.new('record_type' => 'SOA', 'ttl' => self.ttl).tap{ |soa|
             if self.new_record?
                 soa.domain_template = self
             else
                 soa.domain_template_id = self.id
             end
-        })
+        })  
     end
 
     # Build a new domain using +self+ as a template. +domain+ should be valid domain
