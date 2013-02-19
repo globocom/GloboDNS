@@ -17,8 +17,8 @@ class DomainTemplatesController < ApplicationController
     def show
         @domain_template = DomainTemplate.find(params[:id])
         unless request.xhr?
-            @soa_record_template = @domain_template.record_templates.where('record_type =  ?', 'SOA').first
-            @record_templates    = @domain_template.record_templates.where('record_type != ?', 'SOA').paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
+            @soa_record_template = @domain_template.record_templates.where('type  = ?', 'SOA').first
+            @record_templates    = @domain_template.record_templates.where('type != ?', 'SOA').paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
         end
         respond_with(@domain_template)
     end

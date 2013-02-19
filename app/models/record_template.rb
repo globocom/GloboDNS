@@ -1,9 +1,14 @@
 class RecordTemplate < ActiveRecord::Base
     belongs_to :domain_template, :inverse_of => :record_templates
 
+    self.inheritance_column = '__unknown__' # don't use "type" as inheritance column
+
     # General validations
     validates_presence_of :domain_template, :name
-    validates_presence_of :record_type
+    validates_presence_of :type
+
+    attr_protected :domain_template_id
+    protected_attributes.delete('type') # 'type' is a special inheritance column use by Rails and not accessible by default;
 
     before_validation     :build_content, :if => :soa?
     before_validation     :set_soa_name,  :if => :soa?
@@ -11,7 +16,7 @@ class RecordTemplate < ActiveRecord::Base
     after_initialize      :update_convenience_accessors
     validate              :validate_record_template
 
-    scope :without_soa, where('record_type != ?', 'SOA')
+    scope :without_soa, where('type != ?', 'SOA')
 
     # We need to cope with the SOA convenience
     SOA::SOA_FIELDS.each do |field|
@@ -23,10 +28,6 @@ class RecordTemplate < ActiveRecord::Base
         Record.record_types
     end
 
-    def type
-        self.record_type
-    end
-
     # hook into #reload
     def reload_with_content
         reload_without_content
@@ -34,10 +35,10 @@ class RecordTemplate < ActiveRecord::Base
     end
     alias_method_chain :reload, :content
 
-    # Convert this template record into a instance +record_type+ with the
+    # Convert this template record into a instance +type+ with the
     # attributes of the template copied over to the instance
     def build(domain_name = nil)
-        klass       = self.record_type.constantize
+        klass       = self.type.constantize
         attr_names  = klass.accessible_attributes.to_a.any? ? klass.accessible_attributes : klass.column_names
         attr_names -= klass.protected_attributes.to_a
         attr_names -= ['content'] if soa?
@@ -59,14 +60,14 @@ class RecordTemplate < ActiveRecord::Base
     end
 
     def soa?
-        self.record_type == 'SOA'
+        self.type == 'SOA'
     end
 
     # Here we perform some magic to inherit the validations from the "destination"
     # model without any duplication of rules. This allows us to simply extend the
     # appropriate record and gain those validations in the templates
     def validate_record_template #:nodoc:
-        unless self.record_type.blank?
+        unless self.type.blank?
             record = build
             record.errors.each do |attr, message|
                 # skip associations we don't have, validations we don't care about
@@ -78,7 +79,7 @@ class RecordTemplate < ActiveRecord::Base
     end
 
     def to_partial_path
-        case record_type
+        case type
         when 'SOA'; "#{self.class.name.underscore.pluralize}/soa_record_template"
         else;       "#{self.class.name.underscore.pluralize}/record_template"
         end

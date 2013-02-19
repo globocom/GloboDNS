@@ -29,7 +29,8 @@ class RecordTemplatesController < ApplicationController
     end
 
     def create
-        @record_template = RecordTemplate.new(params[:record_template].merge('domain_template_id' => params[:domain_template_id]))
+        @record_template = RecordTemplate.new(params[:record_template])
+        @record_template.domain_template_id = params[:domain_template_id]
         @record_template.save
         respond_with(@record_template) do |format|
             format.html { render :status  => @record_template.valid? ? :ok              : :unprocessable_entity,

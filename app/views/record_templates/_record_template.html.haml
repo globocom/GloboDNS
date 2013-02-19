@@ -6,7 +6,7 @@
 %tr[ record_template, :show ]{:class => "#{even_odd} show-record-template"}
   %td.name=    record_template.name
   %td.ttl=     record_template.ttl
-  %td.type=    record_template.record_type
+  %td.type=    record_template.type
   %td.prio=    record_template.prio
   %td.content= record_template.content
   %td.actions
@@ -17,7 +17,7 @@
   = form_for(record_template, :as => 'record_template', :url => record_template_path(record_template)) do |f|
     %td.name=    f.text_field :name
     %td.ttl=     f.text_field :ttl
-    %td.type=    record_template.record_type
+    %td.type=    record_template.type
     %td.prio=    f.text_field :prio
     %td.content= f.text_field :content
     %td.actions

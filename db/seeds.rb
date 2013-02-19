@@ -21,19 +21,19 @@ if Rails.env == "development"
 	domain_template.save!
 
 	# Clean and re-populate the domain template
-	domain_template.record_templates.where('record_type != ?', 'SOA').destroy_all
+	domain_template.record_templates.where('type != ?', 'SOA').destroy_all
 
 	# NS records
 	RecordTemplate.create!({
 	  :domain_template => domain_template,
-	  :record_type     => 'NS',
+	  :type            => 'NS',
 	  :name            => '@',
 	  :content         => 'ns1.%ZONE%',
 	  :ttl             => 86400
 	})
 	RecordTemplate.create!({
 	  :domain_template => domain_template,
-	  :record_type     => 'NS',
+	  :type            => 'NS',
 	  :name            => '@',
 	  :content         => 'ns2.%ZONE%',
 	  :ttl             => 86400
@@ -42,35 +42,35 @@ if Rails.env == "development"
 	# Assorted A records
 	RecordTemplate.create!({
 	  :domain_template => domain_template,
-	  :record_type     => 'A',
+	  :type            => 'A',
 	  :name            => 'ns1',
 	  :content         => '10.0.0.1',
 	  :ttl             => 86400
 	})
 	RecordTemplate.create!({
 	  :domain_template => domain_template,
-	  :record_type     => 'A',
+	  :type            => 'A',
 	  :name            => 'ns2',
 	  :content         => '10.0.0.2',
 	  :ttl             => 86400
 	})
 	RecordTemplate.create!({
 	  :domain_template => domain_template,
-	  :record_type     => 'A',
+	  :type            => 'A',
 	  :name            => 'host1',
 	  :content         => '10.0.0.3',
 	  :ttl             => 86400
 	})
 	RecordTemplate.create!({
 	  :domain_template => domain_template,
-	  :record_type     => 'A',
+	  :type            => 'A',
 	  :name            => 'mail',
 	  :content         => '10.0.0.4',
 	  :ttl             => 86400
 	})
 	RecordTemplate.create!({
 	  :domain_template => domain_template,
-	  :record_type     => 'MX',
+	  :type            => 'MX',
 	  :name            => '@',
 	  :content         => 'mail',
 	  :prio            => 10,

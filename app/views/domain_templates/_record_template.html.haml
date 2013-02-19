@@ -2,7 +2,7 @@
 %tr[ record_template, :show ]
   %td{ :width => 250 }= record_template.name
   %td{ :width => 50 }= record_template.ttl
-  %td{ :width => 30 }= record_template.record_type
+  %td{ :width => 30 }= record_template.type
   %td{ :width => 30 }= record_template.prio
   %td{ :width => 250 }= record_template.content unless record_template.soa?
   %td{ :width => 36 }
@@ -77,9 +77,9 @@
         - else
           %td{ :width => 250 }= f.text_field :name, :size => 15
           %td{ :width => 50 }= f.text_field :ttl, :size => 3
-          %td{ :width => 30 }= record_template.record_type
+          %td{ :width => 30 }= record_template.type
           %td{ :width => 30 }
-            - if record_template.record_type == 'MX'
+            - if record_template.type == 'MX'
               = f.text_field :prio, :size => 1
           %td{ :width => 250 }= f.text_field :content, :size => 15
 

@@ -1,6 +1,6 @@
 class DomainTemplate < ActiveRecord::Base
     has_many :record_templates, :dependent => :destroy, :inverse_of => :domain_template
-    has_one  :soa_record_template, :class_name => 'RecordTemplate', :conditions => { 'record_type' => 'SOA' }, :inverse_of => :domain_template
+    has_one  :soa_record_template, :class_name => 'RecordTemplate', :conditions => { 'type' => 'SOA' }, :inverse_of => :domain_template
 
     validates_presence_of     :name
     validates_uniqueness_of   :name
@@ -15,18 +15,18 @@ class DomainTemplate < ActiveRecord::Base
     end
 
     # scopes
-    scope :with_soa, joins(:record_templates).where('record_templates.record_type = ?', 'SOA')
+    scope :with_soa, joins(:record_templates).where('record_templates.type = ?', 'SOA')
     default_scope order('name')
     # scope :user, lambda { |user| user.admin? ? nil : where(:user_id => user.id) }
 
     def soa_record_template
-        super || (self.soa_record_template = RecordTemplate.new('record_type' => 'SOA', 'ttl' => self.ttl).tap{ |soa|
+        super || (self.soa_record_template = RecordTemplate.new('type' => 'SOA').tap{ |soa|
             if self.new_record?
                 soa.domain_template = self
             else
                 soa.domain_template_id = self.id
             end
-        })  
+        })
     end
 
     # Build a new domain using +self+ as a template. +domain+ should be valid domain
