@@ -76,6 +76,7 @@ class ApplicationController < ActionController::Base
     end
 
     def render_500(exception)
+        logger.info "[Internal Server Error] exception: #{exception}\n#{exception.backtrace.join("\n")}"
         respond_to do |format|
             format.json { render :status => :internal_server_error, :json => { :error => exception.message, :backtrace => exception.backtrace } }
             format.html { raise(exception) }
