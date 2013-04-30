@@ -185,7 +185,7 @@ class Exporter
                     export_domain_group(chroot_dir, zones_root_dir, view.zones_file,    view.zones_dir,    [],                             true)
                     export_domain_group(chroot_dir, zones_root_dir, view.reverse_file,  view.reverse_dir,  [],                             true)
                     export_domain_group(chroot_dir, zones_root_dir, view.slaves_file,   view.slaves_dir,   view.domains.master_or_reverse, view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir, zones_root_dir, view.forwards_file, view.forwards_dir, [],                             true)
+                    export_domain_group(chroot_dir, zones_root_dir, view.forwards_file, view.forwards_dir, view.domains.forward,                             true)
                 else
                     export_domain_group(chroot_dir, zones_root_dir, view.zones_file,    view.zones_dir,    view.domains.master,   view.updated_since?(@last_commit_date))
                     export_domain_group(chroot_dir, zones_root_dir, view.reverse_file,  view.reverse_dir,  view.domains._reverse, view.updated_since?(@last_commit_date))
@@ -217,7 +217,7 @@ class Exporter
             # of *all* non-slave domains, so that we may use the mtime as a criteria
             # to identify the zonefiles that have been removed from BIND's config
             domains.each do |domain|
-                if @slave
+                if @slave and not domain.forward?
                     domain = domain.clone
                     domain.slave!
                     domain.master  = "#{BIND_MASTER_IPADDR}"

@@ -190,7 +190,7 @@ class Domain < ActiveRecord::Base
         str << "#{indent}    type       #{self.authority_type_str.downcase};\n"
         str << "#{indent}    file       \"#{File.join(zones_dir, zonefile_path)}\";\n" unless self.forward?
         str << "#{indent}    masters    { #{self.master.strip.chomp(';')}; };\n"       if self.slave?   && self.master
-        str << "#{indent}    forwarders { #{self.forwarder.strip.chomp(';')}; };\n"    if self.forward? && self.master
+        str << "#{indent}    forwarders { #{self.forwarder.strip.chomp(';')}; };\n"    if self.forward? && (self.master || self.slave?)
         str << "#{indent}};\n\n"
         str
     end
