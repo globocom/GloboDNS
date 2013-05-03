@@ -41,7 +41,9 @@ class Bind9Controller < ApplicationController
     end
 
     def schedule_export
-        FileUtils.touch(EXPORT_STAMP_FILE)
+        if not File.exists?(EXPORT_STAMP_FILE)
+            FileUtils.touch(EXPORT_STAMP_FILE)
+        end
         @output = I18n.t('export_scheduled', :timestamp => export_timestamp(File.stat(EXPORT_STAMP_FILE).mtime + EXPORT_DELAY).to_formatted_s(:short))
         respond_to do |format|
             format.html { render :status => status, :layout => false } if request.xhr?
