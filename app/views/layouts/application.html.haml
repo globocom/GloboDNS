@@ -10,6 +10,8 @@
       .header
         - if current_user && (current_user.admin? || current_user.operator?)
           %div.status
+            %span= t(:logged_user, :user => current_user.login)
+            %br
             %span= t(:last_export, :timestamp => last_export_timestamp.to_formatted_s(:short))
             %span= t(:pending_updates, :count => num_pending_updates)
         %h1

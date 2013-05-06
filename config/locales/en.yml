@@ -138,6 +138,7 @@ en:
   help_search: "Enter terms to search by domain name. Use the * character as wildcard."
   last_export: "Last export: %{timestamp}"
   pending_updates: "%{count} changes pending"
+  logged_user: "Logged as %{user}"
 
 
 # Sign in
