@@ -104,6 +104,8 @@ class Exporter
         # export all views
         export_views(tmp_dir, zones_root_dir)
 
+        @new_zones = []
+
         # export each view-less domain group to a separate file
         if @slave == true
             export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    [], true)
@@ -111,8 +113,8 @@ class Exporter
             export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.master_or_reverse)
             export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward)
         else
-            export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    Domain.noview.master)
-            export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  Domain.noview._reverse)
+            @new_zones += export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    Domain.noview.master)
+            @new_zones += export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  Domain.noview._reverse)
             export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.slave)
             export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward)
         end
@@ -130,7 +132,7 @@ class Exporter
         sync_repository_and_commit(tmp_dir, chroot_dir, zones_root_dir, named_conf_file)
 
         # sync files in chroot repository to remote dir on the actual BIND server
-        sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data)
+        sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, @new_zones)
     rescue Exception => e
         if @reset_repository_data && @options[:reset_repository_on_failure] != false
             @logger.error(e.to_s + e.backtrace.join("\n"))
@@ -202,6 +204,7 @@ class Exporter
         abs_zones_root_dir = File.join(chroot_dir, zones_root_dir)
         abs_file_name      = File.join(abs_zones_root_dir, file_name)
         abs_dir_name       = File.join(abs_zones_root_dir, dir_name)
+        array_new_zones = []
 
         File.exists?(abs_dir_name) or FileUtils.mkdir(abs_dir_name)
 
@@ -209,6 +212,9 @@ class Exporter
             # dump zonefile of updated domains
             updated_domains = export_all_domains ? domains : domains.updated_since(@last_commit_date)
             updated_domains.each do |domain|
+                if not export_all_domains and not @slave
+                    array_new_zones << "#{domain.name}"
+                end
                 @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated?: #{domain.records.updated_since(@last_commit_date).first})"
                 domain.to_zonefile(File.join(abs_zones_root_dir, domain.zonefile_path)) unless domain.slave? || @slave
             end
@@ -231,6 +237,7 @@ class Exporter
 
         File.utime(@touch_timestamp, @touch_timestamp, abs_dir_name)
         File.utime(@touch_timestamp, @touch_timestamp, abs_file_name)
+        return array_new_zones
     end
 
     def remove_untouched_zonefiles(dir, export_timestamp)
@@ -316,7 +323,9 @@ class Exporter
         @logger.info "[GloboDns::Exporter][INFO] git repository new HEAD: #{new_head}"
     end
 
-    def sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data)
+    def sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, new_zones)
+
+        @to_reload = new_zones
         abs_repository_zones_dir = File.join(chroot_dir, zones_root_dir, '')
         rsync_output = exec('remote rsync',
                             Binaries::RSYNC,
@@ -351,13 +360,16 @@ class Exporter
                             '--verbose',
                             File.join(abs_repository_zones_dir, File.basename(named_conf_file)),
                             "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:named_conf_file])}")
-
-        reload_output = reload_bind_conf(chroot_dir)
-        @logger.info "[GloboDns::Exporter][INFO] bind configuration reloaded:\n#{reload_output}"
+    
+        @to_reload ||= []
+        @to_reload.each do |zone|
+            reload_output = reload_bind_conf(chroot_dir, zone)
+            @logger.info "[GloboDns::Exporter][INFO] bind configuration reloaded:\n#{reload_output}"
+        end
     end
 
-    def reload_bind_conf(chroot_dir)
-        cmd_args = ['rndc reload', Binaries::RNDC, '-c', File.join(chroot_dir, RNDC_CONFIG_FILE), '-y', RNDC_KEY_NAME, 'reload']
+    def reload_bind_conf(chroot_dir, zone)
+        cmd_args = ['rndc reload', Binaries::RNDC, '-c', File.join(chroot_dir, RNDC_CONFIG_FILE), '-y', RNDC_KEY_NAME, 'reload'] << zone
         if @options[:abort_on_rndc_failure] == false
             exec!(*cmd_args)
         else
