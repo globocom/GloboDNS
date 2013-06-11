@@ -292,12 +292,12 @@ class Exporter
                                 # "--include=#{NAMED_CONF_FILE}",
                                 "--include=#{File.basename(named_conf_file)}",
                                 #"--include=#{VIEWS_FILE}",
-                                #"--include=*#{ZONES_FILE}",
+                                "--include=*#{ZONES_FILE}",
                                 "--include=*#{SLAVES_FILE}",
                                 "--include=*#{FORWARDS_FILE}",
                                 "--include=*#{REVERSE_FILE}",
-                                #"--include=*#{ZONES_DIR}/***",
-                                #"--include=*#{SLAVES_DIR}/***",
+                                "--include=*#{ZONES_DIR}/***",
+                                "--include=*#{SLAVES_DIR}/***",
                                 "--include=*#{FORWARDS_DIR}/***",
                                 "--include=*#{REVERSE_DIR}/***",
                                 '--exclude=*',
@@ -365,12 +365,12 @@ class Exporter
                                 '--no-perms',
                                 "--include=#{File.basename(named_conf_file)}",
                                 #"--include=#{VIEWS_FILE}",
-                                #'--include=*#{ZONES_FILE}",
+                                "--include=*#{ZONES_FILE}",
                                 "--include=*#{SLAVES_FILE}",
                                 "--include=*#{FORWARDS_FILE}",
                                 "--include=*#{REVERSE_FILE}",
-                                #"--include=*#{ZONES_DIR}/***",
-                                #"--include=*#{SLAVES_DIR}/***",
+                                "--include=*#{ZONES_DIR}/***",
+                                "--include=*#{SLAVES_DIR}/***",
                                 "--include=*#{FORWARDS_DIR}/***",
                                 "--include=*#{REVERSE_DIR}/***",
                                 '--exclude=*',
@@ -422,15 +422,24 @@ class Exporter
                                 "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:named_conf_file])}")
         end
 
-        @to_reload ||= []
-        @to_reload.each do |zone|
+        if @to_reload.size < 10 and not @to_reload.empty?
+            @to_reload.each do |zone|
+                reload_output = reload_bind_conf(chroot_dir, zone)
+                @logger.info "[GloboDns::Exporter][INFO] bind configuration reloaded:\n#{reload_output}"
+            end
+        else
+            zone = []
             reload_output = reload_bind_conf(chroot_dir, zone)
             @logger.info "[GloboDns::Exporter][INFO] bind configuration reloaded:\n#{reload_output}"
         end
     end
 
     def reload_bind_conf(chroot_dir, zone)
-        cmd_args = ['rndc reload', Binaries::RNDC, '-c', File.join(chroot_dir, RNDC_CONFIG_FILE), '-y', RNDC_KEY_NAME, 'reload'] << zone
+        if zone.empty?
+            cmd_args = ['rndc reload', Binaries::RNDC, '-c', File.join(chroot_dir, RNDC_CONFIG_FILE), '-y', RNDC_KEY_NAME, 'reload']
+        else
+            cmd_args = ['rndc reload', Binaries::RNDC, '-c', File.join(chroot_dir, RNDC_CONFIG_FILE), '-y', RNDC_KEY_NAME, 'reload'] << zone
+        end        
         if @options[:abort_on_rndc_failure] == false
             exec!(*cmd_args)
         else
