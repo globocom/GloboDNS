@@ -180,8 +180,11 @@ class Domain < ActiveRecord::Base
               else
                   self.view ? self.view.zones_dir    : GloboDns::Config::ZONES_DIR
               end
-
-        File.join(dir, 'db.' + self.name)
+        if self.slave?
+            File.join(dir, 'dbs.' + self.name)
+        else            
+            File.join(dir, 'db.' + self.name)
+        end
     end
 
     def to_bind9_conf(zones_dir, indent = '')
