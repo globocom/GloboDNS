@@ -205,6 +205,7 @@ class Exporter
         abs_file_name      = File.join(abs_zones_root_dir, file_name)
         abs_dir_name       = File.join(abs_zones_root_dir, dir_name)
         array_new_zones = []
+        n_zones = []
 
         File.exists?(abs_dir_name) or FileUtils.mkdir(abs_dir_name)
 
@@ -213,10 +214,20 @@ class Exporter
             updated_domains = export_all_domains ? domains : domains.updated_since(@last_commit_date)
             updated_domains.each do |domain|
                 if not export_all_domains and not @slave
-                    array_new_zones << "#{domain.name}"
+                    n_zones << domain
                 end
                 @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated?: #{domain.records.updated_since(@last_commit_date).first})"
                 domain.to_zonefile(File.join(abs_zones_root_dir, domain.zonefile_path)) unless domain.slave? || @slave
+            end
+
+            #If one zone is new, we need a full reload to bind.
+            n_zones.each do |z|
+                if z.created_at > last_export_timestamp
+                    array_new_zones = []
+                    break
+                else
+                    array_new_zones << "#{z.name}"
+                end
             end
 
             # write entries to index file (<domain_type>.conf) and update 'mtime'
