@@ -30,8 +30,6 @@
           %li= link_to((t :layout_menu_home), root_url)
           - if current_user
             %li= link_to((t :layout_menu_domains), domains_path)
-            - if current_user.admin?
-              %li= link_to((t :layout_menu_views), views_path)
             - if current_user.admin? || current_user.operator?
               %li= link_to((t :layout_menu_templates), domain_templates_path)
               %li= link_to((t :layout_menu_logs), audits_path)
