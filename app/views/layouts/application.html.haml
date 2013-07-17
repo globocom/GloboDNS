@@ -11,6 +11,7 @@
         - if current_user
           %div.status
             %span= t(:logged_user, :user => current_user.login)
+            %span= link_to((t :change_passord), edit_user_registration_path)
             %br
             %span= t(:last_export, :timestamp => last_export_timestamp.to_formatted_s(:short))
             %span= t(:pending_updates, :count => num_pending_updates)
