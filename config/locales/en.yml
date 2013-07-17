@@ -139,6 +139,7 @@ en:
   last_export: "Last export: %{timestamp}"
   pending_updates: "%{count} changes pending"
   logged_user: "Logged as %{user}"
+  change_passord: "Change password"
 
 
 # Sign in
