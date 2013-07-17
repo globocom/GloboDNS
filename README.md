@@ -32,3 +32,7 @@ The DNSAPI was designed to work with Bind in a passive way. Once you've configur
 	Full audit record of all changes
 	Macros for easy bulk updating of domains
 	Support for Bind MASTER, NATIVE & SLAVE record types
+
+# Running Local
+
+In order to run dnsapi local on your machine you need to create the path tmp/named/chroot_master/etc/named in your rails app dir.
