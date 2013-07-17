@@ -2,7 +2,7 @@ class UsersController < ApplicationController
     respond_to :html, :json
     responders :flash
 
-    before_filter :admin?
+    before_filter :admin?, :except => [:update_password, :save_password_update]
 
     def index
         @users = User.scoped
@@ -40,15 +40,10 @@ class UsersController < ApplicationController
       
       if @user.update_attributes(:password => params[:user][:password], :password_confirmation => params[:user][:password_confirmation])
         @user.save
-        flash[:notice] = t(:successful_password_change, :user => @user.email)
-        redirect_to(root_path)
+        redirect_to(root_path, :notice => t(:successful_password_change, :user => @user.email))
       else
         render :action => :update_password
       end
-      
-      # respond_to do |format|
-      #   format.html
-      # end
     end
     
     def create
