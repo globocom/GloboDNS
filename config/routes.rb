@@ -12,7 +12,13 @@ GloboDns::Application.routes.draw do
     end
 
     resources :views
+
     resources :users
+
+    resource :user do
+      get 'update_password' => 'users#update_password', :as => 'update_password'
+      put 'update_password/save' => 'users#save_password_update', :as => 'save_password_update'
+    end
 
     scope 'bind9', :as => 'bind9', :controller => 'bind9' do
         get  '',       :action => 'index'

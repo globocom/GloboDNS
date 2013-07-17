@@ -140,7 +140,7 @@ en:
   pending_updates: "%{count} changes pending"
   logged_user: "Logged as %{user}"
   change_passord: "Change password"
-
+  successful_password_change: "Password updated for %{user}"
 
 # Sign in
   title_sign_in: Sign In

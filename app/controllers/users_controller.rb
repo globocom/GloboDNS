@@ -27,6 +27,30 @@ class UsersController < ApplicationController
         respond_with(@user)
     end
 
+    def update_password
+      @user = User.find(current_user.id)
+      respond_to do |format|
+        format.html
+      end
+    end
+    
+    def save_password_update
+      @user = User.find(current_user.id)
+      logger.info "Changing password for user #{@user.email}"
+      
+      if @user.update_attributes(:password => params[:user][:password], :password_confirmation => params[:user][:password_confirmation])
+        @user.save
+        flash[:notice] = t(:successful_password_change, :user => @user.email)
+        redirect_to(root_path)
+      else
+        render :action => :update_password
+      end
+      
+      # respond_to do |format|
+      #   format.html
+      # end
+    end
+    
     def create
         @user = User.new(params[:user])
         @user.save
@@ -58,4 +82,5 @@ class UsersController < ApplicationController
             format.html { head :no_content if request.xhr? }
         end
     end
+
 end

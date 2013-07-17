@@ -7,8 +7,9 @@ class User < ActiveRecord::Base
            :rememberable,
            :validatable,
            :encryptable,
-           :encryptor => :restful_authentication_sha1
            # :recoverable,
+           # :registerable,
+           :encryptor => :restful_authentication_sha1
            # :confirmable,
 
     ROLES = define_enum(:role, [:ADMIN, :OPERATOR, :VIEWER])

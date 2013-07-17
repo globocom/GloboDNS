@@ -64,5 +64,20 @@ module ApplicationHelper
   def info_icon( image, dom_id )
     image_tag( image , :id => "help-icn-#{dom_id}", :class => 'help-icn', "data-help" => dom_id )
   end
+  
+  def form_errors object
+    html = ""
+    if object.errors.any?
+      html << '<div class="alert alert-error">'
+      html << '<h4 class="alert-heading">' + pluralize(object.errors.count, "error(s)") + '</h4>'
+      html << '<ul>'
+      object.errors.full_messages.each do |msg|
+      html << '<li>'+ msg +'</li>'
+      end
+      html << '</ul>'
+      html << '</div>'
+    end
+    raw html
+  end
 
 end
