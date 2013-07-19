@@ -1,19 +1,17 @@
-source "http://rubygems.globoi.com/"
-source "http://rubygems.globoi.com/proxy/"
 source 'http://rubygems.org'
 
-gem 'rails', '3.2.8'
-gem 'mysql2', '0.3.11'
-gem 'haml', "3.1.7"
-gem 'jquery-rails', "2.1.2"
-gem 'will_paginate', "3.0.3"
-gem 'audited-activerecord', '3.0.0.rc2'
-gem 'devise', "2.0.4"
-gem 'awesome_print', "1.1.0"
-gem 'responders', "0.9.2"
-gem 'citrus', "2.4.1"
-gem 'validation_scopes', "0.4.1"
-gem 'syslogger', "1.3.0"
+gem 'rails',                '~> 3.2.0'
+gem 'mysql2',               '~> 0.3.0'
+gem 'haml'
+gem 'jquery-rails'
+gem 'will_paginate'
+gem 'audited-activerecord', '~> 3.0.0.rc1'
+gem 'devise'
+gem 'awesome_print'
+gem 'responders'
+gem 'citrus'
+gem 'validation_scopes'
+gem 'syslogger'
 
 group :assets do
     gem 'sass-rails',   '~> 3.2.3'
