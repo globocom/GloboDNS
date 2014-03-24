@@ -40,10 +40,10 @@ development: &devconf
     views_file:             'views.conf'
 
     record_order:           [ SOA, NS, MX, A, AAAA, CNAME, LOC, SPF, SRV, PTR, TXT ]
-    git_author:             'Globo DNS API <dnsapi@globoi.com>'
+    git_author:             'Globo DNS API <dnsapi@globo.com>'
     export_stamp_file:      <%= Rails.root.join('tmp', 'bind9.export.txt') %>
     export_delay:           300  # in seconds
-    mail_recipients:        [ 'Gustavo Gama <gama@igenesis.com.br>' ]
+    mail_recipients:        [ 'Root <root@hostname.com>' ]
 
     binaries:
         bind:          '/usr/sbin/named'
