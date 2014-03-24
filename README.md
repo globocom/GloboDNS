@@ -23,7 +23,7 @@ The DNSAPI was designed to work with Bind in a passive way. Once you've configur
 ##Usability
 	The UI provides a simplier way to manage the service.
 
-# Features
+## Features
 	RESTful architecture
 	Multi-user with groups of privilege
 	Asychronous and synchronous tasks modes
@@ -33,6 +33,15 @@ The DNSAPI was designed to work with Bind in a passive way. Once you've configur
 	Macros for easy bulk updating of domains
 	Support for Bind MASTER, NATIVE & SLAVE record types
 
-# Running Local
+## Installing
 
-In order to run dnsapi local on your machine you need to create the path tmp/named/chroot_master/etc/named in your rails app dir.
+#### In order to install dnsapi into your enviroment you'll need to:
+	* Clone the project into the desired path.
+	* Run the command "bundle install" into the path to install the dependencies.
+	* Within the file "config/globodns.yml" you will find all the configurantion parameters to make DNSAPI properly work with your own Bind specifications. You'll also find a list of binaries required to be installed on the server running the api.
+	* Thus, still on globodns.yml file, you have a parameter called "export_(master|slave)_chroot_dir". This path need to be created manually, to handle version control and tmp file holder.
+	* In config/database.yml you can set the suitable database for you.
+	* On the bind server, the user running the api, need to have the same uid and gid and also be member of the Bind (named daemon) group.
+	* Note: DNSAPI process the files on your own machine and then transfer the desired files already modified through rsync to the bind server. So you need to make this access possible and take care with your specific file permissions.
+	* Then you can setup up your favourite webserver and your preferred plugin (i.e. apache + passenger).
+* For API specific information you can access the [Wiki](https://github.com/globocomgithub/DNSAPI/wiki/API)
