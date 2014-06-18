@@ -8,6 +8,10 @@ The requirements to install Dns-Api:
 * mysql server >= 5.6.10
 * and all gems in Gemfile (bundle install)
 
+The requirements to run bind server:
+
+* bind >= 9.9.2
+
 ## Installing
 
 #### In order to install dnsapi into your enviroment you'll need to:
