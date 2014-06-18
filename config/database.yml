@@ -23,7 +23,7 @@ production:
   database: globodns_prod
   socket:   /var/lib/mysql/mysql.sock
   username: globodns
-  password: "globodns@globoi.com"
+  password: ""
 
 <%
   additional_environments = '/mnt/dbmigrate/dnsapi/dnsapi.yml'
