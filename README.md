@@ -12,25 +12,21 @@ The project is an adaptation of [PowerDNS-on-rails](https://github.com/kennethka
 
 The DNSAPI was designed to work with Bind in a passive way. Once you've configured the primary and slaves servers, database and executed the first importation of your records, all work is done between the application and the DB . Then all files are exported via Rsync tool to the Bind server(s) and any command is issued with Rndc utility.
 
-Bellow: Screenshot from the admin user.
+Bellow: Some screenshots from the admin user.
 
-image1: Show domain details
+*image1: Show domain details*
 
 ![Add a new domain form](doc/img/domain_details.png "Add a new domain form")
 
-image2: add a new domain
+*image2: add a new domain*
 
 ![Add a new domain form](doc/img/new_domain_no_template.png "Add a new domain form")
 
-image3: add a new domain based on a template
-
-![Add a new domain form](doc/img/new_domain_w_template.png "Add a new domain form")
-
-image4: add a new record
+*image3: add a new record*
 
 ![Add a new record](doc/img/create_record.png "Add a new record")
 
-image5: Listing lasts actions on Dns-Api
+*image4: Listing lasts operations on Dns-Api*
 
 ![Listing lasts actions on Dns-Api](doc/img/logs.png "Listing lasts actions on Dns-Api")
 
@@ -57,5 +53,7 @@ Documentation
 =============
 
 [Setup your environment](./doc/setup.md)
+
+[Administrator's Guide](./doc/administrator.md)
 
 [API](https://github.com/globocomgithub/DNSAPI/wiki/API)
