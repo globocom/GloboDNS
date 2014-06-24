@@ -1,6 +1,6 @@
 ## Requirements
 
-The requirements to install Dns-Api:
+Dns-Api server:
 
 * ruby >= 1.9.2
 * rvm >= 1.11.3.5 (it's not mandatory)
@@ -8,7 +8,7 @@ The requirements to install Dns-Api:
 * mysql server >= 5.6.10
 * and all gems in Gemfile (bundle install)
 
-The requirements to run bind server:
+Bind server:
 
 * bind >= 9.9.2
 
