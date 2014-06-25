@@ -1,5 +1,5 @@
 class Notifier < ActionMailer::Base
-    default :from    => "Globo DNS API <dnsapi@globoi.com>",
+    default :from    => "DNS API <dnsapi@example.com>",
             :to      => GloboDns::Config::MAIL_RECIPIENTS
 
     def import_successful(message_body)

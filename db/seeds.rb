@@ -1,5 +1,5 @@
 # Create our admin user
-user = User.find_by_email('admin@globoi.com') || User.new(:email => 'admin@globoi.com')
+user = User.find_by_email('admin@example.com') || User.new(:email => 'admin@example.com')
 user.login                 = 'admin'    # not used anymore
 user.password              = 'password'
 user.password_confirmation = 'password'

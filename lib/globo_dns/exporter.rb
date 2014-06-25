@@ -13,7 +13,7 @@ class Exporter
 
     CONFIG_START_TAG = '### BEGIN GloboDns ###'
     CONFIG_END_TAG   = '### END GloboDns ###'
-    GIT_AUTHOR       = 'Globo DNS API <dnsapi@globoi.com>'
+    GIT_AUTHOR       = 'DNS API <dnsapi@example.com>'
     CHECKCONF_STANDARD_MESSAGES = [
         /^zone .*?: loaded serial\s+\d+\n/
     ]
