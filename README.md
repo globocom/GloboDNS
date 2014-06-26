@@ -56,4 +56,4 @@ Documentation
 
 [Administrator's Guide](./doc/administrator.md)
 
-[API](https://github.com/globocomgithub/DNSAPI/wiki/API)
+[API](https://github.com/globocom/Dns-Api/wiki/API)
