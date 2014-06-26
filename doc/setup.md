@@ -1,14 +1,20 @@
 ## Requirements
 
-Dns-Api server:
+**Dns-Api server**:
 
+* openssl
+* openssl-devel
+* mysql-server >= 5.6.10
+* mysql-devel >= 5.6.10
+* mysql-shared >= 5.6.10
 * ruby >= 1.9.2
-* rvm >= 1.11.3.5 (it's not mandatory)
-* http server apache >= 2.2.17
-* mysql server >= 5.6.10
-* and all gems in Gemfile (bundle install)
+   * rvm >= 1.11.3.5 (it's not mandatory)
+   * rubygems >= 1.3.7
+   * bundler >= 1.0.0
+   * all gems in Gemfile (bundle install)
+* http server
 
-Bind server:
+**Bind server**:
 
 * bind >= 9.9.2
 
