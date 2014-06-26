@@ -1,6 +1,6 @@
 # Abstract
 
-Once you've setup your environment, you can manage your domains/hosts entries from UI or API.
+Once you've setup your environment, you can manage your domains/hosts entries from UI or [API](https://github.com/globocom/Dns-Api/wiki/API).
 
 ## Home
 
