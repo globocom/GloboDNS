@@ -81,7 +81,7 @@
 
 6. Additionally you have to generate a public/private rsa key pair (ssh-keygen) for 'dnsapi' user in DNSAPI server. Copy this public key ($HOME/.ssh/id_rsa.pub) to 'dnsapi' user in BIND server ($HOME/.ssh/authorized_keys).
 
-7. Now, you have to create you database schema, migrate and populate it.
+7. Now, you have to create the database schema, migrate and populate it.
 
     An admin user will be create: *admin@example.com/password*
 
