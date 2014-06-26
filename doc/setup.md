@@ -2,6 +2,7 @@
 
 **Dns-Api server**:
 
+* git >= 1.7.12.2
 * openssl
 * openssl-devel
 * mysql-server >= 5.6.10
@@ -43,11 +44,7 @@
             bind_master_ipaddr:          'my_bind_ip_address'
         ... (cont.) ...
 
-4. Thus, still on globodns.yml file, you have a parameter called "export_(master|slave)_chroot_dir". This path need to be created manually, to handle version control and tmp file holder. Run this command as 'dnsapi' user:
-
-        $ mkdir -p tmp/named/chroot_{master,slave}
-
-5. In config/database.yml you can set the suitable database for you.
+4. In config/database.yml you can set the suitable database for you.
 
         development:
           adapter:  mysql2
@@ -56,7 +53,7 @@
           username: root
           password:
 
-6. On the bind server, the user running the api, need to have the same uid and gid and also be member of the Bind (named daemon) group.
+5. On the bind server, the user running the api, need to have the same uid and gid and also be member of the Bind (named daemon) group.
 	* Note: DNSAPI process the files on your own machine and then transfer the desired files already modified through rsync to the bind server. So you need to make this access possible and take care with your specific file permissions.
 
     my dnsapi server:
@@ -82,7 +79,16 @@
         $
 
 
-7. Additionally you have to generate a public/private rsa key pair (ssh-keygen) for 'dnsapi' user in DNSAPI server. Copy this public key ($HOME/.ssh/id_rsa.pub) to 'dnsapi' user in BIND server ($HOME/.ssh/authorized_keys).
+6. Additionally you have to generate a public/private rsa key pair (ssh-keygen) for 'dnsapi' user in DNSAPI server. Copy this public key ($HOME/.ssh/id_rsa.pub) to 'dnsapi' user in BIND server ($HOME/.ssh/authorized_keys).
 
+7. Now, you have to create you database schema, migrate and populate it.
+
+    An admin user will be create: *admin@example.com/password*
+
+        $ RAILS_ENV=test rake db:setup
+        $ RAILS_ENV=test rake db:migrate
+        $ RAILS_ENV=test rake globodns:chroot:create
 
 8. Then you can setup up your favourite webserver and your preferred plugin (i.e. apache + passenger).
+
+    Use the 'public' directory as your DocumentRoot path on httpd server.
