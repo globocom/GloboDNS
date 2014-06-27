@@ -24,6 +24,14 @@ GloboDns::Application.configure do
   # The :test delivery method accumulates sent emails in the
   # ActionMailer::Base.deliveries array.
   config.action_mailer.delivery_method = :test
+  
+  # Use a different logger for distributed setups
+  
+  config.logger = Syslogger.new('dnsapi', Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_LOCAL0)
+
+  # See everything in the log (default is :info)
+  config.logger.level = Logger::DEBUG
+  config.log_level = :debug
 
   # Use SQL instead of Active Record's schema dumper when creating the test database.
   # This is necessary if your schema can't be completely dumped by the schema dumper,
