@@ -5,6 +5,9 @@
 * git >= 1.7.12.2
 * openssl
 * openssl-devel
+* openssh-server
+* openssh-client
+* rsync
 * mysql-server >= 5.6.10
 * mysql-devel >= 5.6.10
 * mysql-shared >= 5.6.10
@@ -23,48 +26,10 @@
 
 #### In order to install dnsapi into your enviroment you'll need to:
 
-**1. Copy project**
-
-Clone the project into the desired path.
-
-    $ git clone https://github.com/globocom/Dns-Api.git dnsapi
-
-**2. Install all requirements gems**
-
-Install all dependencies with bundle, if you don't to use rvm, please skip next 4 comands
-
-    $ rvm install ruby-1.9.2
-    $ rvm 1.9.2
-    $ rvm gemset create dnsapi
-    $ rvm use 1.9.2@dnsapi
-    $ cd dnsapi
-    $ bundle install
-
-**3. Setup your bind configurations**
-
-Into the "config/globodns.yml" file you will find all the configurantion parameters to make DNSAPI properly work with your own Bind specifications.
-
-    development: &devconf
-        bind_master_user:            'named'
-        bind_master_host:            'my_bind_server'
-        bind_master_ipaddr:          'my_bind_ip_address'
-    ... (cont.) ...
-
-**4. Database configuration**
-
-In config/database.yml you can set the suitable database for you.
-
-    development:
-      adapter:  mysql2
-      database: dnsapi
-      hostname: localhost
-      username: root
-      password:
-
-**5. User and groups**
+**1. User and groups**
 
 On the bind server, the user running the api, need to have the same uid and gid and also be member of the Bind (named daemon) group.
-	* Note: DNSAPI process the files on your own machine and then transfer the desired files already modified through rsync to the bind server. So you need to make this access possible and take care with your specific file permissions.
+    * Note: DNSAPI process the files on your own machine and then transfer the desired files already modified through rsync to the bind server. So you need to make this access possible and take care with your specific file permissions.
 
     my dnsapi server:
 
@@ -88,6 +53,43 @@ On the bind server, the user running the api, need to have the same uid and gid 
         named : named
         $
 
+**2. Copy project**
+
+Clone the project into the desired path.
+
+    $ git clone https://github.com/globocom/Dns-Api.git dnsapi
+
+**3. Install all requirements gems**
+
+Install all dependencies with bundle, if you don't to use rvm, please skip next 4 comands
+
+    $ rvm install ruby-1.9.2
+    $ rvm 1.9.2
+    $ rvm gemset create dnsapi
+    $ rvm use 1.9.2@dnsapi
+    $ cd dnsapi
+    $ bundle install
+
+**4. Setup your bind configurations**
+
+Into the "config/globodns.yml" file you will find all the configurantion parameters to make DNSAPI properly work with your own Bind specifications.
+
+    development: &devconf
+        bind_master_user:            'named'
+        bind_master_host:            'my_bind_server'
+        bind_master_ipaddr:          'my_bind_ip_address'
+    ... (cont.) ...
+
+**5. Database configuration**
+
+In config/database.yml you can set the suitable database for you.
+
+    development:
+      adapter:  mysql2
+      database: dnsapi
+      hostname: localhost
+      username: root
+      password:
 
 **6. Rsync pre requisites**
 
