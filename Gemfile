@@ -12,6 +12,7 @@ gem 'responders'
 gem 'citrus'
 gem 'validation_scopes'
 gem 'syslogger'
+gem 'unicorn'
 
 group :assets do
     gem 'sass-rails',   '~> 3.2.3'
