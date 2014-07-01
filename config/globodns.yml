@@ -6,7 +6,8 @@ development: &devconf
     bind_master_rndc_port:       5953
     bind_master_chroot_dir:      '/var/named/internal_chroot_master'
     bind_master_zones_dir:       '/etc/named'
-    bind_master_named_conf_file: '/etc/named.conf'
+    bind_master_named_conf_file: '/etc/named/named.conf'
+    bind_master_named_conf_link: '/etc/named.conf'
 
     bind_slave_user:             'named'
     bind_slave_host:             'localbindslave'
