@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+FIRST_USER = 'admin@example.com'
+FIRST_PASS = 'password'
+
 # Create our admin user
-user = User.find_by_email('admin@example.com') || User.new(:email => 'admin@example.com')
+user = User.find_by_email(FIRST_USER) || User.new(:email => FIRST_USER)
 user.login                 = 'admin'    # not used anymore
-user.password              = 'password'
-user.password_confirmation = 'password'
+user.password              = FIRST_PASS
+user.password_confirmation = FIRST_PASS
 user.role                  = User::ADMIN
 user.save!
 
@@ -156,7 +159,7 @@ if Rails.env == "development"
 
 	$ ./script/rails s
 
-	You can then login with "admin@globoi.com" using the password "password".
+	You can then login with "#{FIRST_USER}" using the password "#{FIRST_PASS}".
 
 	Thanks for trying out GloboDns
 	-------------------------------------------------------------------------------
