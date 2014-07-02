@@ -4,7 +4,7 @@
 development:
   adapter:  mysql2
   database: dnsapi
-  hostname: localhost
+  host: localhost
   username: root
   password: 
 
@@ -14,7 +14,7 @@ development:
 test:
   adapter:  mysql2
   database: globodns_test
-  hostname: localhost
+  host: localhost
   username: root
   password: 
 
