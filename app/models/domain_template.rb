@@ -22,6 +22,7 @@ class DomainTemplate < ActiveRecord::Base
     validates_presence_of     :ttl
     validates_numericality_of :ttl
     validates_associated      :soa_record_template
+    attr_accessible           :name, :ttl, :view_id
 
     after_create              :create_soa_record_template
 

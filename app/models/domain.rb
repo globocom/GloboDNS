@@ -40,6 +40,7 @@ class Domain < ActiveRecord::Base
     end
 
     attr_accessor :importing
+    attr_accessible :user_id, :name, :master, :last_check, :notified_serial, :account, :ttl, :notes, :authority_type, :addressing_type, :view_id
 
     audited :protect => false
     has_associated_audits
@@ -133,7 +134,7 @@ class Domain < ActiveRecord::Base
     end
 
     def name=(value)
-        rv = write_attribute('name', value == '.' ? value : value.chomp('.'))
+        rv = write_attribute :name, value == '.' ? value : value.chomp('.')
         set_addressing_type
         rv
     end

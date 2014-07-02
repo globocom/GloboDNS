@@ -26,6 +26,7 @@ class Record < ActiveRecord::Base
     belongs_to :domain, :inverse_of => :records
 
     attr_accessor :importing
+    attr_accessible :domain_id, :name, :type, :content, :ttl, :prio
 
     audited :associated_with => :domain
     self.non_audited_columns.delete(self.inheritance_column) # audit the 'type' column
