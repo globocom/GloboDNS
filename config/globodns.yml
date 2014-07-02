@@ -1,5 +1,5 @@
 development: &devconf
-    bind_master_user:            'named'
+    bind_master_user:            'dnsapi'
     bind_master_host:            'localbindmaster'
     bind_master_ipaddr:          '127.0.0.1'
     bind_master_port:            53
