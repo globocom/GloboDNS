@@ -44,7 +44,7 @@ class Exporter
 
         Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ") unless (lock_tables == false)
         export_master(master_named_conf_content)
-        export_slave(slave_named_conf_content)
+        export_slave(slave_named_conf_content) if SLAVE_ENABLED?
 
         syslog_info('export successful')
         Notifier.export_successful(@logger.string).deliver
@@ -106,7 +106,7 @@ class Exporter
         tmp_dir = Dir.mktmpdir
         @logger.info "[GloboDns::Exporter] tmp dir: #{tmp_dir}" if @options[:keep_tmp_dir] == true
         File.chmod(02770, tmp_dir)
-        FileUtils.chown(nil, BIND_GROUP, tmp_dir)
+        FileUtils.chown(nil, BIND_GROUP, tmp_dir, :verbose => true)
         File.umask(0007)
 
         # recursivelly copy the current configuration to the tmp dir

@@ -42,5 +42,9 @@ module Config
         true
     end
 
+    def SLAVE_ENABLED?
+        !BIND_SLAVE_HOST.nil? and BIND_SLAVE_HOST != ''
+    end
+
 end # Config
 end # GloboDns

@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'pathname'
 namespace :globodns do
     namespace :chroot do
         desc 'Create local chroot dir with a versioned copy of the BIND files'
@@ -6,7 +7,7 @@ namespace :globodns do
             include GloboDns::Config
             include GloboDns::Util
 
-            def create_chroot_dir(base, zones_dir, named_conf_file)
+            def create_chroot_dir(base, zones_dir, named_conf_file, named_conf_link)
                 File.exists?(base) and raise RuntimeError.new("[ERROR] chroot dir \"#{base}\" already exists")
                 FileUtils.mkdir_p(base)
                 FileUtils.mkdir_p(File.join(base, 'dev'))
@@ -28,19 +29,25 @@ namespace :globodns do
                 FileUtils.mkdir_p(File.join(base, 'var', 'run', 'named'))
                 FileUtils.mkdir_p(File.join(base, 'var', 'tmp'))
 
-                Dir.chdir(File.join(base, 'etc')) do
-                  FileUtils.ln_s(File.join('..', zones_dir, File.basename(named_conf_file)), File.join(base, named_conf_file))
-                end
+        		base_path = Pathname.new base
+                named_file_path = Pathname.new File.join(base, named_conf_file)
+                named_link_path = Pathname.new File.join(base, named_conf_link)
+        		Dir.chdir(base) do
+                    FileUtils.touch named_file_path.relative_path_from(base_path).to_s, :verbose => true
+    
+                    FileUtils.ln_s named_file_path.relative_path_from(named_link_path.parent).to_s, \
+                        named_link_path.relative_path_from(base_path).to_s, :verbose => true
+        		end
+
                 Dir.chdir(File.join(base, zones_dir)) do
-                    FileUtils.touch(File.basename(named_conf_file))
                     exec('git init',   'git', 'init', '.')
-                    exec('git add',    'git', 'add', File.basename(named_conf_file))
+                    exec('git add',    'git', 'add', '.')
                     exec('git commit', 'git', 'commit', "--date=#{Time.local(2012, 1, 1, 0, 0, 0).to_i}", "--author=#{GIT_AUTHOR}", '-m', 'Initial commit.')
                 end
             end
 
-            create_chroot_dir(EXPORT_MASTER_CHROOT_DIR, BIND_MASTER_ZONES_DIR, BIND_MASTER_NAMED_CONF_FILE)
-            create_chroot_dir(EXPORT_SLAVE_CHROOT_DIR,  BIND_SLAVE_ZONES_DIR,  BIND_SLAVE_NAMED_CONF_FILE)
+            create_chroot_dir(EXPORT_MASTER_CHROOT_DIR, BIND_MASTER_ZONES_DIR, BIND_MASTER_NAMED_CONF_FILE, BIND_MASTER_NAMED_CONF_LINK)
+            create_chroot_dir(EXPORT_SLAVE_CHROOT_DIR,  BIND_SLAVE_ZONES_DIR,  BIND_SLAVE_NAMED_CONF_FILE,  BIND_SLAVE_NAMED_CONF_LINK) if SLAVE_ENABLED?
         end
     end
 end
