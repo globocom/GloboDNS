@@ -11,20 +11,23 @@
 * mysql-server >= 5.6.10
 * mysql-devel >= 5.6.10
 * mysql-shared >= 5.6.10
-* ruby >= 1.9.2
+* bind >= 9.9.2
+* ruby >= 1.9.3
    * rvm >= 1.11.3.5 (it's not mandatory)
    * rubygems >= 1.3.7
    * bundler >= 1.0.0
    * all gems in Gemfile (bundle install)
 * http server
+* sudo
 
 **Bind server**:
 
 * bind >= 9.9.2 (already configured and running)
+* bind-chroot
 
 ## Installing
 
-#### In order to install dnsapi into your enviroment you'll need to:
+In order to install dnsapi into your enviroment you'll need to follow the steps bellow, please don't skip any step!
 
 **1. User and groups**
 
@@ -61,14 +64,12 @@ Clone the project into the desired path.
 
 **3. Install all requirements gems**
 
-Install all dependencies with bundle, if you don't to use rvm, please skip next 4 comands
+Install all dependencies with bundle, if you don't to use rvm, please skip next 2 comands
 
-    $ rvm install ruby-1.9.2
-    $ rvm 1.9.2
-    $ rvm gemset create dnsapi
-    $ rvm use 1.9.2@dnsapi
+    $ rvm install 1.9.3
+    $ rvm --create use 1.9.3@dnsapi
     $ cd dnsapi
-    $ bundle install
+    $ bundle install --deployment --without=test,development 
 
 **4. Setup your bind configurations**
 
@@ -91,13 +92,44 @@ In config/database.yml you can set the suitable database for you.
       username: root
       password:
 
-**6. Rsync pre requisites**
+**6. Sudoers file**
 
-Additionally you have to generate a public/private rsa key pair (ssh-keygen) for 'dnsapi' user in DNSAPI server. Copy this public key ($HOME/.ssh/id_rsa.pub) to 'dnsapi' user in BIND server ($HOME/.ssh/authorized_keys).
+Dns-Api uses 'named-checkconf' command to verify configuration file syntax, this command has to be called as 'root' user. For that reason, we need to allow the user 'dnsapi' can run this command as root on sudoers file.
 
-This step is necessary for transfer files from Dns-Api to Bind server with no password.
+    # visudo
 
-**7. Prepare the database**
+And insert this line on that
+
+    dnsapi          ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf
+
+**7. Bind Server pre requisites**
+
+  * **ssh keys**
+
+  Additionally you have to generate a public/private rsa key pair (ssh-keygen) for 'dnsapi' user in DNSAPI server. Copy this public key ($HOME/.ssh/id_rsa.pub) to 'dnsapi' user in BIND server ($HOME/.ssh/authorized_keys).
+
+  This step is necessary for transfer files from Dns-Api to Bind server with no password.
+
+  * **bind confs**
+
+    Logged in as 'root' user on bind server, run these following commands:
+
+        # mv /etc/named.conf /etc/named
+        # ln -s /etc/named/named.conf /etc/named.conf
+        # rndc-confgen
+
+    After run 'rndc-confgen' command, you have to follow the instructions from the 'rndc-confgen' command output.
+
+    The referred files from 'rndc-confgen' are:
+     - create '/etc/named/rndc.conf'
+     - edit '/etc/named/named.conf'.
+
+Finally, you have to start your bind server:
+
+    # service named start
+
+
+**8. Prepare the database**
 
 Now, you have to create the database schema, migrate and populate it.
 
@@ -107,7 +139,7 @@ An admin user will be create: *admin@example.com/password*
     $ RAILS_ENV=test rake db:migrate
     $ RAILS_ENV=test rake globodns:chroot:create
 
-**8. Import bind files to Dns-Api**
+**9. Import bind files to Dns-Api**
 
 Given your bind server is already up and running, your "config/globodns.yml" was setup correctly, let's import
 all bind configurations into Dns-Api: 
@@ -115,7 +147,7 @@ all bind configurations into Dns-Api:
     $ RAILS_ENV=test ruby script/importer --remote
 
 
-**9. Setup the webserver**
+**10. Setup the webserver**
 
 Then you can setup up your favourite webserver and your preferred plugin (i.e. apache + passenger).
 
