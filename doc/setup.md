@@ -116,13 +116,18 @@ And insert this line on that
 
         # mv /etc/named.conf /etc/named
         # ln -s /etc/named/named.conf /etc/named.conf
-        # rndc-confgen
+        # rndc-confgen -s <BIND_ADDRESS>
 
     After run 'rndc-confgen' command, you have to follow the instructions from the 'rndc-confgen' command output.
 
     The referred files from 'rndc-confgen' are:
      - create '/etc/named/rndc.conf'
-     - edit '/etc/named/named.conf'.
+     - edit '/etc/named/named.conf'
+
+  * **file permissions**
+
+        # chown -R dnsapi.named /etc/named
+
 
 Finally, you have to start your bind server:
 
@@ -146,9 +151,19 @@ all bind configurations into Dns-Api:
 
     $ RAILS_ENV=test ruby script/importer --remote
 
+**10. Generating rndc key on Dns-Api**
 
-**10. Setup the webserver**
+You have to generate a keyfile on Dns-Api to run 'rndc reload'. As root, run the following command on Dns-Api server:
+
+    # rndc-confgen -a -u dnsapi
+
+**11. Setup the webserver**
 
 Then you can setup up your favourite webserver and your preferred plugin (i.e. apache + passenger).
 
 Use the 'public' directory as your DocumentRoot path on httpd server.
+
+for your test, you can run:
+
+     $ bundle exec unicorn_rails
+
