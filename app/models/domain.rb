@@ -40,7 +40,8 @@ class Domain < ActiveRecord::Base
     end
 
     attr_accessor :importing
-    attr_accessible :user_id, :name, :master, :last_check, :notified_serial, :account, :ttl, :notes, :authority_type, :addressing_type, :view_id
+    attr_accessible :user_id, :name, :master, :last_check, :notified_serial, :account, :ttl, :notes, :authority_type, :addressing_type, :view_id, \
+    :primary_ns, :contact, :refresh, :retry, :expire, :minimum
 
     audited :protect => false
     has_associated_audits
