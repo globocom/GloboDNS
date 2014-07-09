@@ -23,7 +23,7 @@ class RecordTemplate < ActiveRecord::Base
     validates_presence_of :type
 
     attr_protected :domain_template_id
-    attr_accessible :name, :type, :content, :ttl, :prio
+    attr_accessible :name, :type, :content, :ttl, :prio, :domain_template
 
     protected_attributes.delete('type') # 'type' is a special inheritance column use by Rails and not accessible by default;
 
