@@ -140,16 +140,16 @@ Now, you have to create the database schema, migrate and populate it.
 
 An admin user will be create: *admin@example.com/password*
 
-    $ RAILS_ENV=test rake db:setup
-    $ RAILS_ENV=test rake db:migrate
-    $ RAILS_ENV=test rake globodns:chroot:create
+    $ rake db:setup
+    $ rake db:migrate
+    $ rake globodns:chroot:create
 
 **9. Import bind files to Dns-Api**
 
 Given your bind server is already up and running, your "config/globodns.yml" was setup correctly, let's import
 all bind configurations into Dns-Api: 
 
-    $ RAILS_ENV=test ruby script/importer --remote
+    $ ruby script/importer --remote
 
 **10. Generating rndc key on Dns-Api**
 
