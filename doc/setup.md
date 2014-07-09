@@ -66,7 +66,7 @@ Clone the project into the desired path.
 
 Install all dependencies with bundle, if you don't to use rvm, please skip next 2 comands
 
-    $ rvm install 1.9.3
+    # rvm install 1.9.3
     $ rvm --create use 1.9.3@dnsapi
     $ cd dnsapi
     $ bundle install --deployment --without=test,development 
