@@ -1,18 +1,18 @@
-DNSAPI
+GloboDNS
 ======
 
-Welcome to DNSAPI
+Welcome to GloboDNS
 -----------------
 
-DNSAPI is a Ruby on Rails application designed to manage domain name services based on [Bind](https://www.isc.org/software/bind) with a RESTful API and using MySQL as persistent storage backend. 
+GloboDNS is a Ruby on Rails application designed to manage domain name services based on [Bind](https://www.isc.org/software/bind) with a RESTful API and using MySQL as persistent storage backend. 
 The project is an adaptation of [PowerDNS-on-rails](https://github.com/kennethkalmer/powerdns-on-rails) developed by 
 [Kenneth Kalmer](kenneth.kalmer@gmail.com) plus some features like UI, job queue and Bind specific importation script.
 
 # Overview
 
-The DNSAPI was designed to work with Bind in a passive way. Once you've configured the primary and slaves servers, database and executed the first importation of your records, all work is done between the application and the DB . Then all files are exported via Rsync tool to the Bind server(s) and any command is issued with Rndc utility.
+The GloboDNS was designed to work with Bind in a passive way. Once you've configured the primary and slaves servers, database and executed the first importation of your records, all work is done between the application and the DB . Then all files are exported via Rsync tool to the Bind server(s) and any command is issued with Rndc utility.
 
-Bellow: Some screenshots from the admin user.
+Below: Some screenshots from the admin user.
 
 *image1: Show domain details*
 
@@ -28,7 +28,7 @@ Bellow: Some screenshots from the admin user.
 
 *image4: Listing lasts operations on Dns-Api*
 
-![Listing lasts actions on Dns-Api](doc/img/logs.png "Listing lasts actions on Dns-Api")
+![Listing lasts actions on Dns-Api](doc/img/logs.png "Listing lasts actions on GloboDNS")
 
 ##Security
 	With multiple levels of privilege, we can ensure that a specific user is abble to perform only specific tasks.
@@ -56,4 +56,4 @@ Documentation
 
 [Administrator's Guide](./doc/administrator.md)
 
-[API](https://github.com/globocom/Dns-Api/wiki/API)
+[API](https://github.com/globocom/GloboDNS/wiki/API)
