@@ -36,23 +36,23 @@ On the bind server, the user running the API needs to have the same uid and gid 
 
     my GloboDNS server:
 
-        $ id dnsapi
-        uid=12386(dnsapi) gid=12386(dnsapi) groups=25(named),12386(dnsapi)
+        $ id globodns
+        uid=12386(globodns) gid=12386(globodns) groups=25(named),12386(globodns)
         $ id named
         uid=25(named) gid=25(named) groups=25(named)
-        $groups dnsapi named
-        dnsapi : dnsapi named
+        $groups globodns named
+        globodns : globodns named
         named : named
         $
 
     my bind server:
 
-        $id dnsapi
-        uid=12386(dnsapi) gid=12386(dnsapi) groups=12386(dnsapi),25(named)
+        $id globodns
+        uid=12386(globodns) gid=12386(globodns) groups=12386(globodns),25(named)
         $id named
         uid=25(named) gid=25(named) groups=25(named)
-        $ groups dnsapi named
-        dnsapi : dnsapi named
+        $ groups globodns named
+        globodns : globodns named
         named : named
         $
 
@@ -60,15 +60,15 @@ On the bind server, the user running the API needs to have the same uid and gid 
 
 Clone the project into the desired path.
 
-    $ git clone https://github.com/globocom/GloboDNS.git dnsapi
+    $ git clone https://github.com/globocom/GloboDNS.git globodns
 
 **3. Install all requirements gems**
 
 Install all dependencies with bundle, if you don't to use rvm, please skip next 2 comands
 
     # rvm install 1.9.3
-    $ rvm --create use 1.9.3@dnsapi
-    $ cd dnsapi
+    $ rvm --create use 1.9.3@globodns
+    $ cd globodns
     $ bundle install --deployment --without=test,development 
 
 **4. Setup your bind configurations**
@@ -87,26 +87,26 @@ In config/database.yml you can set the database suitable for you.
 
     development:
       adapter:  mysql2
-      database: dnsapi
+      database: globodns
       hostname: localhost
       username: root
       password:
 
 **6. Sudoers file**
 
-GloboDNS uses 'named-checkconf' command to verify configuration file syntax, this command has to be called as 'root' user. For that reason, we need to allow user 'dnsapi' to run this command as root on sudoers file.
+GloboDNS uses 'named-checkconf' command to verify configuration file syntax, this command has to be called as 'root' user. For that reason, we need to allow user 'globodns' to run this command as root on sudoers file.
 
     # visudo
 
 And insert this line on that
 
-    dnsapi          ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf
+    globodns          ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf
 
 **7. Bind Server pre requisites**
 
   * **ssh keys**
 
-  Additionally you have to generate a public/private rsa key pair (ssh-keygen) for 'dnsapi' user in GloboDNS server. Copy this public key ($HOME/.ssh/id_rsa.pub) to 'dnsapi' user in BIND server ($HOME/.ssh/authorized_keys).
+  Additionally you have to generate a public/private rsa key pair (ssh-keygen) for 'globodns' user in GloboDNS server. Copy this public key ($HOME/.ssh/id_rsa.pub) to 'globodns' user in BIND server ($HOME/.ssh/authorized_keys).
 
   This step is necessary to transfer files from GloboDNS to Bind server without the need to enter a password.
 
@@ -126,7 +126,7 @@ And insert this line on that
 
   * **file permissions**
 
-        # chown -R dnsapi.named /etc/named
+        # chown -R globodns.named /etc/named
 
 
 Finally, you have to start your bind server:
@@ -155,7 +155,7 @@ all bind configurations into GloboDNS:
 
 You have to generate a keyfile on GloboDNS to run 'rndc reload'. As root, run the following command on GloboDNS server:
 
-    # rndc-confgen -a -u dnsapi
+    # rndc-confgen -a -u globodns
 
 **11. Setup the webserver**
 
