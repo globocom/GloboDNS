@@ -1,6 +1,6 @@
 # Abstract
 
-Once you have successfully setup your environment, you can manage your domains/records entries from the UI or using the [API](https://github.com/globocom/Dns-Api/wiki/API). In this page, you can find some operations that can be done from the UI. For details on API calls to manage domains and records, please [click here](https://github.com/globocom/Dns-Api/wiki/API).
+Once you have successfully setup your environment, you can manage your domains/records entries from the UI or using the [API](https://github.com/globocom/GloboDNS/wiki/API). In this page, you can find some operations that can be done from the UI. For details on API calls to manage domains and records, please [click here](https://github.com/globocom/GloboDNS/wiki/API).
 
 ## Home
 
@@ -44,13 +44,13 @@ Note that, after you create a domain template, you can also insert some default 
 
 ## Logs
 
-The logs page provides every action performed on Dns-Api, listed chronologically. Each entry shows who has requested which action, at what time, along with details for that action.
+The logs page provides every action performed on GloboDNS, listed chronologically. Each entry shows who has requested which action, at what time, along with details for that action.
 
 ![Logs](img/logs.png "Logs")
 
 ## Users
 
-This page lists every user registered to access Dns-Api, along with its role. There are three possible roles:
+This page lists every user registered to access GloboDNS, along with its role. There are three possible roles:
 
 * **viewer**: this is a read-only role. Users with this role can list domains and records.
 * **operator**: this is a management role. Users with this role can list, create, edit and remove domains, records and templates, read logs and export records.
