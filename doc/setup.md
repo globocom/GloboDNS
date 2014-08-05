@@ -103,6 +103,7 @@ And insert this line on that
 
     globodns          ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf
 TIP:Not at the end of the file (just above root configuration)
+
 **7. Bind Server pre requisites**
 
   * **ssh keys**
@@ -110,7 +111,9 @@ TIP:Not at the end of the file (just above root configuration)
   Additionally you have to generate a public/private rsa key pair (ssh-keygen) for 'globodns' user in GloboDNS server. Copy this public key ($HOME/.ssh/id_rsa.pub) to 'globodns' user in BIND server ($HOME/.ssh/authorized_keys).
 
   This step is necessary to transfer files from GloboDNS to Bind server without the need to enter a password.
+
 TIP: To do this task easily use the command ssh-copy-id :)
+
   * **bind confs**
 
     Logged in as 'root' user on bind server, run these following commands:
@@ -141,6 +144,7 @@ Now, you have to create the database schema, migrate and populate it.
 
 An admin user will be create: *admin@example.com/password*
 TIP: Check if the mysql server is UP before the rake command 
+
     $ rake db:setup
     $ rake db:migrate
     $ rake globodns:chroot:create
