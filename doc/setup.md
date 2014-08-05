@@ -2,15 +2,15 @@
 
 **GloboDNS server**:
 
-* git >= 1.7.12.2
+* git >= 1.7
 * openssl
 * openssl-devel
 * openssh-server
 * openssh-client
 * rsync
-* mysql-server >= 5.6.10
-* mysql-devel >= 5.6.10
-* mysql-shared >= 5.6.10
+* mysql-server >= 5.1.73
+* mysql-devel >= 5.1.73
+* mysql-shared >= 5.1.73
 * bind >= 9.9.2
 * ruby >= 1.9.3
    * rvm >= 1.11.3.5 (it's not mandatory)
@@ -24,6 +24,7 @@
 
 * bind >= 9.9.2 (already configured and running)
 * bind-chroot
+* rsync
 
 ## Installing
 
@@ -101,7 +102,7 @@ GloboDNS uses 'named-checkconf' command to verify configuration file syntax, thi
 And insert this line on that
 
     globodns          ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf
-
+TIP:Not at the end of the file (just above root configuration)
 **7. Bind Server pre requisites**
 
   * **ssh keys**
@@ -109,7 +110,7 @@ And insert this line on that
   Additionally you have to generate a public/private rsa key pair (ssh-keygen) for 'globodns' user in GloboDNS server. Copy this public key ($HOME/.ssh/id_rsa.pub) to 'globodns' user in BIND server ($HOME/.ssh/authorized_keys).
 
   This step is necessary to transfer files from GloboDNS to Bind server without the need to enter a password.
-
+TIP: To do this task easily use the command ssh-copy-id :)
   * **bind confs**
 
     Logged in as 'root' user on bind server, run these following commands:
@@ -139,7 +140,7 @@ Finally, you have to start your bind server:
 Now, you have to create the database schema, migrate and populate it.
 
 An admin user will be create: *admin@example.com/password*
-
+TIP: Check if the mysql server is UP before the rake command 
     $ rake db:setup
     $ rake db:migrate
     $ rake globodns:chroot:create
@@ -166,4 +167,6 @@ Use the 'public' directory as your DocumentRoot path on httpd server.
 for your test, you can run:
 
      $ bundle exec unicorn_rails
+     
+TIP: Problems ? SELinux and/or iptables are running ? 
 
