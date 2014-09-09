@@ -37,7 +37,7 @@ class Bind9Controller < ApplicationController
         if params['now'].try(:downcase) == 'true'
             @output, status = run_export
         elsif File.exists?(EXPORT_STAMP_FILE)
-            last_update = [ Record.last_update, Domain.last_update, File.stat(EXPORT_STAMP_FILE).mtime ].max
+            last_update = File.stat(EXPORT_STAMP_FILE).mtime
             if Time.now > (last_update + EXPORT_DELAY)
                 @output, status = run_export
             else
