@@ -58,11 +58,6 @@ class Bind9Controller < ApplicationController
     def schedule_export
         if not File.exists?(EXPORT_STAMP_FILE)
             FileUtils.touch(EXPORT_STAMP_FILE)
-        elsif Time.now > (File.stat(EXPORT_STAMP_FILE).mtime + EXPORT_DELAY)
-            @output = run_export
-            status = :ok
-            File.unlink(EXPORT_STAMP_FILE) rescue nil
-            FileUtils.touch(EXPORT_STAMP_FILE)
         end
         @output = I18n.t('export_scheduled', :timestamp => export_timestamp(File.stat(EXPORT_STAMP_FILE).mtime + EXPORT_DELAY).to_formatted_s(:short))
         respond_to do |format|
@@ -79,14 +74,13 @@ class Bind9Controller < ApplicationController
     end
 
     def run_export
+        File.unlink(EXPORT_STAMP_FILE) rescue nil
         exporter = GloboDns::Exporter.new
         exporter.export_all(params['master-named-conf'], params['slave-named-conf'], :all => params['all'] == 'true', :keep_tmp_dir => true) # :abort_on_rndc_failure => false,
         [ exporter.logger.string, :ok ]
     rescue Exception => e
         logger.error "[ERROR] export failed: #{e}\n#{exporter.logger.string}\nbacktrace:\n#{e.backtrace.join("\n")}"
         [ e.to_s, :unprocessable_entity ]
-    ensure
-        File.unlink(EXPORT_STAMP_FILE) rescue nil
     end
 
     # round up to the nearest round minute, as it's the smallest time grain
