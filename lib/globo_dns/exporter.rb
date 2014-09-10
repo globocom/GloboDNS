@@ -231,13 +231,13 @@ class Exporter
                 if not export_all_domains and not @slave
                     n_zones << domain
                 end
-                @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated?: #{domain.records.updated_since(@last_commit_date).first})"
+                @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}; created_at: #{domain.create_at}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated?: #{domain.records.updated_since(@last_commit_date).first})"
                 domain.to_zonefile(File.join(abs_zones_root_dir, domain.zonefile_path)) unless domain.slave? || @slave
             end
 
             #If one zone is new, we need a full reload to bind.
             n_zones.each do |z|
-                if z.created_at > last_export_timestamp
+                if z.created_at > @last_commit_date
                     array_new_zones = []
                     break
                 else
