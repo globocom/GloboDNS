@@ -128,8 +128,13 @@ class Exporter
             export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.master_or_reverse)
             export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward)
         else
-            @new_zones += export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    Domain.noview.master)
-            @new_zones += export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  Domain.noview._reverse)
+            new_zones_noreverse = export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    Domain.noview.master)
+            new_zones_reverse   = export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  Domain.noview._reverse)
+            if not new_zones_noreverse.empty? and not new_zones_reverse.empty?
+                # If there is a new zone in non-reverse or reverse, I need update everything.
+                # If both have only changes, may I reload only changed zones
+                @new_zones += new_zones_noreverse + new_zones_reverse
+            end
             export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.slave)
             export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward)
         end
@@ -222,6 +227,7 @@ class Exporter
         array_new_zones = []
         n_zones = []
 
+        @logger.debug "Export domain group chroot_dir=#{chroot_dir} zones_root_dir=#{zones_root_dir} file_name=#{file_name} dir_name=#{dir_name} export_all_domains=#{export_all_domains}"
         File.exists?(abs_dir_name) or FileUtils.mkdir(abs_dir_name)
 
         File.open(abs_file_name, 'w') do |file|
@@ -231,7 +237,7 @@ class Exporter
                 if not export_all_domains and not @slave
                     n_zones << domain
                 end
-                @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}; created_at: #{domain.create_at}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated?: #{domain.records.updated_since(@last_commit_date).first})"
+                @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}; created_at: #{domain.created_at}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated_since-count: #{domain.records.updated_since(@last_commit_date).count})"
                 domain.to_zonefile(File.join(abs_zones_root_dir, domain.zonefile_path)) unless domain.slave? || @slave
             end
 
@@ -244,6 +250,7 @@ class Exporter
                     array_new_zones << "#{z.name}"
                 end
             end
+            @logger.debug "n_zones=#{n_zones.map &:name} array_new_zones=#{array_new_zones}"
 
             # write entries to index file (<domain_type>.conf) and update 'mtime'
             # of *all* non-slave domains, so that we may use the mtime as a criteria
