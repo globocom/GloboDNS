@@ -160,7 +160,7 @@ class Exporter
         end
         raise e
     ensure
-        # FileUtils.remove_entry_secure tmp_dir unless tmp_dir.nil? || @options[:keep_tmp_dir] == true
+        FileUtils.remove_entry_secure tmp_dir unless !defined?(tmp_dir) && tmp_dir.nil? || @options[:keep_tmp_dir] == true
         Domain.connection.execute('UNLOCK TABLES') unless (@options[:lock_tables] == false)
     end
 
