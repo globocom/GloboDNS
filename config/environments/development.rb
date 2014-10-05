@@ -21,6 +21,12 @@ GloboDns::Application.configure do
   # since you don't have to restart the webserver when you make code changes.
   config.cache_classes = false
 
+  config.logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+
+  # See everything in the log (default is :info)
+  config.logger.level = Logger::DEBUG
+  config.log_level = :debug
+
   # Log error messages when you accidentally call methods on nil.
   config.whiny_nils = true
 

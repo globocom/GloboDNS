@@ -33,6 +33,10 @@ class Exporter
         /^zone .*?: loaded serial\s+\d+\n/
     ]
 
+    def initialize
+        @logger = GloboDns::StringIOLogger.new(Rails.logger)
+    end
+
     def export_all(master_named_conf_content, slave_named_conf_content, options = {})
         @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
 

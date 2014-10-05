@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130219183739) do
+ActiveRecord::Schema.define(:version => 20141003232635) do
 
   create_table "audits", :force => true do |t|
     t.integer  "auditable_id"
@@ -93,6 +93,15 @@ ActiveRecord::Schema.define(:version => 20130219183739) do
   add_index "records", ["domain_id"], :name => "index_records_on_domain_id"
   add_index "records", ["name", "type"], :name => "index_records_on_name_and_type"
   add_index "records", ["name"], :name => "index_records_on_name"
+
+  create_table "schedules", :force => true do |t|
+    t.string   "name",       :null => false
+    t.datetime "date"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+  end
+
+  add_index "schedules", ["name"], :name => "index_schedules_on_name", :unique => true
 
   create_table "users", :force => true do |t|
     t.string   "login"

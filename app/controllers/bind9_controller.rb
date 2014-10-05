@@ -36,17 +36,20 @@ class Bind9Controller < ApplicationController
     def export
         if params['now'].try(:downcase) == 'true'
             @output, status = run_export
-        elsif File.exists?(EXPORT_STAMP_FILE)
-            last_update = File.stat(EXPORT_STAMP_FILE).mtime
-            if Time.now > (last_update + EXPORT_DELAY)
+        else
+            scheduled = Schedule.run_exclusive :schedule do |s|
+                s.date
+            end
+
+            if scheduled.nil?
+                @output = I18n.t('no_export_scheduled')
+                status  = :ok
+            elsif scheduled <= DateTime.now
                 @output, status = run_export
             else
-                @output = I18n.t('export_scheduled', :timestamp => export_timestamp(last_update + EXPORT_DELAY))
+                @output = I18n.t('export_scheduled', :timestamp => scheduled)
                 status  = :ok
             end
-        else
-            @output = I18n.t('no_export_scheduled')
-            status  = :ok
         end
 
         respond_to do |format|
@@ -56,10 +59,14 @@ class Bind9Controller < ApplicationController
     end
 
     def schedule_export
-        if not File.exists?(EXPORT_STAMP_FILE)
-            FileUtils.touch(EXPORT_STAMP_FILE)
+        # clear schedule, because will run now
+        schedule_date = Schedule.run_exclusive :schedule do |s|
+            # round up to the nearest round minute, as it's the smallest time grain
+            # supported by cron jobs
+            s.date ||= Time.at(((DateTime.now + EXPORT_DELAY.seconds).to_i / 60.0 + 1).round * 60)
         end
-        @output = I18n.t('export_scheduled', :timestamp => export_timestamp(File.stat(EXPORT_STAMP_FILE).mtime + EXPORT_DELAY).to_formatted_s(:short))
+
+        @output = I18n.t('export_scheduled', :timestamp => schedule_date.to_formatted_s(:short))
         respond_to do |format|
             format.html { render :status => status, :layout => false } if request.xhr?
             format.json { render :status => status, :json   => { 'output' => @output } }
@@ -74,18 +81,37 @@ class Bind9Controller < ApplicationController
     end
 
     def run_export
-        File.unlink(EXPORT_STAMP_FILE) rescue nil
+        # create exporter before everything because it's necesary in rescue block
         exporter = GloboDns::Exporter.new
-        exporter.export_all(params['master-named-conf'], params['slave-named-conf'], :all => params['all'] == 'true', :keep_tmp_dir => true) # :abort_on_rndc_failure => false,
-        [ exporter.logger.string, :ok ]
+
+        # clear schedule, because will run now
+        Schedule.run_exclusive :schedule do |s|
+            s.date = nil
+        end
+
+        # I can't keep lock during all export because can cause troubles
+        # if export is too long. So, I fill date field and clear in the end.
+        Schedule.run_exclusive :export do |s|
+            if not s.date.nil?
+                logger.warn "There are another process running. To run export again, remove row #{s.id} in schedules table"
+                raise "There are another process running"
+            end
+            # register last execution in schedule
+            s.date = DateTime.now
+        end
+        begin
+            sleep 60   # I keep this for tests
+            exporter.export_all(params['master-named-conf'], params['slave-named-conf'], :all => params['all'] == 'true', :keep_tmp_dir => true) # :abort_on_rndc_failure => false,
+            [ exporter.logger.string, :ok ]
+        ensure
+            Schedule.run_exclusive :export do |s|
+                s.date = nil
+            end
+        end
+
     rescue Exception => e
         logger.error "[ERROR] export failed: #{e}\n#{exporter.logger.string}\nbacktrace:\n#{e.backtrace.join("\n")}"
         [ e.to_s, :unprocessable_entity ]
     end
 
-    # round up to the nearest round minute, as it's the smallest time grain
-    # supported by cron jobs
-    def export_timestamp(timestamp)
-        Time.at((timestamp.to_i / 60 + 1) * 60)
-    end
 end
