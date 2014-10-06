@@ -231,7 +231,7 @@ class Exporter
         array_new_zones = []
         n_zones = []
 
-        @logger.debug "Export domain group chroot_dir=#{chroot_dir} zones_root_dir=#{zones_root_dir} file_name=#{file_name} dir_name=#{dir_name} export_all_domains=#{export_all_domains}"
+        # @logger.debug "Export domain group chroot_dir=#{chroot_dir} zones_root_dir=#{zones_root_dir} file_name=#{file_name} dir_name=#{dir_name} export_all_domains=#{export_all_domains}"
         File.exists?(abs_dir_name) or FileUtils.mkdir(abs_dir_name)
 
         File.open(abs_file_name, 'w') do |file|
@@ -254,7 +254,6 @@ class Exporter
                     array_new_zones << "#{z.name}"
                 end
             end
-            @logger.debug "n_zones=#{n_zones.map &:name} array_new_zones=#{array_new_zones}"
 
             # write entries to index file (<domain_type>.conf) and update 'mtime'
             # of *all* non-slave domains, so that we may use the mtime as a criteria

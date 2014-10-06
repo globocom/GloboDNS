@@ -64,6 +64,7 @@ class Bind9Controller < ApplicationController
             # round up to the nearest round minute, as it's the smallest time grain
             # supported by cron jobs
             s.date ||= Time.at(((DateTime.now + EXPORT_DELAY.seconds).to_i / 60.0 + 1).round * 60)
+            # sleep 20   # Keep this commented. Only for tests
         end
 
         @output = I18n.t('export_scheduled', :timestamp => schedule_date.to_formatted_s(:short))
@@ -100,7 +101,7 @@ class Bind9Controller < ApplicationController
             s.date = DateTime.now
         end
         begin
-            sleep 60   # I keep this for tests
+            # sleep 60   # Keep this commented. Only for tests
             exporter.export_all(params['master-named-conf'], params['slave-named-conf'], :all => params['all'] == 'true', :keep_tmp_dir => true) # :abort_on_rndc_failure => false,
             [ exporter.logger.string, :ok ]
         ensure
