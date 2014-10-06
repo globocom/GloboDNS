@@ -96,11 +96,7 @@ module ApplicationHelper
   end
 
   def app_version
-    if File.exists? 'REVISION'
-      version = File.read('REVISION').strip
-    else
-      version = 'DEVELOPMENT'
-    end
+    Rails.configuration.app_version
   end
 
 end

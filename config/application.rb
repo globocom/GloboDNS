@@ -69,7 +69,18 @@ module GloboDns
     # Enable the asset pipeline
     config.assets.enabled = true
 
+    # application version
+    version_file_name = File.expand_path('../../REVISION', __FILE__)
+    puts "Reading version on #{version_file_name}"
+    if File.exists? version_file_name
+      config.app_version = File.read(version_file_name).strip
+    else
+      config.app_version = 'DEVELOPMENT'
+    end
+    puts "Application version is '#{config.app_version}'"
+
     # Version of your assets, change this if you want to expire all your assets
     config.assets.version = '1.0'
+
   end
 end
