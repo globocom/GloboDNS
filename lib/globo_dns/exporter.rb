@@ -171,7 +171,7 @@ class Exporter
     def self.load_named_conf(chroot_dir, named_conf_file)
         File.read(File.join(chroot_dir, named_conf_file)).sub(/\n*#{GloboDns::Exporter::CONFIG_START_TAG}.*#{GloboDns::Exporter::CONFIG_END_TAG}\n*/m, "\n")
     end
-    
+
     private
 
     def export_named_conf(content, chroot_dir, zones_root_dir, named_conf_file)
@@ -323,11 +323,11 @@ class Exporter
                                 #'--delete',
                                 '--verbose',
                                 # '--omit-dir-times',
-                                '--no-group',
-                                '--no-perms',
+                                '--group',
+                                '--perms',
                                 # "--include=#{NAMED_CONF_FILE}",
                                 "--include=#{File.basename(named_conf_file)}",
-                                #"--include=#{VIEWS_FILE}",
+                                "--include=#{VIEWS_FILE}",
                                 "--include=*#{ZONES_FILE}",
                                 "--include=*#{SLAVES_FILE}",
                                 "--include=*#{FORWARDS_FILE}",
@@ -347,8 +347,8 @@ class Exporter
                                 '--delete',
                                 '--verbose',
                                 # '--omit-dir-times',
-                                '--no-group',
-                                '--no-perms',
+                                '--group',
+                                '--perms',
                                 # "--include=#{NAMED_CONF_FILE}",
                                 "--include=#{File.basename(named_conf_file)}",
                                 "--include=#{VIEWS_FILE}",
@@ -396,43 +396,9 @@ class Exporter
                                 #'--delete',
                                 '--verbose',
                                 # '--omit-dir-times',
-                                '--no-owner',
-                                '--no-group',
-                                '--no-perms',
-                                "--include=#{File.basename(named_conf_file)}",
-                                #"--include=#{VIEWS_FILE}",
-                                "--include=*#{ZONES_FILE}",
-                                "--include=*#{SLAVES_FILE}",
-                                "--include=*#{FORWARDS_FILE}",
-                                "--include=*#{REVERSE_FILE}",
-                                "--include=*#{ZONES_DIR}/***",
-                                "--include=*#{SLAVES_DIR}/***",
-                                "--include=*#{FORWARDS_DIR}/***",
-                                "--include=*#{REVERSE_DIR}/***",
-                                '--exclude=*',
-                                abs_repository_zones_dir,
-                                "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}")
-
-            rsync_output = exec('remote rsync',
-                                Binaries::RSYNC,
-                                '--inplace',
-                                '--no-owner',
-                                '--no-group',
-                                '--no-perms',
-                                '--verbose',
-                                File.join(abs_repository_zones_dir, File.basename(named_conf_file)),
-                                "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:named_conf_file])}")
-        else
-            rsync_output = exec('remote rsync',
-                                Binaries::RSYNC,
-                                '--checksum',
-                                '--archive',
-                                '--delete',
-                                '--verbose',
-                                # '--omit-dir-times',
-                                '--no-owner',
-                                '--no-group',
-                                '--no-perms',
+                                '--owner',
+                                '--group',
+                                '--perms',
                                 "--include=#{File.basename(named_conf_file)}",
                                 "--include=#{VIEWS_FILE}",
                                 "--include=*#{ZONES_FILE}",
@@ -450,9 +416,43 @@ class Exporter
             rsync_output = exec('remote rsync',
                                 Binaries::RSYNC,
                                 '--inplace',
-                                '--no-owner',
-                                '--no-group',
-                                '--no-perms',
+                                '--owner',
+                                '--group',
+                                '--perms',
+                                '--verbose',
+                                File.join(abs_repository_zones_dir, File.basename(named_conf_file)),
+                                "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:named_conf_file])}")
+        else
+            rsync_output = exec('remote rsync',
+                                Binaries::RSYNC,
+                                '--checksum',
+                                '--archive',
+                                '--delete',
+                                '--verbose',
+                                # '--omit-dir-times',
+                                '--owner',
+                                '--group',
+                                '--perms',
+                                "--include=#{File.basename(named_conf_file)}",
+                                "--include=#{VIEWS_FILE}",
+                                "--include=*#{ZONES_FILE}",
+                                "--include=*#{SLAVES_FILE}",
+                                "--include=*#{FORWARDS_FILE}",
+                                "--include=*#{REVERSE_FILE}",
+                                "--include=*#{ZONES_DIR}/***",
+                                "--include=*#{SLAVES_DIR}/***",
+                                "--include=*#{FORWARDS_DIR}/***",
+                                "--include=*#{REVERSE_DIR}/***",
+                                '--exclude=*',
+                                abs_repository_zones_dir,
+                                "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}")
+
+            rsync_output = exec('remote rsync',
+                                Binaries::RSYNC,
+                                '--inplace',
+                                '--owner',
+                                '--group',
+                                '--perms',
                                 '--verbose',
                                 File.join(abs_repository_zones_dir, File.basename(named_conf_file)),
                                 "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:named_conf_file])}")
@@ -475,7 +475,7 @@ class Exporter
             cmd_args = ['rndc reload', Binaries::RNDC, '-c', File.join(chroot_dir, RNDC_CONFIG_FILE), '-y', RNDC_KEY_NAME, 'reload']
         else
             cmd_args = ['rndc reload', Binaries::RNDC, '-c', File.join(chroot_dir, RNDC_CONFIG_FILE), '-y', RNDC_KEY_NAME, 'reload'] << zone
-        end        
+        end
         if @options[:abort_on_rndc_failure] == false
             exec!(*cmd_args)
         else
