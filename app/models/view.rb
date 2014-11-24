@@ -19,6 +19,8 @@ class View < ActiveRecord::Base
     RFC1912_NAME = '__rfc1912'
     ANY_NAME     = '__any'
 
+    attr_accessible :name
+
     audited :protect => false
 
     has_many :domains
