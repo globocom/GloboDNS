@@ -30,6 +30,8 @@ class View < ActiveRecord::Base
 
     before_validation :generate_key, :on => :create
 
+    attr_accessible :name, :clients, :destinations
+
     def updated_since?(timestamp)
         self.updated_at > timestamp
     end
@@ -83,7 +85,7 @@ class View < ActiveRecord::Base
             # use some "magic" to figure out the local address used to connect
             # to the master server
             # local_ipaddr = %x(ip route get #{GloboDns::Config::BIND_MASTER_IPADDR})
-            local_ipaddr = IO::popen([GloboDns::Config::Binaries::IP, 'route', 'get', GloboDns::Config::BIND_MASTER_IPADDR]) { |io| io.read }
+            local_ipaddr = IO::popen([GloboDns::Config::Binaries::IP, 'route', 'get', GloboDns::Config::Bind::Master::IPADDR]) { |io| io.read }
             local_ipaddr = local_ipaddr[/src (#{RecordPatterns::IPV4}|#{RecordPatterns::IPV6})/, 1]
 
             # then, exclude this address from the list of "match-client"
@@ -93,8 +95,10 @@ class View < ActiveRecord::Base
 
             # additionally, exclude the slave's server address (to enable it to
             # transfer the zones from the view that doesn't match its IP address)
-            match_clients.delete("!#{GloboDns::Config::BIND_SLAVE_IPADDR}")
-            match_clients.unshift("!#{GloboDns::Config::BIND_SLAVE_IPADDR}")
+            GloboDns::Config::Bind::Slaves.each do |slave|
+                match_clients.delete("!#{slave::IPADDR}")
+                match_clients.unshift("!#{slave::IPADDR}")
+            end
 
             key_str = "key \"#{self.key_name}\""
             match_clients.delete(key_str)

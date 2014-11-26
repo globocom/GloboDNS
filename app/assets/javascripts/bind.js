@@ -27,7 +27,7 @@ $(document).ready(function() {
 	});
 
 	$('.bind-export-button').live('click', function () {
-		$(this).data('params', $(this).data('params') + '&' + $('textarea#master-named-conf').serialize() + '&' + $('textarea#slave-named-conf').serialize());
+		$(this).data('params', $(this).data('params') + '&' + $('textarea#master-named-conf').serialize() + '&' + $('textarea.slave-named-conf').serialize());
 		$.rails.handleRemote($(this));
 		return false;
 	}).live('ajax:beforeSend', function (xhr, settings) {

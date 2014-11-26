@@ -37,18 +37,23 @@ class Exporter
         @logger = GloboDns::StringIOLogger.new(Rails.logger)
     end
 
-    def export_all(master_named_conf_content, slave_named_conf_content, options = {})
+    def export_all(master_named_conf_content, slaves_named_conf_contents, options = {})
         @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
 
         lock_tables                 = options.delete(:lock_tables)
         reset_repository_on_failure = options.delete(:reset_repository_on_failure)
         options.merge!({ :lock_tables => false, :reset_repository_on_failure => false })
-
-        slave_named_conf_content = master_named_conf_content if (options[:use_master_named_conf_for_slave] == true)
+       if (options[:use_master_named_conf_for_slave])
+            slaves_named_conf_contents = [master_named_conf_content] * slaves_named_conf_contents.size
+       end
 
         Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ") unless (lock_tables == false)
         export_master(master_named_conf_content)
-        export_slave(slave_named_conf_content) if SLAVE_ENABLED?
+        if SLAVE_ENABLED?
+            Bind::Slaves.each_with_index do |slave, index|
+                export_slave(slaves_named_conf_contents[index], index: index)
+            end
+        end
 
         syslog_info('export successful')
         Notifier.export_successful(@logger.string).deliver
@@ -68,24 +73,25 @@ class Exporter
 
     def export_master(named_conf_content, options = {})
         bind_server_data = {
-            :user            => BIND_MASTER_USER,
-            :host            => BIND_MASTER_HOST,
-            :chroot_dir      => BIND_MASTER_CHROOT_DIR,
-            :zones_dir       => BIND_MASTER_ZONES_DIR,
-            :named_conf_file => BIND_MASTER_NAMED_CONF_FILE,
+            :user            => Bind::Master::USER,
+            :host            => Bind::Master::HOST,
+            :chroot_dir      => Bind::Master::CHROOT_DIR,
+            :zones_dir       => Bind::Master::ZONES_DIR,
+            :named_conf_file => Bind::Master::NAMED_CONF_FILE
         }
-        export(named_conf_content, EXPORT_MASTER_CHROOT_DIR, bind_server_data, slave = false, options.merge(:label => 'master'))
+        export(named_conf_content, Bind::Master::EXPORT_CHROOT_DIR, bind_server_data, slave = false, options.merge(:label => 'master'))
     end
 
     def export_slave(named_conf_content, options = {})
+        index = options[:index] || 0
         bind_server_data = {
-            :user            => BIND_SLAVE_USER,
-            :host            => BIND_SLAVE_HOST,
-            :chroot_dir      => BIND_SLAVE_CHROOT_DIR,
-            :zones_dir       => BIND_SLAVE_ZONES_DIR,
-            :named_conf_file => BIND_SLAVE_NAMED_CONF_FILE,
+            :user            => Bind::Slaves[index]::USER,
+            :host            => Bind::Slaves[index]::HOST,
+            :chroot_dir      => Bind::Slaves[index]::CHROOT_DIR,
+            :zones_dir       => Bind::Slaves[index]::ZONES_DIR,
+            :named_conf_file => Bind::Slaves[index]::NAMED_CONF_FILE
         }
-        export(named_conf_content, EXPORT_SLAVE_CHROOT_DIR, bind_server_data, slave = true, options.merge(:label => 'slave'))
+        export(named_conf_content, Bind::Slaves[index]::EXPORT_CHROOT_DIR, bind_server_data, slave = true, options.merge(:label => 'slave'))
     end
 
     def export(named_conf_content, chroot_dir, bind_server_data, slave, options = {})
@@ -164,7 +170,7 @@ class Exporter
         end
         raise e
     ensure
-        FileUtils.remove_entry_secure tmp_dir unless !defined?(tmp_dir) && tmp_dir.nil? || @options[:keep_tmp_dir] == true
+        #FileUtils.remove_entry_secure tmp_dir unless !defined?(tmp_dir) && tmp_dir.nil? || @options[:keep_tmp_dir] == true
         Domain.connection.execute('UNLOCK TABLES') unless (@options[:lock_tables] == false)
     end
 
@@ -262,8 +268,8 @@ class Exporter
                 if @slave and not domain.forward?
                     domain = domain.clone
                     domain.slave!
-                    domain.master  = "#{BIND_MASTER_IPADDR}"
-                    domain.master += " port #{BIND_MASTER_PORT}"     if defined?(BIND_MASTER_PORT)
+                    domain.master  = "#{Bind::Master::IPADDR}"
+                    domain.master += " port #{Bind::Master::PORT}"     if defined?(Bind::Master::PORT)
                     domain.master += " key #{domain.query_key_name}" if domain.query_key_name
                 end
                 file.puts domain.to_bind9_conf(zones_root_dir)

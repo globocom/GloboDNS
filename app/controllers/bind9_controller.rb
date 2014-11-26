@@ -77,8 +77,11 @@ class Bind9Controller < ApplicationController
     private
 
     def get_current_config
-        @master_named_conf = GloboDns::Exporter.load_named_conf(EXPORT_MASTER_CHROOT_DIR, BIND_MASTER_NAMED_CONF_FILE)
-        @slave_named_conf  = GloboDns::Exporter.load_named_conf(EXPORT_SLAVE_CHROOT_DIR,  BIND_SLAVE_NAMED_CONF_FILE) if SLAVE_ENABLED?
+        bind_config = GloboDns::Config::Bind
+        @master_named_conf = GloboDns::Exporter.load_named_conf(bind_config::Master::EXPORT_CHROOT_DIR, bind_config::Master::NAMED_CONF_FILE)
+        @slaves_named_confs = bind_config::Slaves.map do |slave|
+          GloboDns::Exporter.load_named_conf(slave::EXPORT_CHROOT_DIR, slave::NAMED_CONF_FILE) if SLAVE_ENABLED?
+        end
     end
 
     def run_export

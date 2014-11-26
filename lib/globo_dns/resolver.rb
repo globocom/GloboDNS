@@ -25,8 +25,10 @@ class Resolver
         @port = port
     end
 
-    MASTER = GloboDns::Resolver.new(BIND_MASTER_IPADDR, (BIND_MASTER_PORT rescue DEFAULT_PORT).to_i)
-    SLAVE  = GloboDns::Resolver.new(BIND_SLAVE_IPADDR,  (BIND_SLAVE_PORT  rescue DEFAULT_PORT).to_i)
+    MASTER = GloboDns::Resolver.new(Bind::Master::IPADDR, (Bind::Master::PORT rescue DEFAULT_PORT).to_i)
+    SLAVES = Bind::Slaves.map do |slave|
+        GloboDns::Resolver.new(slave::IPADDR, (slave::PORT  rescue DEFAULT_PORT).to_i)
+    end
 
     def resolve(record)
         name      = Record::fqdn(record.name, record.domain.name)

@@ -25,17 +25,19 @@ class Importer
     attr_reader :logger
 
     def import(options = {})
-        import_timestamp       = Time.now
-        master_chroot_dir      = options.delete(:master_chroot_dir)      || BIND_MASTER_CHROOT_DIR
-        master_named_conf_path = options.delete(:master_named_conf_file) || BIND_MASTER_NAMED_CONF_FILE
-        slave_chroot_dir       = options.delete(:slave_chroot_dir)       || BIND_SLAVE_CHROOT_DIR
-        slave_named_conf_path  = options.delete(:slave_named_conf_file)  || BIND_SLAVE_NAMED_CONF_FILE
-        @logger                = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
-        @logger.level          = Logger::DEBUG if options[:debug]
+        import_timestamp        = Time.now
+        master_chroot_dir       = options.delete(:master_chroot_dir)      || Bind::Master::CHROOT_DIR
+        master_named_conf_path  = options.delete(:master_named_conf_file) || Bind::Master::NAMED_CONF_FILE
+        slaves_chroot_dirs      = options.delete(:slave_chroot_dir)       || Bind::Slaves.map { |slave| slave::CHROOT_DIR }
+        slaves_named_conf_paths = options.delete(:slave_named_conf_file)  || Bind::Slaves.map { |slave| slave::NAMED_CONF_FILE }
+        @logger                 = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
+        @logger.level           = Logger::DEBUG if options[:debug]
+        slaves_canonical_named_conf = []
 
         if options[:remote]
             master_tmp_dir = Dir.mktmpdir
             logger.debug "syncing master chroot dir to \"#{master_tmp_dir}\""
+            puts "#{Bind::Master::USER}@#{Bind::Master::HOST}:#{File.join(master_chroot_dir, '')}"
             exec('rsync remote master',
                  Binaries::RSYNC,
                  '--archive',
@@ -44,24 +46,26 @@ class Importer
                  '--no-perms',
                  '--verbose',
                  '--exclude=session.key',
-                 "#{BIND_MASTER_USER}@#{BIND_MASTER_HOST}:#{File.join(master_chroot_dir, '')}",
+                 "#{Bind::Master::USER}@#{Bind::Master::HOST}:#{File.join(master_chroot_dir, '')}",
                  master_tmp_dir)
             master_chroot_dir = master_tmp_dir
 
             if SLAVE_ENABLED?
-                slave_tmp_dir = Dir.mktmpdir
-                logger.debug "syncing slave chroot dir to \"#{slave_tmp_dir}\""
-                exec('rsync remote slave',
-                     Binaries::RSYNC,
-                     '--archive',
-                     '--no-owner',
-                     '--no-group',
-                     '--no-perms',
-                     '--verbose',
-                     '--exclude=session.key',
-                     "#{BIND_SLAVE_USER}@#{BIND_SLAVE_HOST}:#{File.join(slave_chroot_dir, '')}",
-                     slave_tmp_dir)
-                slave_chroot_dir = slave_tmp_dir
+                Bind::Slaves.each_with_index do |slave, index|
+                  slave_tmp_dir = Dir.mktmpdir
+                  logger.debug "syncing slave chroot dir to \"#{slave_tmp_dir}\""
+                  exec('rsync remote slave',
+                       Binaries::RSYNC,
+                       '--archive',
+                       '--no-owner',
+                       '--no-group',
+                       '--no-perms',
+                       '--verbose',
+                       '--exclude=session.key',
+                       "#{slave::USER}@#{slave::HOST}:#{File.join(slaves_chroot_dirs[index], '')}",
+                       slave_tmp_dir)
+                  slaves_chroot_dirs[index] = slave_tmp_dir
+                end
             end
         end
 
@@ -73,13 +77,15 @@ class Importer
         master_canonical_named_conf = exec_as_root('named-checkconf', Binaries::CHECKCONF, '-p', '-t', master_chroot_dir, master_named_conf_path)
 
         if SLAVE_ENABLED?
-            named_conf_path = File.join(slave_chroot_dir, slave_named_conf_path)
-            File.exists?(named_conf_path) or raise "slave BIND configuration file not found (\"#{named_conf_path}\")"
+          Bind::Slaves.each_with_index do |slave, index|
+            named_conf_path = File.join(slaves_chroot_dirs[index], slaves_named_conf_paths[index])
+            File.exists?(named_conf_path) or raise "slave #{index+1} BIND configuration file not found (\"#{named_conf_path}\")"
             # test zone files
-            exec_as_root('named-checkconf', Binaries::CHECKCONF, '-z', '-t', slave_chroot_dir,  slave_named_conf_path) if BIND_SLAVE_HOST
+            exec_as_root('named-checkconf', Binaries::CHECKCONF, '-z', '-t', slaves_chroot_dirs[index],  slaves_named_conf_paths[index]) if slave::HOST
             # generate canonical representation of the configuration file
-            slave_canonical_named_conf  = exec_as_root('named-checkconf', Binaries::CHECKCONF, '-p', '-t', slave_chroot_dir,  slave_named_conf_path) if BIND_SLAVE_HOST
-        end
+            slaves_canonical_named_conf << exec_as_root('named-checkconf', Binaries::CHECKCONF, '-p', '-t', slaves_chroot_dirs[index],  slaves_named_conf_paths[index]) if slave::HOST
+          end #each
+        end #if
 
 
         if options[:debug]
@@ -89,10 +95,14 @@ class Importer
                 logger.debug "canonical master BIND configuration written to \"#{file.path}\""
             end
 
-            File.open('/tmp/globodns.canonical.slave.named.conf.' + ('%x' % (rand * 999999)), 'w') do |file|
-                file.write(slave_canonical_named_conf)
-                logger.debug "canonical slave BIND configuration written to \"#{file.path}\""
-            end if SLAVE_ENABLED?
+            if SLAVE_ENABLED?
+                Bind::Slaves.each_with_index do |slave, index|
+                    File.open("/tmp/globodns.canonical.slave-#{index+1}.named.conf." + ('%x' % (rand * 999999)), 'w') do |file|
+                        file.write(slaves_canonical_named_conf[index])
+                        logger.debug "canonical slave BIND configuration for slave #{index+1} written to \"#{file.path}\""
+                    end
+                end
+            end
         end
 
         # load grammar
@@ -101,20 +111,24 @@ class Importer
         # process slave first, cache the filtered config and free the parsed
         # tree to free some memory
         if SLAVE_ENABLED?
-            slave_root = nil
-            begin
-                slave_root = NamedConf.parse(slave_canonical_named_conf)
-            rescue Citrus::ParseError => e
-                raise RuntimeError.new("[ERROR] unable to parse canonical slave BIND configuration (line #{e.line_number}, column #{e.line_offset}: #{e.line})")
-            end
+            slaves_configs   = []
+            slaves_rndc_keys = []
+            Bind::Slaves.each_with_index do |slave, index|
+                slave_root = nil
+                begin
+                    slave_root = NamedConf.parse(slaves_canonical_named_conf[index])
+                rescue Citrus::ParseError => e
+                    raise RuntimeError.new("[ERROR] unable to parse canonical slave BIND configuration for slave #{index+1} (line #{e.line_number}, column #{e.line_offset}: #{e.line})")
+                end
 
-            slave_config   = slave_root.config
-            slave_rndc_key = slave_root.rndc_key
-            slave_root     = nil
-            if options[:debug]
-                File.open('/tmp/globodns.filtered.slave.named.conf.' + ('%x' % (rand * 999999)), 'w') do |file|
-                    file.write(slave_config)
-                    logger.debug "filtered slave BIND configuration written to \"#{file.path}\""
+                slaves_configs << slave_root.config
+                slaves_rndc_keys << slave_root.rndc_key
+                slave_root     = nil
+                if options[:debug]
+                    File.open("/tmp/globodns.filtered.slave-#{index+1}.named.conf." + ('%x' % (rand * 999999)), 'w') do |file|
+                        file.write(slave_root.config)
+                        logger.debug "filtered slave BIND configuration for slave #{index+1} written to \"#{file.path}\""
+                    end
                 end
             end
         end
@@ -214,31 +228,35 @@ class Importer
 
         # generate rdnc.conf files
         if master_rndc_key
-            write_rndc_conf(EXPORT_MASTER_CHROOT_DIR, master_rndc_key, BIND_MASTER_IPADDR, BIND_MASTER_RNDC_PORT)
+            write_rndc_conf(Bind::Master::EXPORT_CHROOT_DIR, master_rndc_key, Bind::Master::IPADDR, Bind::Master::RNDC_PORT)
         else
             logger.warn "no rndc key found in master's named.conf"
-            FileUtils.rm(File.join(EXPORT_MASTER_CHROOT_DIR, RNDC_CONFIG_FILE))
+            FileUtils.rm(File.join(Bind::Master::EXPORT_CHROOT_DIR, RNDC_CONFIG_FILE))
         end
 
         if SLAVE_ENABLED?
-            if slave_rndc_key
-                write_rndc_conf(EXPORT_SLAVE_CHROOT_DIR, slave_rndc_key, BIND_SLAVE_IPADDR, BIND_SLAVE_RNDC_PORT)
-            else
-                logger.warn "no rndc key found in slave's named.conf"
-                FileUtils.rm(File.join(EXPORT_SLAVE_CHROOT_DIR, RNDC_CONFIG_FILE))
+            Bind::Slaves.each_with_index do |slave, index|
+                if slaves_rndc_keys[index]
+                    write_rndc_conf(slave::EXPORT_CHROOT_DIR, slaves_rndc_keys[index], slave::IPADDR, slave::RNDC_PORT)
+                else
+                    logger.warn "no rndc key found in slave's named.conf for slave #{index+1}"
+                    FileUtils.rm(File.join(slave::EXPORT_CHROOT_DIR, RNDC_CONFIG_FILE))
+                end
             end
         end
 
         # finally, regenerate/export the updated database
         if options[:export]
-            GloboDns::Exporter.new.export_all(master_config, slave_config,
+            GloboDns::Exporter.new.export_all(master_config, slaves_configs,
                                               :all                   => true,
                                               :keep_tmp_dir          => true,
                                               :abort_on_rndc_failure => false,
                                               :logger                => logger)
         else
-            save_config(master_config, EXPORT_MASTER_CHROOT_DIR, BIND_MASTER_ZONES_DIR, BIND_MASTER_NAMED_CONF_FILE, import_timestamp)
-            save_config(slave_config,  EXPORT_SLAVE_CHROOT_DIR,  BIND_SLAVE_ZONES_DIR,  BIND_SLAVE_NAMED_CONF_FILE,  import_timestamp) if SLAVE_ENABLED?
+            save_config(master_config, Bind::Master::EXPORT_CHROOT_DIR, Bind::Master::ZONES_DIR, Bind::Master::NAMED_CONF_FILE, import_timestamp)
+            Bind::Slaves.each_with_index do |slave, index|
+                save_config(slaves_configs[index],  slave::EXPORT_CHROOT_DIR,  slave::ZONES_DIR,  slave::NAMED_CONF_FILE,  import_timestamp) if SLAVE_ENABLED?
+            end
         end
 
         syslog_info('import successful')

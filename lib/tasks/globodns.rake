@@ -46,8 +46,12 @@ namespace :globodns do
                 end
             end
 
-            create_chroot_dir(EXPORT_MASTER_CHROOT_DIR, BIND_MASTER_ZONES_DIR, BIND_MASTER_NAMED_CONF_FILE, BIND_MASTER_NAMED_CONF_LINK)
-            create_chroot_dir(EXPORT_SLAVE_CHROOT_DIR,  BIND_SLAVE_ZONES_DIR,  BIND_SLAVE_NAMED_CONF_FILE,  BIND_SLAVE_NAMED_CONF_LINK) if SLAVE_ENABLED?
+            create_chroot_dir(Bind::Master::EXPORT_CHROOT_DIR, Bind::Master::ZONES_DIR, Bind::Master::NAMED_CONF_FILE, Bind::Master::NAMED_CONF_LINK)
+            if SLAVE_ENABLED?
+                Bind::Slaves.each do |slave|
+                    create_chroot_dir(slave::EXPORT_CHROOT_DIR,  slave::ZONES_DIR,  slave::NAMED_CONF_FILE,  slave::NAMED_CONF_LINK)
+                end
+            end
         end
     end
 end
