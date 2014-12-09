@@ -187,7 +187,12 @@ class Domain < ActiveRecord::Base
         (self.view || View.first).try(:key)
     end
 
-    def zonefile_path
+    def subdir_path
+        #caches and returns
+        @subdir_path ||= generate_subdir_path
+    end
+
+    def zonefile_dir
         dir = if self.slave?
                   self.view ? self.view.slaves_dir   : GloboDns::Config::SLAVES_DIR
               elsif self.forward?
@@ -197,10 +202,14 @@ class Domain < ActiveRecord::Base
               else
                   self.view ? self.view.zones_dir    : GloboDns::Config::ZONES_DIR
               end
+        File::join dir, subdir_path
+    end
+
+    def zonefile_path
         if self.slave?
-            File.join(dir, 'dbs.' + self.name)
-        else            
-            File.join(dir, 'db.' + self.name)
+            File.join(zonefile_dir, 'dbs.' + self.name)
+        else
+            File.join(zonefile_dir, 'db.' + self.name)
         end
     end
 
@@ -268,5 +277,12 @@ class Domain < ActiveRecord::Base
 
     def self.truncate(str, limit = 80)
         str.size > limit ? str[0..limit] + '...' : str
+    end
+
+    def generate_subdir_path
+        config_depth = GloboDns::Config::SUBDIR_DEPTH
+        depth = config_depth.is_a?(Integer) ? config_depth : Integer(config_depth, 10) rescue 0
+        # uses the first alphanumeric characters to create subdirs, up to GloboDns::Config::SUBDIR_DEPTH levels.
+        File::join self.name.split('').select{|char| char.match /[a-zA-Z0-9]/}.first(depth)
     end
 end

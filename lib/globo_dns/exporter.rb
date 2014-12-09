@@ -214,15 +214,17 @@ class Exporter
             View.all.each do |view|
                 file.puts view.to_bind9_conf(zones_root_dir)
                 if @slave == true
-                    export_domain_group(chroot_dir, zones_root_dir, view.zones_file,    view.zones_dir,    [],                             true)
-                    export_domain_group(chroot_dir, zones_root_dir, view.reverse_file,  view.reverse_dir,  [],                             true)
-                    export_domain_group(chroot_dir, zones_root_dir, view.slaves_file,   view.slaves_dir,   view.domains.master_or_reverse, view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir, zones_root_dir, view.forwards_file, view.forwards_dir, view.domains.forward,                             true)
-                else
-                    export_domain_group(chroot_dir, zones_root_dir, view.zones_file,    view.zones_dir,    view.domains.master,   view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir, zones_root_dir, view.reverse_file,  view.reverse_dir,  view.domains._reverse, view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir, zones_root_dir, view.slaves_file,   view.slaves_dir,   view.domains.slave,    view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir, zones_root_dir, view.forwards_file, view.forwards_dir, view.domains.forward,  view.updated_since?(@last_commit_date))
+                    #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                        , export_all_domains
+                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                             , true)
+                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                             , true)
+                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.master_or_reverse , view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward           , true)
+                    else
+                    #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                        , export_all_domains
+                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , view.domains.master            , view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , view.domains._reverse          , view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.slave             , view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward           , view.updated_since?(@last_commit_date))
                 end
             end
         end
@@ -231,6 +233,7 @@ class Exporter
     end
 
     def export_domain_group(chroot_dir, zones_root_dir, file_name, dir_name, domains, export_all_domains = false)
+        # abs stands for absolute
         abs_zones_root_dir = File.join(chroot_dir, zones_root_dir)
         abs_file_name      = File.join(abs_zones_root_dir, file_name)
         abs_dir_name       = File.join(abs_zones_root_dir, dir_name)
@@ -248,6 +251,9 @@ class Exporter
                     n_zones << domain
                 end
                 @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}; created_at: #{domain.created_at}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated_since-count: #{domain.records.updated_since(@last_commit_date).count})"
+                #create subdir for this domain, if it doesn't exist yet.
+                abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
+                File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
                 domain.to_zonefile(File.join(abs_zones_root_dir, domain.zonefile_path)) unless domain.slave? || @slave
             end
 
