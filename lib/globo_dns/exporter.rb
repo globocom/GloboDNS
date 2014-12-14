@@ -41,27 +41,22 @@ class Exporter
         @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
 
         lock_tables                 = options.delete(:lock_tables)
-        reset_repository_on_failure = options.delete(:reset_repository_on_failure)
-        options.merge!({ :lock_tables => false, :reset_repository_on_failure => false })
        if (options[:use_master_named_conf_for_slave])
             slaves_named_conf_contents = [master_named_conf_content] * slaves_named_conf_contents.size
        end
 
         Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ") unless (lock_tables == false)
-        export_master(master_named_conf_content)
+        export_master(master_named_conf_content, options)
         if SLAVE_ENABLED?
             Bind::Slaves.each_with_index do |slave, index|
-                export_slave(slaves_named_conf_contents[index], index: index)
+                export_slave(slaves_named_conf_contents[index], options.merge!(index: index))
             end
         end
 
         syslog_info('export successful')
         Notifier.export_successful(@logger.string).deliver
     rescue Exception => e
-        if @reset_repository_data && @options[:reset_repository_on_failure] != false
-            @logger.error(e.to_s + e.backtrace.join("\n"))
-            @reset_repository_data.each {|data| reset_repository(data) }
-        end
+        @logger.error(e.to_s + e.backtrace.join("\n"))
 
         syslog_error('export failed')
         Notifier.export_failed("#{e}\n\n#{@logger.string}\n\nBacktrace:\n#{e.backtrace.join("\n")}").deliver
@@ -91,7 +86,7 @@ class Exporter
             :zones_dir       => Bind::Slaves[index]::ZONES_DIR,
             :named_conf_file => Bind::Slaves[index]::NAMED_CONF_FILE
         }
-        export(named_conf_content, Bind::Slaves[index]::EXPORT_CHROOT_DIR, bind_server_data, slave = true, options.merge(:label => 'slave'))
+        export(named_conf_content, Bind::Slaves[index]::EXPORT_CHROOT_DIR, bind_server_data, slave = true, options.merge(:label => "slave#{index+1}"))
     end
 
     def export(named_conf_content, chroot_dir, bind_server_data, slave, options = {})
@@ -159,14 +154,14 @@ class Exporter
         run_checkconf(tmp_dir, named_conf_file)
 
         # sync generated files on the tmp dir to the local chroot repository
-        sync_repository_and_commit(tmp_dir, chroot_dir, zones_root_dir, named_conf_file)
+        sync_repository_and_commit(tmp_dir, chroot_dir, zones_root_dir, named_conf_file, bind_server_data)
 
         # sync files in chroot repository to remote dir on the actual BIND server
         sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, @new_zones)
     rescue Exception => e
-        if @reset_repository_data && @options[:reset_repository_on_failure] != false
+        if @revert_operation_data && @options[:reset_repository_on_failure] != false
             @logger.error(e.to_s + e.backtrace.join("\n"))
-            @reset_repository_data.each {|data| reset_repository(data) }
+            revert_operation()
         end
         raise e
     ensure
@@ -304,7 +299,7 @@ class Exporter
         raise ExitStatusError.new(clean_checkconf_output(e.message))
     end
 
-    def sync_repository_and_commit(tmp_dir, chroot_dir, zones_root_dir, named_conf_file)
+    def sync_repository_and_commit(tmp_dir, chroot_dir, zones_root_dir, named_conf_file, bind_server_data)
         abs_tmp_zones_root_dir   = File.join(tmp_dir, zones_root_dir, '')
         abs_repository_zones_dir = File.join(chroot_dir, zones_root_dir, '')
 
@@ -318,12 +313,14 @@ class Exporter
         #--- save data required to revert the respository to the current version
         orig_head = (exec('git rev-parse', Binaries::GIT, 'rev-parse', 'HEAD')).chomp
         @logger.info "[GloboDns::Exporter][INFO] git repository ORIG_HEAD: #{orig_head}"
-        @reset_repository_data ||= []
-        @reset_repository_data  << {
-            :revision       => orig_head,
-            :chroot_dir     => chroot_dir,
-            :zones_root_dir => zones_root_dir,
-            :label          => @options[:label]
+        label = @options[:label]
+        @revert_operation_data ||= {}
+        @revert_operation_data[label] = {
+            :bind_server_data => bind_server_data,
+            :chroot_dir       => chroot_dir,
+            :revert_server    => false, #Only true after sync_remote
+            :revision         => orig_head,
+            :zones_root_dir   => zones_root_dir
         }
 
         #--- sync to Bind9's data dir
@@ -397,9 +394,28 @@ class Exporter
     end
 
     def sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, new_zones)
+        abs_repository_zones_dir = File.join(chroot_dir, zones_root_dir, '')
+        sync_remote(abs_repository_zones_dir , named_conf_file, bind_server_data)
 
         @to_reload = new_zones
-        abs_repository_zones_dir = File.join(chroot_dir, zones_root_dir, '')
+
+        if @to_reload.size < 10 and not @to_reload.empty?
+            @to_reload.each do |zone|
+                reload_output = reload_bind_conf(chroot_dir, zone)
+                @logger.info "[GloboDns::Exporter][INFO] bind configuration reloaded:\n#{reload_output}"
+            end
+        else
+            zone = []
+            reload_output = reload_bind_conf(chroot_dir, zone)
+            @logger.info "[GloboDns::Exporter][INFO] bind configuration reloaded:\n#{reload_output}"
+        end
+    end
+
+    def sync_remote(abs_repository_zones_dir, named_conf_file, bind_server_data)
+        label = @options[:label]
+        # If anything fails from now on, the server data has to be reverted as well
+        @revert_operation_data[label][:revert_server] = true
+
         if @slave
             rsync_output = exec('remote rsync',
                                 Binaries::RSYNC,
@@ -469,20 +485,11 @@ class Exporter
                                 File.join(abs_repository_zones_dir, File.basename(named_conf_file)),
                                 "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:named_conf_file])}")
         end
-
-        if @to_reload.size < 10 and not @to_reload.empty?
-            @to_reload.each do |zone|
-                reload_output = reload_bind_conf(chroot_dir, zone)
-                @logger.info "[GloboDns::Exporter][INFO] bind configuration reloaded:\n#{reload_output}"
-            end
-        else
-            zone = []
-            reload_output = reload_bind_conf(chroot_dir, zone)
-            @logger.info "[GloboDns::Exporter][INFO] bind configuration reloaded:\n#{reload_output}"
-        end
+        
+        rsync_output
     end
 
-    def reload_bind_conf(chroot_dir, zone)
+    def reload_bind_conf(chroot_dir, zone = [])
         if zone.empty?
             cmd_args = ['rndc reload', Binaries::RNDC, '-c', File.join(chroot_dir, RNDC_CONFIG_FILE), '-y', RNDC_KEY_NAME, 'reload']
         else
@@ -495,11 +502,26 @@ class Exporter
         end
     end
 
-    def reset_repository(data)
-        Dir.chdir(File.join(data[:chroot_dir], data[:zones_root_dir])) do
-            @logger.info("[GloboDns::Exporter] resetting #{data[:label]} git repository")
-            exec('git reset', Binaries::GIT,  'reset', '--hard', data[:revision]) # try to rollback changes
-            reload_bind_conf(data[:chroot_dir]) rescue nil
+    def revert_operation
+        @revert_operation_data.each do |label, data|
+            abs_repository_zones_dir = File.join(data[:chroot_dir], data[:zones_root_dir], '')
+            Dir.chdir(abs_repository_zones_dir) do
+                @logger.info("[GloboDns::Exporter] reseting #{label} git repository")
+                # Go back to last successful revision
+                exec('git reset', Binaries::GIT,  'reset', '--hard', data[:revision]) # try to rollback changes
+                if data[:revert_server]
+                    # Something failed after sending data to server. We have to sync the old data again
+                    bind_server_data = data[:bind_server_data]
+                    named_conf_file = bind_server_data[:named_conf_file]
+                    # Sync it to server
+                    @logger.info("[GloboDns::Exporter] Sending the reverted config to remote")
+                    sync_remote(abs_repository_zones_dir, named_conf_file, bind_server_data)
+
+                    # Reload again
+                    reload_output = reload_bind_conf(data[:chroot_dir]) rescue nil
+                    @logger.info "[GloboDns::Exporter][INFO] bind configuration reloaded:\n#{reload_output}"
+                end
+            end
         end
     end
 
