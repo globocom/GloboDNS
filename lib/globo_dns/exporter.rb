@@ -249,7 +249,10 @@ class Exporter
                 #create subdir for this domain, if it doesn't exist yet.
                 abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
                 File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
-                domain.to_zonefile(File.join(abs_zones_root_dir, domain.zonefile_path)) unless domain.slave? || @slave
+                #Create/Update the zonefile itself
+                abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
+                domain.to_zonefile(abs_zonefile_path) unless domain.slave? || @slave
+                File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zonefile_path)) unless domain.slave? || domain.forward?
             end
 
             #If one zone is new, we need a full reload to bind.
@@ -262,9 +265,7 @@ class Exporter
                 end
             end
 
-            # write entries to index file (<domain_type>.conf) and update 'mtime'
-            # of *all* non-slave domains, so that we may use the mtime as a criteria
-            # to identify the zonefiles that have been removed from BIND's config
+            # write entries to index file (<domain_type>.conf).
             domains.each do |domain|
                 if @slave and not domain.forward?
                     domain = domain.clone
@@ -274,7 +275,6 @@ class Exporter
                     domain.master += " key #{domain.query_key_name}" if domain.query_key_name
                 end
                 file.puts domain.to_bind9_conf(zones_root_dir)
-                File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zones_root_dir, domain.zonefile_path)) unless domain.slave? || domain.forward?
             end
         end
 
