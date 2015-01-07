@@ -36,6 +36,8 @@ class DomainsController < ApplicationController
         unless request.xhr?
             query    = params[:record].blank? ? nil : params[:record]
             @records = @domain.records.without_soa.paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
+            @sibling = @domain.sibling if @domain.sibling
+            @sibling_records = @sibling.records.without_soa.paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE) if @sibling
         end
         respond_with(@domain)
     end

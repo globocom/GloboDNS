@@ -232,6 +232,8 @@ en:
   label_macro_apply: "Apply macro"
 
 # Domains show
+  records_for_sibling_domain:
+    Records for Sibling Domain
   help_record_template_new:
     Create a new record for this domain
   help_soa_record_edit:

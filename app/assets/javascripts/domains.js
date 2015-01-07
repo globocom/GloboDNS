@@ -187,9 +187,16 @@ $(document).ready(function() {
 	});
 
 	// ------------------- Records table -------------------
-
-	$('#records-search-form, #record-table-pagination a').live('ajax:success', function (evt, data, statusStr, xhr) {
-		$('.record-table-container').replaceWith(data);
+        //
+        // Search inside both divs for a search
+        // or pagination
+        $('#domain-records .records-search-form, ' +
+          '#domain-records .record-table-pagination a, ' +
+          '#sibling-records .records-search-form, ' +
+          '#sibling-records .record-table-pagination a'
+        ).live('ajax:success', function (evt, data, statusStr, xhr) {
+          // Retrieve it again
+          $(this).closest('#domain-records, #sibling-records').find('.record-table-container').replaceWith(data);
 		fixRecordContentColumnWidth();
 	}).live('ajax:error', function () {
 		alert("[ERROR] unable to retrieve domains");
@@ -298,27 +305,27 @@ $(document).ready(function() {
 	};
 
 	var fixRecordTableZebraStriping = function () {
-		$('table#record-table tr.show-record:nth-child(even), table#record-table tr.edit-record:nth-child(odd)').addClass("even").removeClass("odd");
-		$('table#record-table tr.show-record:nth-child(odd), table#record-table tr.edit-record:nth-child(even)').addClass("odd").removeClass("even");
+		$('table.record-table tr.show-record:nth-child(even), table.record-table tr.edit-record:nth-child(odd)').addClass("even").removeClass("odd");
+		$('table.record-table tr.show-record:nth-child(odd), table.record-table tr.edit-record:nth-child(even)').addClass("odd").removeClass("even");
 	}
 
 	// -------------- fix td.content width -------------
 	var fixRecordContentColumnWidth = function () {
-		$('#record-table td.content').width('auto');
-		$('#record-table td.content span').width('1px');
-		var width = $('#record-table td.content').width();
+		$('.record-table td.content').width('auto');
+		$('.record-table td.content span').width('1px');
+		var width = $('.record-table td.content').width();
 		// var table = td.closest('table');
 		// var width = table.parent().width() - td.position().left + table.position().left - 5;
-		$('#record-table td.content span').width(width);
+		$('.record-table td.content span').width(width);
 	};
 
-	if ($('#record-table').size() > 0)
+	if ($('.record-table').size() > 0)
 		fixRecordContentColumnWidth();
 
 	// ---------------- New Record form -------------------
 	$('#new-record-form').live('ajax:success', function (evt, data, statusSTr, xhr) {
 		$('.new-record-form-container ul.errors').remove();
-		$('table#record-table tbody').append(data);
+		$('table.record-table tbody').append(data);
 		fixRecordTableZebraStriping();
 	}).live('ajax:error', function (evt, xhr, statusStr, error) {
 		if (xhr.status == 422) { // :unprocessable_entity

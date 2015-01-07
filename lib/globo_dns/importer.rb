@@ -203,7 +203,12 @@ class Importer
                     domain.model.view_id = view.model.id
                 end
 
+
+                # Look for a sibling, and merge replicated records.
+                domain.model.set_sibling()
+
                 logger.info "  saving domain: #{domain.model.inspect} (soa: #{domain.model.soa_record.inspect})"
+
                 domain.model.save or logger.error("unable to save domain #{domain.model.name}: #{domain.model.errors.full_messages} (soa: #{domain.model.soa_record.errors.full_messages})")
                 domain.reset_model
             end

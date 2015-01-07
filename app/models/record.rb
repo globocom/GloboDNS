@@ -250,6 +250,14 @@ class Record < ActiveRecord::Base
             self.errors.add(:name, I18n.t('recursive_subdomain', :domain => domain.name, :scope => 'activerecord.errors.messages'))
         end
     end
+    
+    # Checks if this record is a replica of another
+    def same_as? other_record
+      self.name    == other_record.name &&
+      self.ttl     == other_record.ttl  &&
+      self.type    == other_record.type &&
+      self.content == other_record.content
+    end
 
     private
 

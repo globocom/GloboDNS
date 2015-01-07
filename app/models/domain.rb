@@ -48,6 +48,8 @@ class Domain < ActiveRecord::Base
 
     # associations
     belongs_to :view
+    # A sibling domain from where we borrow identical records.
+    belongs_to :sibling, class_name: 'Domain'
     has_many   :records,            :dependent => :destroy,      :inverse_of => :domain
     has_one    :soa_record,         :class_name => 'SOA',        :inverse_of => :domain
     has_many   :aaaa_records,       :class_name => 'AAAA',       :inverse_of => :domain
@@ -233,12 +235,8 @@ class Domain < ActiveRecord::Base
         output.puts "$TTL    #{self.ttl}"
         output.puts
 
-        format = records_format
-        records.order("FIELD(type, #{GloboDns::Config::RECORD_ORDER.map{|x| "'#{x}'"}.join(', ')}), name ASC").each do |record|
-            record.domain = self
-            record.update_serial(true) if record.is_a?(SOA)
-            record.to_zonefile(output, format)
-        end
+        output_records(output, self.sibling.records, output_soa: true) if sibling
+        output_records(output, self.records, output_soa: !sibling) #only show this soa if the soa for the sibling hasn't been shown yet.
     ensure
         output.close if output.is_a?(File)
     end
@@ -260,6 +258,23 @@ class Domain < ActiveRecord::Base
             end
         end
     end
+    
+    # Find a domain that has the same name, to search for replicated records.
+    # The parameter 'save' tells if the method shall persist its changes in the end.
+    def set_sibling save=false
+        siblings = Domain::where(name: self.name)
+        siblings.reject! do |sib| sib.id == self.id end if self.persisted?
+        sibling = siblings.first
+        if sibling
+            Domain.transaction do
+                self.sibling = sibling
+                merge_records(sibling)
+                if save
+                    raise ActiveRecord::Rollback unless self.save
+                end
+            end
+        end
+    end
 
     private
 
@@ -270,8 +285,22 @@ class Domain < ActiveRecord::Base
         self.normal!
     end
 
-    def records_format
-        sizes = self.records.select('MAX(LENGTH(name)) AS name, LENGTH(MAX(ttl)) AS ttl, MAX(LENGTH(type)) AS mtype, LENGTH(MAX(prio)) AS prio').first
+    # Output to the given output stream
+    # the records from the given colection.
+    # Accepts, as options, output_soa: boolean
+    def output_records output, records, options={output_soa: true}
+        format = records_format records
+        records.order("FIELD(type, #{GloboDns::Config::RECORD_ORDER.map{|x| "'#{x}'"}.join(', ')}), name ASC").each do |record|
+            record.domain = self
+            unless record.is_a?(SOA) && !options[:output_soa]
+                record.update_serial(true) if record.is_a?(SOA)
+                record.to_zonefile(output, format)
+            end
+        end
+    end
+
+    def records_format records
+        sizes = records.select('MAX(LENGTH(name)) AS name, LENGTH(MAX(ttl)) AS ttl, MAX(LENGTH(type)) AS mtype, LENGTH(MAX(prio)) AS prio').first
         "%-#{sizes.name}s %-#{sizes.ttl}s IN %-#{sizes.mtype}s %-#{sizes.prio}s %s\n"
     end
 
@@ -284,5 +313,29 @@ class Domain < ActiveRecord::Base
         depth = config_depth.is_a?(Integer) ? config_depth : Integer(config_depth, 10) rescue 0
         # uses the first alphanumeric characters to create subdirs, up to GloboDns::Config::SUBDIR_DEPTH levels.
         File::join self.name.split('').select{|char| char.match /[a-zA-Z0-9]/}.first(depth)
+    end
+
+    # If a record for this domain is identical
+    # a record for the other domain, instead of creating
+    # a new copy of it, just uses the sibling pointing
+    def merge_records(other_domain)
+        other_records = other_domain.records
+        # identical_other_records = [] # if you want to cache the records that are identical on other_domain
+        # partition returns 2 arrays: first passes the predicate. Second doesn't
+        identical_records, new_records = self.records.partition do |record|
+            identical = false
+            # is there any other record ...
+            other_records.each do |other_record|
+                # that is the same as ours?
+                if other_record.same_as? record
+                  # set the flag to true
+                  identical = true
+                  # and cache it to merge
+                  # identical_other_records << other_record # if you want to cache the records that are identical on other_domain
+                end
+            end
+            identical
+        end
+        self.records = new_records
     end
 end

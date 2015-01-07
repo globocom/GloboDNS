@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20141003232635) do
+ActiveRecord::Schema.define(:version => 20150105051755) do
 
   create_table "audits", :force => true do |t|
     t.integer  "auditable_id"
@@ -59,6 +59,7 @@ ActiveRecord::Schema.define(:version => 20141003232635) do
     t.string   "authority_type",  :limit => 1, :null => false
     t.string   "addressing_type", :limit => 1, :null => false
     t.integer  "view_id"
+    t.integer  "sibling_id"
   end
 
   add_index "domains", ["name"], :name => "index_domains_on_name"

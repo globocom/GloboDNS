@@ -1,5 +1,5 @@
 %div.record-table-container
-  %table#record-table
+  %table.record-table
     %thead
       %tr
         %th= t :label_domain_record_host
@@ -9,6 +9,6 @@
         %th= t :label_domain_record_content
         %th  &nbsp;
     %tbody
-      = render :partial => 'records/record', :collection => @records
-  - if @records && @records.any?
-    = will_paginate @records, :id => 'record-table-pagination', :previous_label => '«'.html_safe, :next_label => '»'.html_safe, :params => { :controller => 'records', :action => 'index', :domain_id => @records.first.domain_id, :id => nil }
+      = render :partial => 'records/record', :collection => records
+  - if records && records.any?
+    = will_paginate records, :class => 'record-table-pagination', :previous_label => '«'.html_safe, :next_label => '»'.html_safe, :params => { :controller => 'records', :action => 'index', :domain_id => records.first.domain_id, :id => nil }
