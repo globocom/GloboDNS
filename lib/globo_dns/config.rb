@@ -32,6 +32,9 @@ module Config
         @slave_enabled ||= Bind::Slaves.any? {|slave| !slave::HOST.nil? and slave::HOST != '' rescue false}
     end
 
+    def slave_enabled? slave
+        !slave::HOST.nil? and slave::HOST != '' rescue false
+    end
 
     protected
 

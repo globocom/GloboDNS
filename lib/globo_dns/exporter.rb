@@ -49,7 +49,8 @@ class Exporter
         export_master(master_named_conf_content, options)
         if SLAVE_ENABLED?
             Bind::Slaves.each_with_index do |slave, index|
-                export_slave(slaves_named_conf_contents[index], options.merge!(index: index))
+                # only exports if the slave hosts is defined.
+                export_slave(slaves_named_conf_contents[index], options.merge!(index: index)) if slave_enabled?(slave)
             end
         end
 
@@ -245,14 +246,16 @@ class Exporter
                 if not export_all_domains and not @slave
                     n_zones << domain
                 end
-                @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}; created_at: #{domain.created_at}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated_since-count: #{domain.records.updated_since(@last_commit_date).count})"
-                #create subdir for this domain, if it doesn't exist yet.
-                abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
-                File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
-                #Create/Update the zonefile itself
-                abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
-                domain.to_zonefile(abs_zonefile_path) unless domain.slave? || @slave
-                File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zonefile_path)) unless domain.slave? || domain.forward?
+                unless @slave #Slaves don't replicate the zone-files.
+                    @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}; created_at: #{domain.created_at}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated_since-count: #{domain.records.updated_since(@last_commit_date).count})"
+                    #create subdir for this domain, if it doesn't exist yet.
+                    abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
+                    File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
+                    #Create/Update the zonefile itself
+                    abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
+                    domain.to_zonefile(abs_zonefile_path) unless domain.slave?
+                    File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zonefile_path)) unless domain.slave? || domain.forward?
+                end
             end
 
             #If one zone is new, we need a full reload to bind.
@@ -414,7 +417,7 @@ class Exporter
     def sync_remote(abs_repository_zones_dir, named_conf_file, bind_server_data)
         label = @options[:label]
         # If anything fails from now on, the server data has to be reverted as well
-        @revert_operation_data[label][:revert_server] = true
+        @revert_operation_data[label][:revert_server] = true if @revert_operation_data[label]
 
         if @slave
             rsync_output = exec('remote rsync',
