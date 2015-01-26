@@ -379,7 +379,6 @@ table#domains-table tr.even {
 }
 .domains-selector-buttons {
     float: right;
-    margin: -1em 0 2em 0;
 }
 .domains-selector-buttons input[type="checkbox"] {
     visibility: hidden;
