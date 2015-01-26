@@ -53,19 +53,37 @@ class DomainsController < ApplicationController
     end
 
     def create
+        domain_template_in_params = false
+        domain_view_in_params = false
         if params[:domain][:domain_template_id].present? || params[:domain][:domain_template_name].present?
+            domain_template_in_params = true
             @domain_template   = DomainTemplate.where('id'   => params[:domain][:domain_template_id]).first   if params[:domain][:domain_template_id]
             @domain_template ||= DomainTemplate.where('name' => params[:domain][:domain_template_name]).first if params[:domain][:domain_template_name]
-            if @domain_template
-                @domain = @domain_template.build(params[:domain][:name])
-            else
-                @domain.errors.add(:domain_template, 'Domain Template not found')
-            end
+        end
+        if params[:domain][:domain_view_id].present? || params[:domain][:domain_view_name].present?
+            domain_view_in_params = true
+            @domain_view   = View.where('id'   => params[:domain][:domain_view_id]).first   if params[:domain][:domain_view_id]
+            @domain_view ||= View.where('name' => params[:domain][:domain_view_name]).first if params[:domain][:domain_view_name]
+        end
+        if @domain_template
+            @domain = @domain_template.build(params[:domain][:name])
         else
             @domain = Domain.new(params[:domain].except(:domain_template_id, :domain_template_name))
         end
 
-        @domain.save
+        if @domain_view
+          @domain.view = @domain_view
+        end
+
+        if domain_template_in_params && !@domain_template
+            @domain.errors.add(:domain_template, 'Domain Template not found')
+        end
+        if domain_view_in_params && !@domain_view
+            @domain.errors.add(:domain_view, 'Domain view not found')
+        end
+
+
+        @domain.save unless @domain.errors.any?
         # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
 
         respond_with(@domain) do |format|
