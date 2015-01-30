@@ -1,10 +1,6 @@
 %div.domains-table-container
   - if domains.empty?
     %div.flash-error= t('message_no_domains_found')
-  %div.domains-selector-buttons
-    = check_box_tag('show-reverse-domains-checkbox', '1', checked = session[:show_reverse_domains])
-    = label_tag('show-reverse-domains-checkbox', '', :id => 'show-reverse-domains-checkbox-label', :class => 'ui-icon-retweet', :title => t(:desc_show_reverse_domains), 'data-url' => domains_path, 'data-remote' => true)
-  %div{style: 'clear: both'}
   %table#domains-table
     %tbody
       = render :partial => '/domains/domain', :collection => domains

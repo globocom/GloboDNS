@@ -6,7 +6,12 @@
   #audits=t :help_audits
   #macro=t :help_macro
 
-%h1= t(:title_domains_list)
+%h1
+  = t(:title_domains_list)
+  %div.domains-selector-buttons
+    = check_box_tag('show-reverse-domains-checkbox', '1', checked = session[:show_reverse_domains])
+    = label_tag('show-reverse-domains-checkbox', '', :id => 'show-reverse-domains-checkbox-label', :class => 'ui-icon-retweet', :title => t(:desc_show_reverse_domains), 'data-url' => domains_path, 'data-remote' => true)
+  %div.clearer
 = render :partial => 'list', :object => @domains, :as => :domains
 
 - if current_user.admin? || current_user.operator?
