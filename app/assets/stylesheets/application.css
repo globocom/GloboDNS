@@ -564,6 +564,23 @@ table#show-domain-template td label, table#edit-domain-template td label, table#
     padding-right: 2em;
 }
 
+div.select-domain-template-view-form-container {
+    width: 15em;
+}
+
+div.select-domain-template-view-form-container select {
+    height: 2em;
+    box-sizing: border-box;
+}
+
+div.select-domain-template-view-form-container .cancel-select-domain-template-view-button {
+    float: left;
+}
+
+div.select-domain-template-view-form-container .select-domain-template-view-button {
+    float: right;
+}
+
 table#show-soa-record-template td, table#edit-soa-record-template td {
     height: 2em;
 }

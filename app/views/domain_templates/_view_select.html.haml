@@ -1,0 +1,10 @@
+%div#show-domain-template-view
+  = @domain_template.view.name rescue "-"
+%div#select-domain-template-view.hidden
+  %div.select-domain-template-view-form-container
+    = form_for @domain_template, html: {class: 'select-domain-template-view-form'}, remote: true do |f|
+      = f.select :view_id,  View.all.collect {|v| [ v.name, v.id ] }, {include_blank: '-'}
+    %br
+    = button_tag t(:generic_cancel), :class => 'cancel-select-domain-template-view-button ui-icon-ban-circle'
+    = button_tag t(:generic_save), :class => 'select-domain-template-view-button ui-icon-download-alt'
+  %div.clearer

@@ -17,6 +17,8 @@ class DomainTemplate < ActiveRecord::Base
     has_many :record_templates, :dependent => :destroy, :inverse_of => :domain_template
     has_one  :soa_record_template, :class_name => 'RecordTemplate', :conditions => { 'type' => 'SOA' }, :inverse_of => :domain_template
 
+    belongs_to :view
+
     validates_presence_of     :name
     validates_uniqueness_of   :name
     validates_presence_of     :ttl
@@ -61,6 +63,8 @@ class DomainTemplate < ActiveRecord::Base
             domain.records   << record
             domain.soa_record = record if record.is_a?(SOA)
         end
+
+        domain.view_id = self.view_id if self.view_id
 
         domain
     end

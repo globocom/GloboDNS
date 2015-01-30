@@ -142,6 +142,35 @@ $(document).ready(function() {
 	});
 
 
+	// ------------------- View -------------------
+	$('.edit-domain-template-view-button').click(function () {
+		$('#show-domain-template-view').hide();
+		$('#select-domain-template-view').show();
+		$(this).hide();
+		return false;
+	});
+
+	$('.cancel-select-domain-template-view-button').live('click', function () {
+		$('#show-domain-template-view').show();
+		$('#select-domain-template-view').hide();
+		$('.edit-domain-template-view-button').show();
+		return false;
+	});
+
+	$('.select-domain-template-view-button').live('click', function () {
+		$('.select-domain-template-view-form').submit();
+		return false;
+	});
+
+	$('.select-domain-template-view-form').live('ajax:success', function (evt, data, statusStr, xhr) {
+          $('#show-domain-template-view').html($('#domain_template_view_id option:selected').text()).show();
+          $('#select-domain-template-view').hide();
+          $('.edit-domain-template-view-button').show();
+          return false;
+        }).live('ajax:error', function (evt, xhr, statusStr, error) {
+          alert("[ERROR] unable to update View");
+	});
+
 	// ------------------- Record Templates table -------------------
 
 	$('#record-templates-table-pagination a').live('ajax:success', function (evt, data, statusStr, xhr) {
