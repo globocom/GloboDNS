@@ -19,6 +19,8 @@
    * all gems in Gemfile (bundle install)
 * http server
 * sudo
+* gcc
+* gcc-c++
 
 **Bind server**:
 
