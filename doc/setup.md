@@ -21,7 +21,7 @@
 * sudo
 * gcc
 * gcc-c++
-* gpg
+* gnupg
 
 **Bind server**:
 
