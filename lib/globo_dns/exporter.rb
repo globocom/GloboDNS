@@ -273,6 +273,8 @@ class Exporter
                 if @slave and not domain.forward?
                     domain = domain.clone
                     domain.slave!
+                    abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
+                    File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
                     domain.master  = "#{Bind::Master::IPADDR}"
                     domain.master += " port #{Bind::Master::PORT}"     if defined?(Bind::Master::PORT)
                     domain.master += " key #{domain.query_key_name}" if domain.query_key_name
@@ -488,7 +490,7 @@ class Exporter
                                 File.join(abs_repository_zones_dir, File.basename(named_conf_file)),
                                 "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:named_conf_file])}")
         end
-        
+
         rsync_output
     end
 
