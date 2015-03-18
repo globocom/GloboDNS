@@ -105,8 +105,8 @@ class Exporter
         else
             @last_commit_date = last_export_timestamp
         end
-        @export_timestamp = Time.now
-        @touch_timestamp  = @export_timestamp + 1 # we add 1 second to avoid minor subsecond discrepancies
+        @export_timestamp = Time.now.round
+        #@touch_timestamp  = @export_timestamp + 1 # we add 1 second to avoid minor subsecond discrepancies
                                                   # when comparing each file's mtime with the @export_times
 
         tmp_dir = Dir.mktmpdir
@@ -200,7 +200,7 @@ class Exporter
             end
             file.puts CONFIG_END_TAG
         end
-        File.utime(@touch_timestamp, @touch_timestamp, abs_named_conf_file)
+        #File.utime(@touch_timestamp, @touch_timestamp, abs_named_conf_file)
     end
 
     def export_views(chroot_dir, zones_root_dir)
@@ -226,7 +226,7 @@ class Exporter
             end
         end
 
-        File.utime(@touch_timestamp, @touch_timestamp, abs_views_file)
+        #File.utime(@touch_timestamp, @touch_timestamp, abs_views_file)
     end
 
     def export_domain_group(chroot_dir, zones_root_dir, file_name, dir_name, domains, export_all_domains = false)
@@ -255,7 +255,7 @@ class Exporter
                     #Create/Update the zonefile itself
                     abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
                     domain.to_zonefile(abs_zonefile_path) unless domain.slave?
-                    File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zonefile_path)) unless domain.slave? || domain.forward?
+                    #File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zonefile_path)) unless domain.slave? || domain.forward?
                 end
             end
 
@@ -277,7 +277,7 @@ class Exporter
                     abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
                     File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
                     abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
-                    File.exists?(abs_zonefile_path) or File.new(abs_zonefile_path,"w")
+                    File.exists?(abs_zonefile_path) or File.open(abs_zonefile_path,'w')
                     domain.master  = "#{Bind::Master::IPADDR}"
                     domain.master += " port #{Bind::Master::PORT}"     if defined?(Bind::Master::PORT)
                     domain.master += " key #{domain.query_key_name}" if domain.query_key_name
@@ -286,8 +286,8 @@ class Exporter
             end
         end
 
-        File.utime(@touch_timestamp, @touch_timestamp, abs_dir_name)
-        File.utime(@touch_timestamp, @touch_timestamp, abs_file_name)
+        #File.utime(@touch_timestamp, @touch_timestamp, abs_dir_name)
+        #File.utime(@touch_timestamp, @touch_timestamp, abs_file_name)
         return array_new_zones
     end
 
@@ -295,7 +295,7 @@ class Exporter
       if slave
         patern = File.join(dir, 'dbs.*')
       else
-        patern = File.join(dir, 'dbs.*')
+        patern = File.join(dir, 'db.*')
       end
         Dir.glob(patern).each do |file|
             if File.mtime(file) < export_timestamp
