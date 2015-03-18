@@ -45,7 +45,7 @@ class Exporter
             slaves_named_conf_contents = [master_named_conf_content] * slaves_named_conf_contents.size
        end
 
-        Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ") unless (lock_tables == false)
+        Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ, #{Audited::Adapters::ActiveRecord::Audit.table_name} READ") unless (lock_tables == false)
         export_master(master_named_conf_content, options)
         if SLAVE_ENABLED?
             Bind::Slaves.each_with_index do |slave, index|
