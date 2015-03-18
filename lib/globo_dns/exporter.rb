@@ -150,6 +150,7 @@ class Exporter
         # (otherwise they'd have been regenerated or 'touched')
         remove_untouched_zonefiles(File.join(tmp_dir, zones_root_dir, ZONES_DIR),   @export_timestamp)
         remove_untouched_zonefiles(File.join(tmp_dir, zones_root_dir, REVERSE_DIR), @export_timestamp)
+        remove_untouched_zonefiles(File.join(tmp_dir, zones_root_dir, SLAVES_DIR),  @export_timestamp, true)
 
         # validate configuration with 'named-checkconf'
         run_checkconf(tmp_dir, named_conf_file)
@@ -275,6 +276,8 @@ class Exporter
                     domain.slave!
                     abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
                     File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
+                    abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
+                    File.exists?(abs_zonefile_path) or File.new(abs_zonefile_path,"w")
                     domain.master  = "#{Bind::Master::IPADDR}"
                     domain.master += " port #{Bind::Master::PORT}"     if defined?(Bind::Master::PORT)
                     domain.master += " key #{domain.query_key_name}" if domain.query_key_name
@@ -288,8 +291,13 @@ class Exporter
         return array_new_zones
     end
 
-    def remove_untouched_zonefiles(dir, export_timestamp)
-        Dir.glob(File.join(dir, 'db.*')).each do |file|
+    def remove_untouched_zonefiles(dir, export_timestamp, slave = false)
+      if slave
+        patern = File.join(dir, 'dbs.*')
+      else
+        patern = File.join(dir, 'dbs.*')
+      end
+        Dir.glob(patern).each do |file|
             if File.mtime(file) < export_timestamp
                 @logger.debug "[DEBUG] removing untouched zonefile \"#{file}\" (mtime (#{File.mtime(file)}) < export ts (#{export_timestamp}))"
                 FileUtils.rm(file)
@@ -334,7 +342,7 @@ class Exporter
                                 Binaries::RSYNC,
                                 '--checksum',
                                 '--archive',
-                                #'--delete',
+                                '--delete',
                                 '--verbose',
                                 # '--omit-dir-times',
                                 '--group',
@@ -426,8 +434,9 @@ class Exporter
                                 Binaries::RSYNC,
                                 '--checksum',
                                 '--archive',
-                                #'--delete',
+                                '--delete',
                                 '--verbose',
+                                '--ignore-existing',
                                 # '--omit-dir-times',
                                 '--owner',
                                 '--group',
