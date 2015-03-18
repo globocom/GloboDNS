@@ -551,14 +551,18 @@ class Exporter
     def remove_destroyed_domains(zonefile_dir,slave = false)
       destroyed = Audited::Adapters::ActiveRecord::Audit.where(auditable_type:"Domain",action:"destroy" ).where("created_at > ?", @last_commit_date)
       domains = destroyed.collect{|a| a.audited_changes['name']}
-      @logger.info "[GloboDns::Exporter] Removing destroyed domains: #{domains}"
+      @logger.info "[GloboDns::Exporter] Removing destroyed domains: #{domains}" unless domains.empty?
       domains.each do |domain|
         tmpdomain = Domain.new(name:domain)
         tmpdomain.slave! if slave
         zonefile_path = tmpdomain.zonefile_path
         abs_zonefile_path = File.join(zonefile_dir,zonefile_path)
         @logger.debug "[GloboDns::Exporter] removing destroyed zonefile \"#{abs_zonefile_path}\""
-        FileUtils.rm(abs_zonefile_path)
+        begin
+          FileUtils.rm(abs_zonefile_path)
+        rescue Errno::ENOENT => e
+          @logger.info "[GloboDns::Exporter] #{e.message}"
+        end
       end
     end
 
