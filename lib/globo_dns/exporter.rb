@@ -109,6 +109,9 @@ class Exporter
         #@touch_timestamp  = @export_timestamp + 1 # we add 1 second to avoid minor subsecond discrepancies
                                                   # when comparing each file's mtime with the @export_times
 
+        #Remove destroyed domains
+        remove_destroyed_domains(File.join(chroot_dir, zones_root_dir), slave)
+
         tmp_dir = Dir.mktmpdir
         @logger.info "[GloboDns::Exporter] tmp dir: #{tmp_dir}" if @options[:keep_tmp_dir] == true
         File.chmod(02770, tmp_dir)
@@ -543,6 +546,20 @@ class Exporter
         CHECKCONF_STANDARD_MESSAGES.inject(output) do |output, pattern|
             output.gsub(pattern, '')
         end
+    end
+
+    def remove_destroyed_domains(zonefile_dir,slave = false)
+      destroyed = Audited::Adapters::ActiveRecord::Audit.where(auditable_type:"Domain",action:"destroy" ).where("created_at > ?", @last_commit_date)
+      domains = destroyed.collect{|a| a.audited_changes['name']}
+      @logger.info "[GloboDns::Exporter] Removing destroyed domains: #{domains}"
+      domains.each do |domain|
+        tmpdomain = Domain.new(name:domain)
+        tmpdomain.slave! if slave
+        zonefile_path = tmpdomain.zonefile_path
+        abs_zonefile_path = File.join(zonefile_dir,zonefile_path)
+        @logger.debug "[GloboDns::Exporter] removing destroyed zonefile \"#{abs_zonefile_path}\""
+        FileUtils.rm(abs_zonefile_path)
+      end
     end
 
 end # Exporter
