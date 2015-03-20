@@ -41,9 +41,11 @@ class Exporter
         @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
 
         lock_tables                 = options.delete(:lock_tables)
-       if (options[:use_master_named_conf_for_slave])
-            slaves_named_conf_contents = [master_named_conf_content] * slaves_named_conf_contents.size
-       end
+      if (options[:use_master_named_conf_for_slave])
+        slaves_named_conf_contents = [master_named_conf_content] * slaves_named_conf_contents.size
+      end
+
+      @views=View.all.collect(&:name)
 
         Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ, #{Audited::Adapters::ActiveRecord::Audit.table_name} READ") unless (lock_tables == false)
         export_master(master_named_conf_content, options)
@@ -110,7 +112,7 @@ class Exporter
                                                   # when comparing each file's mtime with the @export_times
 
         #Remove destroyed domains
-        remove_destroyed_domains(File.join(chroot_dir, zones_root_dir), slave)
+        removed_zones = remove_destroyed_domains(File.join(chroot_dir, zones_root_dir), slave)
 
         tmp_dir = Dir.mktmpdir
         @logger.info "[GloboDns::Exporter] tmp dir: #{tmp_dir}" if @options[:keep_tmp_dir] == true
@@ -128,7 +130,7 @@ class Exporter
         # export all views
         export_views(tmp_dir, zones_root_dir)
 
-        @new_zones = []
+        new_zones = []
 
         # export each view-less domain group to a separate file
         if @slave == true
@@ -142,7 +144,7 @@ class Exporter
             if not new_zones_noreverse.empty? and not new_zones_reverse.empty?
                 # If there is a new zone in non-reverse or reverse, I need update everything.
                 # If both have only changes, may I reload only changed zones
-                @new_zones += new_zones_noreverse + new_zones_reverse
+                new_zones += new_zones_noreverse + new_zones_reverse
             end
             export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.slave)
             export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward)
@@ -161,8 +163,9 @@ class Exporter
         # sync generated files on the tmp dir to the local chroot repository
         sync_repository_and_commit(tmp_dir, chroot_dir, zones_root_dir, named_conf_file, bind_server_data)
 
+        updated_zones = new_zones.concat(removed_zones).uniq
         # sync files in chroot repository to remote dir on the actual BIND server
-        sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, @new_zones)
+        sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, updated_zones)
     rescue Exception => e
         if @revert_operation_data && @options[:reset_repository_on_failure] != false
             @logger.error(e.to_s + e.backtrace.join("\n"))
@@ -409,12 +412,12 @@ class Exporter
         @logger.info "[GloboDns::Exporter][INFO] git repository new HEAD: #{new_head}"
     end
 
-    def sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, new_zones)
+    def sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, updated_zones)
         abs_repository_zones_dir = File.join(chroot_dir, zones_root_dir, '')
         sync_remote(abs_repository_zones_dir , named_conf_file, bind_server_data)
 
-        @to_reload = new_zones
-
+        @to_reload = updated_zones
+        #Better do a full reload if to many zones were changed
         if @to_reload.size < 10 and not @to_reload.empty?
             @to_reload.each do |zone|
                 reload_output = reload_bind_conf(chroot_dir, zone)
@@ -507,7 +510,7 @@ class Exporter
     end
 
     def reload_bind_conf(chroot_dir, zone = [])
-        if zone.empty?
+        if zone.empty? or not @views.empty?
             cmd_args = ['rndc reload', Binaries::RNDC, '-c', File.join(chroot_dir, RNDC_CONFIG_FILE), '-y', RNDC_KEY_NAME, 'reload']
         else
             cmd_args = ['rndc reload', Binaries::RNDC, '-c', File.join(chroot_dir, RNDC_CONFIG_FILE), '-y', RNDC_KEY_NAME, 'reload'] << zone
@@ -564,6 +567,7 @@ class Exporter
           @logger.info "[GloboDns::Exporter] #{e.message}"
         end
       end
+      domains
     end
 
 end # Exporter
