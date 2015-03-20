@@ -443,6 +443,7 @@ class Exporter
                                 '--delete',
                                 '--verbose',
                                 '--ignore-existing',
+                                '--min-size=1',
                                 "--include=#{File.basename(named_conf_file)}",
                                 "--include=*#{ZONES_DIR}/***",
                                 "--include=*#{SLAVES_DIR}/***",
