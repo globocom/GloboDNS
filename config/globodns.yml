@@ -117,6 +117,7 @@ test:
     git_author:             'Globo DNS API <dnsapi@yourdomain.com>'
     export_delay:           300  # in seconds
     mail_recipients:        [ 'Root <root@hostname.com>' ]
+    dns_stage:                  'Internal'
 
     binaries:
         bind:          '/usr/sbin/named'
@@ -133,4 +134,3 @@ test:
         chroot:        '/usr/sbin/chroot'
 
 production: *devconf
-
