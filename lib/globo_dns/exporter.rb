@@ -523,10 +523,14 @@ class Exporter
         else
             cmd_args = ['rndc reload', Binaries::RNDC, '-c', File.join(chroot_dir, RNDC_CONFIG_FILE), '-y', RNDC_KEY_NAME, 'reload'] << zone
         end
-        if @options[:abort_on_rndc_failure] == false
-            exec!(*cmd_args)
-        else
-            exec(*cmd_args)
+        begin
+          exec(*cmd_args)
+        rescue ExitStatusError => e
+          if e.message.include?("no matching zone")
+            @logger.warn("GloboDns::Exporter #{e.message}")
+          else
+            raise e
+          end
         end
     end
 
