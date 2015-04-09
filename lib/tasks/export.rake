@@ -2,6 +2,8 @@ namespace :globodns do
   desc 'Export updates to bind servers'
   task :export => :environment do
     include GloboDns::Config
+
+    @logger = GloboDns::StringIOLogger.new(Rails.logger)
     exporter = GloboDns::Exporter.new
     get_current_config
 
@@ -12,7 +14,7 @@ namespace :globodns do
 
     Schedule.run_exclusive :export do |s|
       if not s.date.nil?
-        logger.warn "There are another process running. To run export again, remove row #{s.id} in schedules table"
+        @logger.warn "There are another process running. To run export again, remove row #{s.id} in schedules table"
         next
       end
       # register last execution in schedule
@@ -22,7 +24,7 @@ namespace :globodns do
     begin
       exporter.export_all(@master_named_conf, @slaves_named_confs, :all => 'false', :keep_tmp_dir => false, :reset_repository_on_failure => true)
     rescue Exception => e
-      logger.error "[ERROR] export failed: #{e}\n#{exporter.logger.string}\nbacktrace:\n#{e.backtrace.join("\n")}"
+      @logger.error "[ERROR] export failed: #{e}\n#{exporter.logger.string}\nbacktrace:\n#{e.backtrace.join("\n")}"
     ensure
       Schedule.run_exclusive :export do |s|
         s.date = nil

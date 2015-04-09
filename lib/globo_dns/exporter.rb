@@ -527,7 +527,7 @@ class Exporter
           exec(*cmd_args)
         rescue ExitStatusError => e
           if e.message.include?("no matching zone")
-            @logger.warn("GloboDns::Exporter #{e.message}")
+            @logger.warn("[GloboDns::Exporter]#{e.message}")
           else
             raise e
           end
