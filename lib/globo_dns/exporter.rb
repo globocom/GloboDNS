@@ -166,6 +166,12 @@ class Exporter
         updated_zones = new_zones.concat(removed_zones).uniq
         # sync files in chroot repository to remote dir on the actual BIND server
         sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, updated_zones)
+    rescue ExitStatusError => err
+      if err.message == "Nothing to be exported!"
+        @logger.info("[GloboDns::Exporter][INFO] #{err.message}")
+      else
+        raise err
+      end
     rescue Exception => e
         if @revert_operation_data && @options[:reset_repository_on_failure] != false
             @logger.error(e.to_s + e.backtrace.join("\n"))
@@ -400,7 +406,9 @@ class Exporter
 
         #--- check status output; if there are no changes, just return
         git_status_output = exec('git status', Binaries::GIT, 'status')
-        return if git_status_output =~ /nothing to commit \(working directory clean\)/
+        if git_status_output =~ /nothing to commit \(working directory clean\)/
+          raise ExitStatusError, "Nothing to be exported!"
+        end
 
         #--- commit the changes
         # commit_output = exec_as_bind('git commit', Binaries::GIT, 'commit', "--author=#{GIT_AUTHOR}", "--date=#{@export_timestamp}", '-m', '"[GloboDns::exporter]"')
