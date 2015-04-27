@@ -32,6 +32,7 @@
 ## Installing
 
 In order to install GloboDNS in your enviroment you'll need to follow the steps bellow, please don't skip any step!
+In the lab environment, you can run bind and globodns on the same server.
 
 **1. User and groups**
 
@@ -62,15 +63,20 @@ On the bind server, the user running the API needs to have the same uid and gid 
 
 **2. Copy project**
 
-Clone the project into the desired path.
+Clone the project into the desired path, as 'globodns' user, run:
 
     $ git clone https://github.com/globocom/GloboDNS.git globodns
 
 **3. Install all requirements gems**
 
-Install all dependencies with bundle, if you don't use rvm, please skip next 2 comands
+Install all dependencies with bundle, if you don't use rvm, please skip next 2 comands.
+
+as 'root' user, run:
 
     # rvm install 1.9.3
+    
+as 'globodns' user:
+    
     $ rvm --create use 1.9.3@globodns
     $ cd globodns
     $ bundle install --deployment --without=test,development 
