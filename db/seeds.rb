@@ -25,12 +25,12 @@ user.role                  = User::ADMIN
 user.save!
 
 
-if Rails.env == "development" 
+if Rails.env == "development"
 	# Create an example doman template
 	domain_template     = DomainTemplate.find_by_name('Example Template') || DomainTemplate.new(:name => 'Example Template')
 	domain_template.ttl = '86400'
 	domain_template.soa_record_template.primary_ns = 'ns1.%ZONE%'
-	domain_template.soa_record_template.contact    = 'dnsapi.globoi.com'
+	domain_template.soa_record_template.contact    = 'globodns.globoi.com'
 	domain_template.soa_record_template.refresh    = '10800'
 	domain_template.soa_record_template.retry      = '7200'
 	domain_template.soa_record_template.expire     = '604800'

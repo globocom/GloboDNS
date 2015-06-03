@@ -3,10 +3,10 @@
 
 development:
   adapter:  mysql2
-  database: dnsapi
+  database: globodns
   host: localhost
   username: root
-  password: 
+  password:
 
 # Warning: The database defined as 'test' will be erased and
 # re-generated from your development database when you run 'rake'.
@@ -16,7 +16,7 @@ test:
   database: globodns_test
   host: localhost
   username: root
-  password: 
+  password:
 
 production:
   adapter:  mysql2
@@ -26,11 +26,10 @@ production:
   password: ""
 
 <%
-  additional_environments = '/mnt/dbmigrate/dnsapi/dnsapi.yml'
+  additional_environments = '/mnt/dbmigrate/globodns/globodns.yml'
   if File.readable?(additional_environments)
 %>
 <%= File.read(additional_environments) %>
 <% else %>
 # no file <%= additional_environments %>
 <% end %>
-

@@ -39,10 +39,10 @@ GloboDns::Application.configure do
   # The :test delivery method accumulates sent emails in the
   # ActionMailer::Base.deliveries array.
   config.action_mailer.delivery_method = :test
-  
+
   # Use a different logger for distributed setups
-  
-  config.logger = Syslogger.new('dnsapi', Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_LOCAL0)
+
+  config.logger = Syslogger.new('globodns', Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_LOCAL0)
 
   # See everything in the log (default is :info)
   config.logger.level = Logger::DEBUG

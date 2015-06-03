@@ -26,7 +26,7 @@ GloboDns::Application.configure do
 
   # Specifies the header that your server uses for sending files
   config.action_dispatch.x_sendfile_header = "X-Sendfile"
-  config.time_zone = 'Brasilia' 
+  config.time_zone = 'Brasilia'
   config.active_record.default_timezone = :local
 
   # For nginx:
@@ -34,11 +34,11 @@ GloboDns::Application.configure do
 
   # If you have no front-end server that supports something like X-Sendfile,
   # just comment this out and Rails will serve the files
-  
+
 
   # Use a different logger for distributed setups
-  
-  config.logger = Syslogger.new('dnsapi', Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_LOCAL0)
+
+  config.logger = Syslogger.new('globodns', Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_LOCAL0)
 
   # See everything in the log (default is :info)
   config.logger.level = Logger::DEBUG

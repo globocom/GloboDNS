@@ -1,7 +1,7 @@
 development: &devconf
     bind:
       master:
-        user:            'dnsapi'
+        user:            'globodns'
         host:            'master'
         ipaddr:          '192.168.0.100'
         port:            53
@@ -13,7 +13,7 @@ development: &devconf
         export_chroot_dir:    <%= Rails.root.join('tmp', 'named', 'chroot_master') %>
 
       slaves:
-        - user:             'dnsapi'
+        - user:             'globodns'
           host:             'slave0' ### empty means you don't have slave
           ipaddr:           '192.168.0.101'
           port:             5354
@@ -24,7 +24,7 @@ development: &devconf
           named_conf_link:  '/etc/named.conf'  # can be anywhere
           export_chroot_dir: <%= Rails.root.join('tmp', 'named', 'chroot_slave1') %>
 
-        - user:             'dnsapi'
+        - user:             'globodns'
           host:             'slave1' ### empty means you don't have slave
           ipaddr:           '192.168.0.102'
           port:             5354
