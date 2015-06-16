@@ -29,7 +29,11 @@ module Config
     end
 
     def SLAVE_ENABLED?
+      if Bind.constants.include?(:Slaves)
         @slave_enabled ||= Bind::Slaves.any? {|slave| !slave::HOST.nil? and slave::HOST != '' rescue false}
+      else
+        @slave_enabled = false
+      end
     end
 
     def slave_enabled? slave
@@ -61,7 +65,7 @@ module Config
                   # and sets a normal key
                   module_.const_set(key.upcase, value)
                 end
-                
+
             else
                 module_.const_set(key.upcase, value)
             end
