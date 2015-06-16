@@ -35,6 +35,7 @@ class Exporter
 
     def initialize
         @logger = GloboDns::StringIOLogger.new(Rails.logger)
+        @something_exported = false
     end
 
     def export_all(master_named_conf_content, slaves_named_conf_contents, options = {})
@@ -57,7 +58,7 @@ class Exporter
         end
 
         syslog_info('export successful')
-        Notifier.export_successful(@logger.string).deliver
+        Notifier.export_successful(@logger.string).deliver if something_exported
     rescue Exception => e
         @logger.error(e.to_s + e.backtrace.join("\n"))
 
@@ -166,6 +167,7 @@ class Exporter
         updated_zones = new_zones.concat(removed_zones).uniq
         # sync files in chroot repository to remote dir on the actual BIND server
         sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, updated_zones)
+        @something_exported = true
     rescue ExitStatusError => err
       if err.message == "Nothing to be exported!"
         @logger.info("[GloboDns::Exporter][INFO] #{err.message}")
@@ -534,7 +536,7 @@ class Exporter
         begin
           exec(*cmd_args)
         rescue ExitStatusError => e
-          if e.message.include?("no matching zone")
+          if e.message.include?('no matching zone') || e.message.include?('not found')
             @logger.warn("[GloboDns::Exporter]#{e.message}")
           else
             raise e
