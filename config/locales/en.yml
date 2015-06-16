@@ -606,7 +606,7 @@ en:
 
 
 ### Mailers
-  mail_subject_import_successful: "[GloboDNS-%{dns_stage}-%{env}][INFO] Import successful"
-  mail_subject_import_failed: "[GloboDNS-%{dns_stage}-%{env}][ERROR] Import failed"
-  mail_subject_export_successful: "[GloboDNS-%{dns_stage}-%{env}][INFO] Export successful"
-  mail_subject_export_failed: "[GloboDNS-%{dns_stage}-%{env}][ERROR] Export failed"
+  mail_subject_import_successful: "[GloboDNS][%{dns_group}][%{env}][INFO] Import successful"
+  mail_subject_import_failed: "[GloboDNS][%{dns_group}][%{env}][ERROR] Import failed"
+  mail_subject_export_successful: "[GloboDNS][%{dns_group}][%{env}][INFO] Export successful"
+  mail_subject_export_failed: "[GloboDNS][%{dns_group}][%{env}][ERROR] Export failed"

@@ -1,0 +1,3 @@
+<% unless (group = GloboDns::Config::DNS_GROUP if GloboDns::Config.const_defined?("DNS_GROUP")).nil? %>
+  <div class="group_label <%= group %>_group"><%= group %></div>
+<% end %>

@@ -1,0 +1,29 @@
+div.group_label {
+  position: fixed;
+  left: 0px;
+  top: 50%;
+  -moz-transform: rotate(90deg);
+  -webkit-transform: rotate(90deg);
+  -o-transform: rotate(90deg);
+  background: #808080;
+  color: #FFFFFF;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  font: bold 22px arial;
+  padding: 5px;
+  padding-bottom: 20px;
+  line-height: 40px;
+  margin: 0px;
+  margin-left: -60px;
+  width: 150px;
+  text-align: center;
+}
+
+div.group_label.Interno_group {
+  background: #20D020;
+}
+
+div.group_label.Externo_group {
+  background: #C04040;
+}

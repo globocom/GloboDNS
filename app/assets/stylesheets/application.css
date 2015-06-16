@@ -21,6 +21,7 @@
 *= require tipTip
 *= require font-awesome
 *= require font-vagrounded
+*= require dns_group
 *= require_self
 */
 
@@ -773,7 +774,7 @@ ul.start li {
     padding: 0 1em;
     text-align: right;
 }
- 
+
 #ajaxBusy {
   display: none;
   margin: 0;

@@ -19,21 +19,21 @@ class Notifier < ActionMailer::Base
 
     def import_successful(message_body)
         @message_body = message_body
-        mail(:subject => I18n.t(:mail_subject_import_successful, :dns_stage => GloboDns::Config::DNS_STAGE ,:env => Rails.env ))
+        mail(:subject => I18n.t(:mail_subject_import_successful, :dns_group => GloboDns::Config::DNS_GROUP ,:env => Rails.env ))
     end
 
     def import_failed(message_body)
         @message_body = message_body
-        mail(:subject => I18n.t(:mail_subject_import_failed, :dns_stage => GloboDns::Config::DNS_STAGE ,:env => Rails.env ))
+        mail(:subject => I18n.t(:mail_subject_import_failed, :dns_group => GloboDns::Config::DNS_GROUP ,:env => Rails.env ))
     end
 
     def export_successful(message_body)
         @message_body = message_body
-        mail(:subject => I18n.t(:mail_subject_export_successful, :dns_stage => GloboDns::Config::DNS_STAGE ,:env => Rails.env ))
+        mail(:subject => I18n.t(:mail_subject_export_successful, :dns_group => GloboDns::Config::DNS_GROUP ,:env => Rails.env ))
     end
 
     def export_failed(message_body)
         @message_body = message_body
-        mail(:subject => I18n.t(:mail_subject_export_failed, :dns_stage => GloboDns::Config::DNS_STAGE ,:env => Rails.env ))
+        mail(:subject => I18n.t(:mail_subject_export_failed, :dns_group => GloboDns::Config::DNS_GROUP ,:env => Rails.env ))
     end
 end
