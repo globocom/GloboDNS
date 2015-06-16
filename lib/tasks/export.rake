@@ -1,9 +1,25 @@
 namespace :globodns do
   desc 'Export updates to bind servers'
   task :export => :environment do
+
     include GloboDns::Config
 
     @logger = GloboDns::StringIOLogger.new(Rails.logger)
+
+    scheduled = Schedule.run_exclusive :schedule do |s|
+        s.date
+    end
+
+    if scheduled.nil?
+        @logger = I18n.t('no_export_scheduled')
+    elsif scheduled <= DateTime.now
+        @logger = run_export
+    else
+        @logger = I18n.t('export_scheduled', :timestamp => scheduled)
+    end
+  end
+
+  def run_export
     exporter = GloboDns::Exporter.new
     get_current_config
 
