@@ -106,7 +106,13 @@ class Exporter
             # ignore the current git content and export all records
             @last_commit_date = Time.at(0)
         else
+          if slave
+            @last_commit_date = Dir.chdir(File.join(chroot_dir, zones_root_dir)) do
+                Time.at(exec('git last commit date', GloboDns::Config::Binaries::GIT, 'log', '-1', '--format=%at').to_i)
+            end
+          else
             @last_commit_date = last_export_timestamp
+          end
         end
         @export_timestamp = Time.now.round
         #@touch_timestamp  = @export_timestamp + 1 # we add 1 second to avoid minor subsecond discrepancies
