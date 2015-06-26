@@ -170,7 +170,7 @@ class Exporter
         # sync generated files on the tmp dir to the local chroot repository
         sync_repository_and_commit(tmp_dir, chroot_dir, zones_root_dir, named_conf_file, bind_server_data)
 
-        updated_zones = new_zones.concat(removed_zones).uniq
+        updated_zones = removed_zones.empty? ? new_zones : []
         # sync files in chroot repository to remote dir on the actual BIND server
         sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, updated_zones)
         @something_exported = true
