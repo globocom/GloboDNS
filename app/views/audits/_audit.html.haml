@@ -5,7 +5,7 @@
   %td.from= audit.remote_address
   %td.action= audit.action
   %td.auditable= "#{audit.audited_changes['name']}"
-  %td.association= audit.associated_type ? "#{Audited::Adapters::ActiveRecord::Audit.where(auditable_type:"Domain",auditable_id:audit.associated_id).first.audited_changes['name']}" : ''
+  %td.association= audit.associated_type ? ( (au = Audited::Adapters::ActiveRecord::Audit.where(auditable_type:"Domain",auditable_id:audit.associated_id).first).nil? ? "" : "#{au.audited_changes['name']}") : ''
   %td.changes{'title' => audit.audited_changes}
     %span= audit.audited_changes
 
