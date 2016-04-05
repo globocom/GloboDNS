@@ -25,7 +25,7 @@ Devise.setup do |config|
   # config.mailer = "Devise::Mailer"
 
   # Automatically apply schema changes in tableless databases
-  # config.apply_schema = false
+  # config.apply_schema = false # deprecated on Devise ~> 3.5.6
 
   # ==> ORM configuration
   # Load and configure the ORM. Supports :active_record (default) and
@@ -102,6 +102,8 @@ Devise.setup do |config|
   # Setup a pepper to generate the encrypted password.
   config.pepper = "800d3e9a2d7e489579b8407eefd17820c7a9c38af7387154ae2ba77b9462e3c7570620a7d9f383385bc55f33af522f1161182de340a0c78eed60dae4c8700b83"
 
+  config.secret_key = '72cebbf8a3326292f993bcee6584399f5237b2e459056b1c715d4716bf8932ba2cad9c75f66a6d70cff426218f2e70bcb6c6148720c59ea9ac8a3592dfb92623'  
+
   # ==> Configuration for :confirmable
   # A period that the user is allowed to access the website even without
   # confirming his account. For instance, if set to 2.days, the user will be
@@ -128,7 +130,7 @@ Devise.setup do |config|
 
   # If true, uses the password salt as remember token. This should be turned
   # to false if you are not using database authenticatable.
-  # config.use_salt_as_remember_token = true
+  # config.use_salt_as_remember_token = true # deprecated on Devise ~> 3.5.6
 
   # Options to be passed to the created cookie. For instance, you can set
   # :secure => true in order to force SSL only cookies.
