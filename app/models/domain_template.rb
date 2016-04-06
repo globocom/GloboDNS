@@ -33,7 +33,6 @@ class DomainTemplate < ActiveRecord::Base
         delegate field.to_sym, (field.to_s + '=').to_sym, :to => :soa_record_template
     end
 
-    # scopes
     scope :with_soa, ->{joins(:record_templates).where('record_templates.type = ?', 'SOA')}
     default_scope {order('name')}
     # scope :user, lambda { |user| user.admin? ? nil : where(:user_id => user.id) }
