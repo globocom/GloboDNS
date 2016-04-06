@@ -15,7 +15,7 @@
 
 class DomainTemplate < ActiveRecord::Base
     has_many :record_templates, :dependent => :destroy, :inverse_of => :domain_template
-    has_one  :soa_record_template, :class_name => 'RecordTemplate',  -> where('type == ?', 'SOA'), :inverse_of => :domain_template
+    has_one  :soa_record_template  -> {where(type: 'SOA')}, :class_name => 'RecordTemplate', :inverse_of => :domain_template
     # has_one  :soa_record_template, :class_name => 'RecordTemplate', :conditions => { 'type' => 'SOA' }, :inverse_of => :domain_template
 
     belongs_to :view
@@ -34,8 +34,8 @@ class DomainTemplate < ActiveRecord::Base
     end
 
     # scopes
-    scope :with_soa, joins(:record_templates).where('record_templates.type = ?', 'SOA')
-    default_scope order('name')
+    scope :with_soa, ->{joins(:record_templates).where('record_templates.type = ?', 'SOA')}
+    default_scope {order('name')}
     # scope :user, lambda { |user| user.admin? ? nil : where(:user_id => user.id) }
 
     def soa_record_template
