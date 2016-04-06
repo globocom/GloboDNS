@@ -21,6 +21,9 @@ Devise.setup do |config|
   # note that it will be overwritten if you use your own mailer class with default "from" parameter.
   config.mailer_sender = "globodns@example.com"
 
+
+  config.allow_insecure_token_lookup = true
+
   # Configure the class responsible to send e-mails.
   # config.mailer = "Devise::Mailer"
 
