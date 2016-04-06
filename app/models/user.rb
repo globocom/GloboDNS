@@ -16,7 +16,7 @@
 require 'digest/sha1'
 
 class User < ActiveRecord::Base
-    print "teste"
+
     devise :database_authenticatable,
            :token_authenticatable,
            :rememberable,
