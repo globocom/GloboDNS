@@ -15,7 +15,7 @@
 
 class DomainTemplate < ActiveRecord::Base
     has_many :record_templates, :dependent => :destroy, :inverse_of => :domain_template
-    has_one  :soa_record_template, :class_name => 'RecordTemplate',  -> where ({ 'type' => 'SOA' }), :inverse_of => :domain_template
+    has_one  :soa_record_template, :class_name => 'RecordTemplate',  -> {where ( 'type' => 'SOA' )}, :inverse_of => :domain_template
     # has_one  :soa_record_template, :class_name => 'RecordTemplate', :conditions => { 'type' => 'SOA' }, :inverse_of => :domain_template
 
     belongs_to :view
