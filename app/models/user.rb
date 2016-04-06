@@ -35,6 +35,12 @@ class User < ActiveRecord::Base
 
     # has_many :audits, :as => :user
 
+    def ensure_authentication_token
+        if authentication_token.blank?
+          self.authentication_token = generate_authentication_token
+        end
+      end
+
     # ROLES = [:ADMIN, :OPERATOR, :VIEWER].inject(Hash.new) do |hash, role|
     #     role_str = role.to_s[0]
     #     const_set(('ROLE_' + role.to_s).to_sym, role_str)
@@ -71,4 +77,13 @@ class User < ActiveRecord::Base
             [ 'user_type = ? AND user_id = ?', self.class.name, self.id ]
         )
     end
+
+    private
+  
+    def generate_authentication_token
+    loop do
+      token = Devise.friendly_token
+      break token unless User.where(authentication_token: token).first
+    end
+  end
 end
