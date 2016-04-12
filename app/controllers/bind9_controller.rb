@@ -19,6 +19,8 @@ class Bind9Controller < ApplicationController
     respond_to :html, :json
     responders :flash
 
+    skip_before_action :verify_authenticity_token
+
     before_filter :admin?,             :except => :schedule_export
     before_filter :admin_or_operator?, :only   => :schedule_export
 
