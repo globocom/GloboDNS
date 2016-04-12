@@ -23,7 +23,7 @@ class DomainTemplatesController < ApplicationController
     DEFAULT_PAGE_SIZE = 25
 
     def index
-        @domain_templates = DomainTemplate.scoped
+        @domain_templates = DomainTemplate.all
         @domain_templates = @domain_templates.includes(:record_templates).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
         respond_with(@domain_templates) do |format|
             format.html { render :partial => 'list', :object => @domain_templates, :as => :domain_templates if request.xhr? }
