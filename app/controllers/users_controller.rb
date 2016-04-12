@@ -20,12 +20,11 @@ class UsersController < ApplicationController
     before_filter :admin?, :except => [:update_password, :save_password_update]
 
     def index
-        render plain: "ok"
-        # @users = User.scoped
-        # @users = @users.paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
-        # respond_with(@users) do |format|
-        #     format.html { render :partial => 'list', :object => @users, :as => :users if request.xhr? }
-        # end
+        @users = User.scoped
+        @users = @users.paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
+        respond_with(@users) do |format|
+            format.html { render :partial => 'list', :object => @users, :as => :users if request.xhr? }
+        end
     end
 
     def show
