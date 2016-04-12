@@ -20,6 +20,7 @@ class UsersController < ApplicationController
     before_filter :admin?, :except => [:update_password, :save_password_update]
 
     def index
+        logger.info "123456"
         @users = User.scoped
         @users = @users.paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
         respond_with(@users) do |format|
