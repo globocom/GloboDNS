@@ -24,11 +24,11 @@ GloboDns::Application.configure do
   # config.eager_load required for Devise version 3.5.6
   config.eager_load = false
 
-  # config.logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+  config.logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
 
-  # # See everything in the log (default is :info)
-  # config.logger.level = Logger::DEBUG
-  # config.log_level = :debug
+  # See everything in the log (default is :info)
+  config.logger.level = Logger::DEBUG
+  config.log_level = :debug
 
   # Log error messages when you accidentally call methods on nil.
   config.whiny_nils = true
