@@ -19,33 +19,33 @@ class UsersController < ApplicationController
 
     before_filter :admin?, :except => [:update_password, :save_password_update]
 
-    def index
-        @audits = Audited::Adapters::ActiveRecord::Audit.includes(:user).reorder('id DESC').limit(20)
-        @audits = @audits.paginate(:page => params[:page] || 1, :per_page => 20) if request.format.html? || request.format.js?
-        respond_with(@audits) do |format|
-            format.html { render :partial => 'list', :object => @audits, :as => :audits if request.xhr? }
-        end
-    end
+    # def index
+    #     @audits = Audited::Adapters::ActiveRecord::Audit.includes(:user).reorder('id DESC').limit(20)
+    #     @audits = @audits.paginate(:page => params[:page] || 1, :per_page => 20) if request.format.html? || request.format.js?
+    #     respond_with(@audits) do |format|
+    #         format.html { render :partial => 'list', :object => @audits, :as => :audits if request.xhr? }
+    #     end
+    # end
+
+    # def index
+    #     @domain_templates = DomainTemplate.scoped
+    #     @domain_templates = @domain_templates.includes(:record_templates).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
+    #     respond_with(@domain_templates) do |format|
+    #         format.html { render :partial => 'list', :object => @domain_templates, :as => :domain_templates if request.xhr? }
+    #     end
+    # end
+
+    # def index
+    #     # @views = View.scoped
+    #     @views = View.scoped
+    #     @views = @views.paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
+    #     respond_with(@views) do |format|
+    #         format.html { render :partial => 'list', :object => @views, :as => :views if request.xhr? }
+    #     end
+    # end
 
     def index
-        @domain_templates = DomainTemplate.scoped
-        @domain_templates = @domain_templates.includes(:record_templates).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
-        respond_with(@domain_templates) do |format|
-            format.html { render :partial => 'list', :object => @domain_templates, :as => :domain_templates if request.xhr? }
-        end
-    end
-
-    def index
-        # @views = View.scoped
-        @views = View.all
-        @views = @views.paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
-        respond_with(@views) do |format|
-            format.html { render :partial => 'list', :object => @views, :as => :views if request.xhr? }
-        end
-    end
-
-    def index
-        @users = User.scoped
+        @users = User.all
         @users = @users.paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
         respond_with(@users) do |format|
             format.html { render :partial => 'list', :object => @users, :as => :users if request.xhr? }
