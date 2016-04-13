@@ -19,7 +19,7 @@ class StringIOLogger
     include ActiveSupport::TaggedLogging
 # class StringIOLogger < ActiveSupport::TaggedLogging
   
-    def initialize(logger)
+    def initialize()
         super(logger)
         @sio        = StringIO.new('', 'w')
         @sio_logger = Logger.new(@sio)

@@ -34,7 +34,8 @@ class Exporter
     ]
 
     def initialize
-        @logger = GloboDns::StringIOLogger.new(Rails.logger)
+        @logger = GloboDns::StringIOLogger.new()
+        # @logger = GloboDns::StringIOLogger.new(Rails.logger)
         @something_exported = false
     end
 
