@@ -22,7 +22,7 @@ class StringIOLogger
 
     def initialize(logger)
         # super(logger)
-        super()
+        super
         @sio        = StringIO.new('', 'w')
         @sio_logger = Logger.new(@sio)
     end
