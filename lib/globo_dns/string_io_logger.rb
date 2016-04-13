@@ -15,13 +15,9 @@
 
 module GloboDns
 
-# class StringIOLogger < ActiveSupport::TaggedLogging
-class StringIOLogger 
-    include ActiveSupport::TaggedLogging
-  
-    def self.inherited(TaggedLogging)
-        puts "New subclass: #{subclass}"
-    end
+class StringIOLogger < ActiveSupport::TaggedLogging::Formatter
+# class StringIOLogger 
+#     include ActiveSupport::TaggedLogging
 
     def initialize(logger)
         super(logger)
