@@ -15,12 +15,10 @@
 
 module GloboDns
 
-class StringIOLogger 
-    extend ActiveSupport::TaggedLogging
+class StringIOLogger < ActiveSupport
 # class StringIOLogger < ActiveSupport::TaggedLogging
   
-    def initialize()
-    # def initialize(logger)
+    def initialize(logger)
         super(logger)
         @sio        = StringIO.new('', 'w')
         @sio_logger = Logger.new(@sio)
