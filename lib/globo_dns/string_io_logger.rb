@@ -16,8 +16,8 @@
 module GloboDns
 
 # class StringIOLogger < ActiveSupport::TaggedLogging
-class StringIOLogger 
-    extend ActiveSupport::TaggedLogging
+class StringIOLogger < ActiveSupport
+    extend ::TaggedLogging
     attr_reader :logger
 
     def initialize(logger)
