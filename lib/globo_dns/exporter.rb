@@ -63,7 +63,7 @@ class Exporter
         @logger.error(e.to_s + e.backtrace.join("\n"))
 
         syslog_error('export failed')
-        Notifier.export_failed("#{e}\n\n#{@logger.string}\n\nBacktrace:\n#{e.backtrace.join("\n")}").deliver
+        Notifier.export_failed("#{e}\n\n#{@logger}\n\nBacktrace:\n#{e.backtrace.join("\n")}").deliver
 
         raise e
     ensure
