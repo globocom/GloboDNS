@@ -21,8 +21,8 @@ class StringIOLogger
     attr_reader :logger
 
     def initialize(logger)
-        # super(logger)
-        super
+        super(logger)
+        # super
         @sio        = StringIO.new('', 'w')
         @sio_logger = Logger.new(@sio)
     end
