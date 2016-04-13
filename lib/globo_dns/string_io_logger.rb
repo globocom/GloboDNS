@@ -20,8 +20,8 @@ class StringIOLogger
 # class StringIOLogger < ActiveSupport::TaggedLogging
   
     def initialize()
-        logger = Logger.new(STDOUT)
-        super(logger)
+        super(Logger.new(STDOUT))
+        # super(logger)
         @sio        = StringIO.new('', 'w')
         @sio_logger = Logger.new(@sio)
     end
