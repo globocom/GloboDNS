@@ -15,12 +15,12 @@
 
 module GloboDns
 
-# class StringIOLogger < ActiveSupport::TaggedLogging
-class StringIOLogger 
-    include ActiveSupport::TaggedLogging
-
+class StringIOLogger < ActiveSupport::TaggedLogging
+# class StringIOLogger 
+#     include ActiveSupport::TaggedLogging
+  
     def initialize(logger)
-        # super(logger)
+        super(logger)
         @sio        = StringIO.new('', 'w')
         @sio_logger = Logger.new(@sio)
     end
@@ -36,16 +36,16 @@ class StringIOLogger
     end
 
     def error(*args)
-        Formatter:current_tags << 'ERROR'
+        current_tags << 'ERROR'
         rv = super(*args)
-        Formatter:current_tags.pop
+        current_tags.pop
         rv
     end
 
     def warn(*args)
-        Formatter:current_tags << 'WARNING'
+        current_tags << 'WARNING'
         rv = super(*args)
-        Formatter:current_tags.pop
+        current_tags.pop
         rv
     end
 end
