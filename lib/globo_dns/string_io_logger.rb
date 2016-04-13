@@ -17,8 +17,6 @@ module GloboDns
 
 # class StringIOLogger < ActiveSupport::TaggedLogging
 class StringIOLogger < Logger::SimpleFormatter
-# class StringIOLogger 
-#     include ActiveSupport::TaggedLogging
 
     def initialize(logger)
         super(logger)
@@ -49,4 +47,6 @@ class StringIOLogger < Logger::SimpleFormatter
         current_tags.pop
         rv
     end
+end
+
 end
