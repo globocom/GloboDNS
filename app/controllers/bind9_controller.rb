@@ -115,10 +115,10 @@ class Bind9Controller < ApplicationController
         end
 
     rescue Exception => e
-        logger.error "[ERROR] export failed: #{e}\n#{exporter.logger.string}\nbacktrace:\n#{e.backtrace.join("\n")}"
+        # logger.error "[ERROR] export failed: #{e}\n#{exporter.logger.string}\nbacktrace:\n#{e.backtrace.join("\n")}"
         logger.error "[ERROR] export failed"
         # logger.error "#{exporter.logger.string}"
-        # logger.error "#{e.backtrace.join("\n")}"
+        logger.error "#{e.backtrace.join("\n")}"
         [ e.to_s, :unprocessable_entity ]
     end
 
