@@ -15,7 +15,8 @@
 
 module GloboDns
 
-class StringIOLogger < ActiveSupport::TestCase
+class StringIOLogger < ActiveSupport::TaggedLogging
+class StringIOLogger < Logger::SimpleFormatter
 # class StringIOLogger 
 #     include ActiveSupport::TaggedLogging
 
