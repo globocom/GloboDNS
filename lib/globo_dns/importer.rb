@@ -30,7 +30,7 @@ class Importer
         master_named_conf_path  = options.delete(:master_named_conf_file) || Bind::Master::NAMED_CONF_FILE
         slaves_chroot_dirs      = options.delete(:slave_chroot_dir)       || Bind::Slaves.map { |slave| slave::CHROOT_DIR }
         slaves_named_conf_paths = options.delete(:slave_named_conf_file)  || Bind::Slaves.map { |slave| slave::NAMED_CONF_FILE }
-        @logger                 = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
+        @logger                 = ActiveSupport::TaggedLogging.new(options.delete(:logger) || Rails.logger)
         @logger.level           = Logger::DEBUG if options[:debug]
         slaves_canonical_named_conf = []
 

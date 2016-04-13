@@ -34,12 +34,12 @@ class Exporter
     ]
 
     def initialize
-        @logger = GloboDns::StringIOLogger.new(Rails.logger)
+        @logger = ActiveSupport::TaggedLogging.new(Rails.logger)
         @something_exported = false
     end
 
     def export_all(master_named_conf_content, slaves_named_conf_contents, options = {})
-        @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
+        @logger                     = ActiveSupport::TaggedLogging.new(options.delete(:logger) || Rails.logger)
 
         lock_tables                 = options.delete(:lock_tables)
       if (options[:use_master_named_conf_for_slave])
