@@ -19,9 +19,10 @@ module GloboDns
 class StringIOLogger 
     include ActiveSupport::TaggedLogging
     attr_reader :logger
-    
+
     def initialize(logger)
-        super(logger)
+        # super(logger)
+        super()
         @sio        = StringIO.new('', 'w')
         @sio_logger = Logger.new(@sio)
     end
