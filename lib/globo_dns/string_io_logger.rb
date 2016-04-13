@@ -15,10 +15,14 @@
 
 module GloboDns
 
-class StringIOLogger < ActiveSupport::TaggedLogging
-# class StringIOLogger 
+# class StringIOLogger < ActiveSupport::TaggedLogging
+class StringIOLogger 
 #     include ActiveSupport::TaggedLogging
   
+    def self.inherited(ActiveSupport::TaggedLogging)
+        puts "New subclass: #{subclass}"
+    end
+
     def initialize(logger)
         super(logger)
         @sio        = StringIO.new('', 'w')
