@@ -36,16 +36,16 @@ class StringIOLogger
     end
 
     def error(*args)
-        ActiveSupport::TaggedLogging::Formatter.current_tags << 'ERROR'
+        Formatter.current_tags << 'ERROR'
         rv = super(*args)
-        ActiveSupport::TaggedLogging::Formatter.current_tags.pop
+        Formatter.current_tags.pop
         rv
     end
 
     def warn(*args)
-        ActiveSupport::TaggedLogging::Formatter.current_tags << 'WARNING'
+        Formatter.current_tags << 'WARNING'
         rv = super(*args)
-        ActiveSupport::TaggedLogging::Formatter.current_tags.pop
+        Formatter.current_tags.pop
         rv
     end
 end
