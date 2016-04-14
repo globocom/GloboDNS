@@ -106,7 +106,8 @@ class Domain < ActiveRecord::Base
     scope :nonreverse,        -> {where("#{self.table_name}.addressing_type  = ?", NORMAL)}
     scope :noview,            -> {where("#{self.table_name}.view_id IS NULL")}
     scope :_reverse,          -> {reverse} # 'reverse' is an Array method; having an alias is useful when using the scope on associations
-    scope :updated_since,     -> {lambda { |timestamp| Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }}
+    # scope :updated_since,     -> {lambda { |timestamp| Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }}
+    scope :updated_since,     -> (timestamp) {Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }
     scope :matching,          -> {lambda { |query|
             if query.index('*')
                 where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))
