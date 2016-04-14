@@ -65,7 +65,7 @@ class Record < ActiveRecord::Base
 
     scope :sorted,        -> {order('name ASC')}
     scope :without_soa,   -> {where('type != ?', 'SOA')}
-    scope :updated_since, -> {lambda { |timestamp| where('updated_at > ?', timestamp) }}
+    scope :updated_since, -> (timestamp) { where('updated_at > ?', timestamp) }
     scope :matching,      -> {lambda { |query|
 
         if query.index('*')
