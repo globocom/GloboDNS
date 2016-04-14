@@ -40,7 +40,7 @@ namespace :globodns do
     begin
       exporter.export_all(@master_named_conf, @slaves_named_confs, :all => 'false', :keep_tmp_dir => false, :reset_repository_on_failure => true)
     rescue Exception => e
-      @logger.error "[ERROR] export failed: #{e}\n#{exporter.logger.string}\nbacktrace:\n#{e.backtrace.join("\n")}"
+      @logger.error "[ERROR] export failed: #{e}\n#{exporter.logger}\nbacktrace:\n#{e.backtrace.join("\n")}"
     ensure
       Schedule.run_exclusive :export do |s|
         s.date = nil
