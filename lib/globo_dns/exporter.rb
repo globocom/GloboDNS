@@ -39,10 +39,7 @@ class Exporter
     end
 
     def export_all(master_named_conf_content, slaves_named_conf_contents, options = {})
-        # @logger                     = ActiveSupport::TaggedLogging.new(options.delete(:logger) || Rails.logger)
-        @logger                     = ActiveSupport::TaggedLogging.new(options.delete(:logger) || ActiveSupport::TaggedLogging.new(Rails.logger))
-        @logger.info("teste")
-        @logger.info "teste2"
+        @logger                     = ActiveSupport::TaggedLogging.new(options.delete(:logger) || Rails.logger)
 
         lock_tables                 = options.delete(:lock_tables)
       if (options[:use_master_named_conf_for_slave])
@@ -61,6 +58,8 @@ class Exporter
         end
 
         syslog_info('export successful')
+        @logger.info("teste")
+        @logger.info "teste2"
         Notifier.export_successful(@logger).deliver if @something_exported
     rescue Exception => e
         @logger.error(e.to_s + e.backtrace.join("\n"))
@@ -98,9 +97,7 @@ class Exporter
 
     def export(named_conf_content, chroot_dir, bind_server_data, slave, options = {})
         @options        = options
-        # ActiveSupport::TaggedLogging.new(Rails.logger)
         @logger       ||= @options[:logger] || Rails.logger
-        # @logger       ||= @options[:logger] || Rails.logger
         @slave          = slave
         zones_root_dir  = bind_server_data[:zones_dir]       or raise ArgumentError.new('missing "bind_server_data.zones_dir" attr')
         named_conf_file = bind_server_data[:named_conf_file] or raise ArgumentError.new('missing "bind_server_data.named_conf_file" attr')
