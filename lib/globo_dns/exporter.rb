@@ -58,8 +58,8 @@ class Exporter
         end
 
         syslog_info('export successful')
-        exporter.logger.tagged('TESTE') { logger.info 'HEHEHHEHEH' } 
-        exporter.logger.tagged('TESTE') { logger.info 'HahhahhahH' } 
+        @logger.tagged('TESTE') { logger.info 'HEHEHHEHEH' } 
+        @logger.tagged('TESTE') { logger.info 'HahhahhahH' } 
         Notifier.export_successful(@logger).deliver if @something_exported
     rescue Exception => e
         @logger.error(e.to_s + e.backtrace.join("\n"))
