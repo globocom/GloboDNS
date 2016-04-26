@@ -35,12 +35,11 @@ class Exporter
 
     def initialize
         # @logger = ActiveSupport::TaggedLogging.new(Rails.logger)
-        # @logger = GloboDns::StringIOLogger.new
-        # @logger = GloboDns::StringIOLogger.new
+        @logger = GloboDns::StringIOLogger.new
         # @logger = Logger.new(STDOUT)
 
-        @stringIO = StringIO.new
-        @logger = Logger.new(@stringIO)
+        # @stringIO = StringIO.new
+        # @logger = Logger.new(@stringIO)
 
         @something_exported = false
     end
@@ -49,9 +48,9 @@ class Exporter
         # @logger                     = ActiveSupport::TaggedLogging.new(options.delete(:logger) || Rails.logger)
         # @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
         # @logger                     ||= Rails.logger
-        # @logger                     = GloboDns::StringIOLogger.new
-        @stringIO = StringIO.new
-        @logger = Logger.new(@stringIO)
+        @logger                     = GloboDns::StringIOLogger.new
+        # @stringIO = StringIO.new
+        # @logger = Logger.new(@stringIO)
         lock_tables                 = options.delete(:lock_tables)
       if (options[:use_master_named_conf_for_slave])
         slaves_named_conf_contents = [master_named_conf_content] * slaves_named_conf_contents.size
