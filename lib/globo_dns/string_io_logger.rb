@@ -42,8 +42,20 @@ class StringIOLogger
     end
 
     def warn(*args)
-        rv = @logger.error(*args)
+        rv = @logger.warn(*args)
         add(Logger::Severity::WARN,*args,'globodns')
+        rv
+    end
+
+    def info(*args)
+        rv = @logger.info(*args)
+        add(Logger::Severity::INFO,*args,'globodns')
+        rv
+    end
+
+    def debug(*args)
+        rv = @logger.debug(*args)
+        add(Logger::Severity::DEBUG,*args,'globodns')
         rv
     end
 end
