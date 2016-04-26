@@ -41,7 +41,7 @@ class StringIOLogger < ActiveSupport::Logger
 
     def warn(*args)
         
-    # end
+    end
 
     # def error(*args)
     #     current_tags << 'ERROR'
