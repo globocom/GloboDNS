@@ -37,7 +37,7 @@ class MultipleLoggers
     end
 
     def error(progname = nil, &block)
-        add("ERROR", nil, progname, &block)
+        self.add("ERROR", nil, progname, &block)
     end
 end
 
