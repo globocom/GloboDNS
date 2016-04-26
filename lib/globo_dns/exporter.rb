@@ -49,15 +49,15 @@ class Exporter
     def initialize
         # @logger = ActiveSupport::TaggedLogging.new(Rails.logger)
         # @logger = GloboDns::StringIOLogger.new(Rails.logger)
-        # @logger = GloboDns::StringIOLogger.new
-        @logger = Logger.new(STDOUT)
+        @logger = GloboDns::StringIOLogger.new
+        # @logger = Logger.new(STDOUT)
         @something_exported = false
     end
 
     def export_all(master_named_conf_content, slaves_named_conf_contents, options = {})
         # @logger                     = ActiveSupport::TaggedLogging.new(options.delete(:logger) || Rails.logger)
-        # @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
-        @logger                     ||= Logger.new(STDOUT)
+        @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
+        # @logger                     ||= Rails.logger
         lock_tables                 = options.delete(:lock_tables)
       if (options[:use_master_named_conf_for_slave])
         slaves_named_conf_contents = [master_named_conf_content] * slaves_named_conf_contents.size
@@ -75,8 +75,7 @@ class Exporter
         end
 
         syslog_info('export successful')
-        # Notifier.export_successful(@logger).deliver if @something_exported
-        Notifier.export_successful("teste").deliver if @something_exported
+        Notifier.export_successful(@logger).deliver if @something_exported
     rescue Exception => e
         @logger.error(e.to_s + e.backtrace.join("\n"))
 
