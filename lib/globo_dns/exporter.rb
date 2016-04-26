@@ -50,7 +50,7 @@ class Exporter
     def initialize
         # @logger = ActiveSupport::TaggedLogging.new(Rails.logger)
         # @logger = GloboDns::StringIOLogger.new
-        @logger = MultipleLoggers.new(string_log, console_log)
+        @logger = MultipleLoggers.new(@string_log, @console_log)
         # @logger = Logger.new(STDOUT)
 
         # @stringIO = StringIO.new
