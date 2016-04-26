@@ -48,7 +48,7 @@ class Exporter
 
     def initialize
         # @logger = ActiveSupport::TaggedLogging.new(Rails.logger)
-        @logger = GloboDns::StringIOLogger.new(Rails.logger)
+        @logger = GloboDns::StringIOLogger.new()
         # @logger = GloboDns::StringIOLogger.new
         # @logger = Logger.new(STDOUT)
         @something_exported = false
