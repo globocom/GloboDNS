@@ -19,20 +19,6 @@ module GloboDns
 
 class RevertableError < ::Exception; end
 
-@stringIO = StringIO.new
-@string_log = Logger.new(@stringIO)
-@console_log = Logger.new(STDOUT)
-
-class MultipleLoggers
-    def initialize *loggers
-        @loggers = loggers
-    end
-    def method_missing meth, *args, &block
-        @loggers.each { |logger| logger.send(meth, *args, &block) }
-    end
-
-end
-
 class Exporter
     include GloboDns::Config
     include GloboDns::Util
@@ -48,26 +34,13 @@ class Exporter
     ]
 
     def initialize
-        # @logger = ActiveSupport::TaggedLogging.new(Rails.logger)
-        # @logger = GloboDns::StringIOLogger.new
-        @logger = MultipleLoggers.new(@string_log, @console_log)
-        # @logger = Logger.new(STDOUT)
-
-        # @stringIO = StringIO.new
-        # @logger = Logger.new(@stringIO)
-
+        @logger = GloboDns::StringIOLogger.new(Rails.logger)
         @something_exported = false
     end
 
     def export_all(master_named_conf_content, slaves_named_conf_contents, options = {})
-        # @logger                     = ActiveSupport::TaggedLogging.new(options.delete(:logger) || Rails.logger)
-        # @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
-        # @logger                     ||= Rails.logger
-        # @logger                     = GloboDns::StringIOLogger.new
-        # @logger = MultipleLoggers.new
+        @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
 
-        # @stringIO = StringIO.new
-        # @logger = Logger.new(@stringIO)
         lock_tables                 = options.delete(:lock_tables)
       if (options[:use_master_named_conf_for_slave])
         slaves_named_conf_contents = [master_named_conf_content] * slaves_named_conf_contents.size
@@ -85,12 +58,12 @@ class Exporter
         end
 
         syslog_info('export successful')
-        Notifier.export_successful(@logger).deliver if @something_exported
+        Notifier.export_successful(@logger.string).deliver if @something_exported
     rescue Exception => e
         @logger.error(e.to_s + e.backtrace.join("\n"))
 
         syslog_error('export failed')
-        Notifier.export_failed("#{e}\n\n#{@logger}\n\nBacktrace:\n#{e.backtrace.join("\n")}").deliver
+        Notifier.export_failed("#{e}\n\n#{@logger.string}\n\nBacktrace:\n#{e.backtrace.join("\n")}").deliver
 
         raise e
     ensure
