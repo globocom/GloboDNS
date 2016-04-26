@@ -16,8 +16,8 @@
 module GloboDns
 
 # class StringIOLogger < ActiveSupport::TaggedLogging
-class StringIOLogger < ActiveSupport::Logger
-    def loggers()
+class StringIOLogger < ActiveSupports::Logger
+    def initialize()
         super
         @stringIO = StringIO.new
         @string_log = Logger.new(@stringIO)
