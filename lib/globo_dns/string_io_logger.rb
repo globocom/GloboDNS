@@ -19,8 +19,8 @@ module GloboDns
 class StringIOLogger < ActiveSupport::Logger
     
 
-    def initialize()
-        super
+    def initialize(logger)
+        super(logger)
         @sio        = StringIO.new('', 'w')
         @sio_logger = Logger.new(@sio)
     end
