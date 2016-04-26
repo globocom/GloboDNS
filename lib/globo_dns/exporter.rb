@@ -35,6 +35,7 @@ class MultipleLoggers
     def string
         @sio.string
     end
+end
 
 class Exporter
     include GloboDns::Config
@@ -68,7 +69,7 @@ class Exporter
         # @logger                     ||= Rails.logger
         # @logger                     = GloboDns::StringIOLogger.new
         @logger = MultipleLoggers.new
-        
+
         # @stringIO = StringIO.new
         # @logger = Logger.new(@stringIO)
         lock_tables                 = options.delete(:lock_tables)
