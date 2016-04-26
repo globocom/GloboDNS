@@ -16,72 +16,36 @@
 module GloboDns
 
 # class StringIOLogger < ActiveSupport::TaggedLogging
-class StringIOLogger < ActiveSupports::Logger
-    def initialize()
-        super
-        @stringIO = StringIO.new
-        @string_log = Logger.new(@stringIO)
-        @console_log = Logger.new(STDOUT)
+class StringIOLogger 
+
+    def initialize(logger)
+        @logger = ActiveSupport::TaggedLogging.new(logger)
+        @sio        = StringIO.new('', 'w')
+        @sio_logger = Logger.new(@sio)
+        @console_logger = Logger.new(STDOUT)
     end
 
     def add(severity, message = nil, progname = nil, &block)
         message = (block_given? ? block.call : progname) if message.nil?
         @sio_logger.add(severity, "#{message}", progname)
-        @console_log.add(severity, "#{message}", progname)
+        @logger.add(severity, "#{message}", progname)
     end
 
     def string
         @sio.string
     end
-    
-    def error(progname = nil, &block)
-        add(ERROR, nil, progname, &block)
+
+    def error(*args)
+        rv = @logger.error(*args)
+        add(Logger::Severity::ERROR,*args,'globodns')
+        rv
     end
-    # def warn(*args)
-    #     self.add(*args, "[WARNING]")
-    # end
 
-
-    # def initialize(logger)
-    #     super(logger)
-    #     # @sio        = StringIO.new('', 'w')
-    #     # @sio_logger = Logger.new(@sio)
-    #     @sio        = StringIO.new
-    #     @sio_logger = Logger.new(@sio)
-    #     @console_logger = Logger.new(STDOUT)
-    # end
-
-    # def add(severity, message = nil, progname = nil, &block)
-    #     message = (block_given? ? block.call : progname) if message.nil?
-    #     @sio_logger.add(severity, "#{tags_text}#{message}", progname)
-    #     @logger.add(severity, "#{tags_text}#{message}", progname)
-    # end
-
-    # def string
-    #     @sio.string
-    # end
-
-    # def error(*args)
-        
-    # end
-
-    # def warn(*args)
-        
-    # end
-
-    # def error(*args)
-    #     current_tags << 'ERROR'
-    #     rv = super(*args)
-    #     current_tags.pop
-    #     rv
-    # end
-
-    # def warn(*args)
-    #     current_tags << 'WARNING'
-    #     rv = super(*args)
-    #     current_tags.pop
-    #     rv
-    # end
+    def warn(*args)
+        rv = @logger.error(*args)
+        add(Logger::Severity::WARN,*args,'globodns')
+        rv
+    end
 end
 
 end
