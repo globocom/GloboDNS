@@ -17,14 +17,11 @@ module GloboDns
 
 # class StringIOLogger < ActiveSupport::TaggedLogging
 class StringIOLogger < ActiveSupport::Logger
-    
 
-    def initialize(logger)
-        super(logger)
-        # @sio        = StringIO.new('', 'w')
-        # @sio_logger = Logger.new(@sio)
-        @sio        = StringIO.new
-        @sio_logger = Logger.new @sio
+    def initialize()
+        @stringIO = StringIO.new
+        @string_log = Logger.new(stringIO)
+        @console_log = Logger.new(STDOUT)
     end
 
     def add(severity, message = nil, progname = nil, &block)
@@ -37,13 +34,34 @@ class StringIOLogger < ActiveSupport::Logger
         @sio.string
     end
 
-    def error(*args)
-        
-    end
 
-    def warn(*args)
+
+    # def initialize(logger)
+    #     super(logger)
+    #     # @sio        = StringIO.new('', 'w')
+    #     # @sio_logger = Logger.new(@sio)
+    #     @sio        = StringIO.new
+    #     @sio_logger = Logger.new(@sio)
+    #     @console_logger = Logger.new(STDOUT)
+    # end
+
+    # def add(severity, message = nil, progname = nil, &block)
+    #     message = (block_given? ? block.call : progname) if message.nil?
+    #     @sio_logger.add(severity, "#{tags_text}#{message}", progname)
+    #     @logger.add(severity, "#{tags_text}#{message}", progname)
+    # end
+
+    # def string
+    #     @sio.string
+    # end
+
+    # def error(*args)
         
-    end
+    # end
+
+    # def warn(*args)
+        
+    # end
 
     # def error(*args)
     #     current_tags << 'ERROR'
