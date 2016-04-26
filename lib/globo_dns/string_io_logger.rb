@@ -19,6 +19,7 @@ module GloboDns
 class StringIOLogger < ActiveSupport::Logger
 
     def initialize()
+        super
         @stringIO = StringIO.new
         @string_log = Logger.new(@stringIO)
         @console_log = Logger.new(STDOUT)
@@ -35,7 +36,7 @@ class StringIOLogger < ActiveSupport::Logger
     end
     
     def error(*args)
-        super.add(*args)
+        add(*args)
     end
 
     # def warn(*args)
