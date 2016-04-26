@@ -19,26 +19,18 @@ module GloboDns
 
 class RevertableError < ::Exception; end
 
+@stringIO = StringIO.new
+@string_log = Logger.new(@stringIO)
+@console_log = Logger.new(STDOUT)
+
 class MultipleLoggers
-    def initialize()
-        @stringIO = StringIO.new
-        @string_log = Logger.new(@stringIO)
-        @console_log = Logger.new(STDOUT)
+    def initialize *loggers
+        @loggers = loggers
+    end
+    def method_missing meth, *args, &block
+        @loggers.each { |logger| logger.send(meth, *args, &block) }
     end
 
-    def add(severity, message = nil, progname = nil, &block)
-        message = (block_given? ? block.call : progname) if message.nil?
-        @sio_logger.add(severity, "#{message}", progname)
-        @console_log.add(severity, "#{message}", progname)
-    end
-
-    def string
-        @sio.string
-    end
-
-    def error(progname = nil, &block)
-        self.add("ERROR", nil, progname, &block)
-    end
 end
 
 class Exporter
@@ -58,7 +50,7 @@ class Exporter
     def initialize
         # @logger = ActiveSupport::TaggedLogging.new(Rails.logger)
         # @logger = GloboDns::StringIOLogger.new
-        @logger = MultipleLoggers.new
+        @logger = MultipleLoggers.new(string_log, console_log)
         # @logger = Logger.new(STDOUT)
 
         # @stringIO = StringIO.new
@@ -72,7 +64,7 @@ class Exporter
         # @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
         # @logger                     ||= Rails.logger
         # @logger                     = GloboDns::StringIOLogger.new
-        @logger = MultipleLoggers.new
+        # @logger = MultipleLoggers.new
 
         # @stringIO = StringIO.new
         # @logger = Logger.new(@stringIO)
