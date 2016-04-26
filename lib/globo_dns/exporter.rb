@@ -35,6 +35,10 @@ class MultipleLoggers
     def string
         @sio.string
     end
+
+    def error(progname = nil, &block)
+        add(ERROR, nil, progname, &block)
+    end
 end
 
 class Exporter
