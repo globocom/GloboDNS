@@ -35,7 +35,7 @@ class StringIOLogger < ActiveSupport::Logger
     end
     
     def error(*args)
-        add(*args)
+        super.add(*args)
     end
 
     # def warn(*args)
