@@ -26,7 +26,6 @@ class StringIOLogger < ActiveSupport::Logger
 
     def add(severity, message = nil, progname = nil, &block)
         message = (block_given? ? block.call : progname) if message.nil?
-        # @sio_logger.add(severity, "#{tag}#{message}", progname)
         @sio_logger.add(severity, "#{message}", progname)
         @console_log.add(severity, "#{message}", progname)
     end
@@ -35,9 +34,9 @@ class StringIOLogger < ActiveSupport::Logger
         @sio.string
     end
     
-    def error(*args)
-        self.add(*args, "[ERROR]")
-    end
+    # def error(*args)
+    #     self.add(*args, "[ERROR]")
+    # end
 
     # def warn(*args)
     #     self.add(*args, "[WARNING]")
