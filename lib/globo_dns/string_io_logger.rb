@@ -20,7 +20,7 @@ class StringIOLogger < ActiveSupport::Logger
 
     def initialize()
         @stringIO = StringIO.new
-        @string_log = Logger.new(stringIO)
+        @string_log = Logger.new(@stringIO)
         @console_log = Logger.new(STDOUT)
     end
 
