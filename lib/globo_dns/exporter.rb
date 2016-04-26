@@ -19,6 +19,19 @@ module GloboDns
 
 class RevertableError < ::Exception; end
 
+class StashLogs 
+    def new()
+        @stashed = Array.new
+    end
+    
+    def add(tag, type, msg)
+        strLog = "[#{tag}][#{type}] #{msg}"
+        @stashed.push(strLog)
+        # save log
+    end
+end
+
+
 class Exporter
     include GloboDns::Config
     include GloboDns::Util
@@ -34,13 +47,14 @@ class Exporter
     ]
 
     def initialize
-        @logger = ActiveSupport::TaggedLogging.new(Rails.logger)
+        # @logger = ActiveSupport::TaggedLogging.new(Rails.logger)
+        @logger = GloboDns::StringIOLogger.new(Rails.logger)
         @something_exported = false
     end
 
     def export_all(master_named_conf_content, slaves_named_conf_contents, options = {})
-        @logger                     = ActiveSupport::TaggedLogging.new(options.delete(:logger) || Rails.logger)
-
+        # @logger                     = ActiveSupport::TaggedLogging.new(options.delete(:logger) || Rails.logger)
+        @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
         lock_tables                 = options.delete(:lock_tables)
       if (options[:use_master_named_conf_for_slave])
         slaves_named_conf_contents = [master_named_conf_content] * slaves_named_conf_contents.size
@@ -58,8 +72,6 @@ class Exporter
         end
 
         syslog_info('export successful')
-        @logger.tagged('TESTE') { logger.info 'HEHEHHEHEH' } 
-        @logger.tagged('TESTE') { logger.info 'HahhahhahH' } 
         Notifier.export_successful(@logger).deliver if @something_exported
     rescue Exception => e
         @logger.error(e.to_s + e.backtrace.join("\n"))
