@@ -58,7 +58,7 @@ class Exporter
         # @logger                     = ActiveSupport::TaggedLogging.new(options.delete(:logger) || Rails.logger)
         # @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
         # @logger                     ||= Rails.logger
-        @logger                     ||= GloboDns::StringIOLogger.new
+        @logger                     = GloboDns::StringIOLogger.new
         lock_tables                 = options.delete(:lock_tables)
       if (options[:use_master_named_conf_for_slave])
         slaves_named_conf_contents = [master_named_conf_content] * slaves_named_conf_contents.size
