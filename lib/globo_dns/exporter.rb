@@ -75,7 +75,8 @@ class Exporter
         end
 
         syslog_info('export successful')
-        Notifier.export_successful(@logger).deliver if @something_exported
+        # Notifier.export_successful(@logger).deliver if @something_exported
+        Notifier.export_successful("teste").deliver if @something_exported
     rescue Exception => e
         @logger.error(e.to_s + e.backtrace.join("\n"))
 
