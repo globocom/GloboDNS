@@ -21,8 +21,10 @@ class StringIOLogger < ActiveSupport::Logger
 
     def initialize(logger)
         super(logger)
-        @sio        = StringIO.new('', 'w')
-        @sio_logger = Logger.new(@sio)
+        # @sio        = StringIO.new('', 'w')
+        # @sio_logger = Logger.new(@sio)
+        @sio        = StringIO.new
+        @sio_logger = Logger.new @sio
     end
 
     def add(severity, message = nil, progname = nil, &block)
