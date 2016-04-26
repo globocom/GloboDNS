@@ -19,6 +19,23 @@ module GloboDns
 
 class RevertableError < ::Exception; end
 
+class MultipleLoggers
+    def initialize()
+        @stringIO = StringIO.new
+        @string_log = Logger.new(@stringIO)
+        @console_log = Logger.new(STDOUT)
+    end
+
+    def add(severity, message = nil, progname = nil, &block)
+        message = (block_given? ? block.call : progname) if message.nil?
+        @sio_logger.add(severity, "#{message}", progname)
+        @console_log.add(severity, "#{message}", progname)
+    end
+
+    def string
+        @sio.string
+    end
+
 class Exporter
     include GloboDns::Config
     include GloboDns::Util
@@ -35,7 +52,8 @@ class Exporter
 
     def initialize
         # @logger = ActiveSupport::TaggedLogging.new(Rails.logger)
-        @logger = GloboDns::StringIOLogger.new
+        # @logger = GloboDns::StringIOLogger.new
+        @logger = MultipleLoggers.new
         # @logger = Logger.new(STDOUT)
 
         # @stringIO = StringIO.new
@@ -48,7 +66,9 @@ class Exporter
         # @logger                     = ActiveSupport::TaggedLogging.new(options.delete(:logger) || Rails.logger)
         # @logger                     = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
         # @logger                     ||= Rails.logger
-        @logger                     = GloboDns::StringIOLogger.new
+        # @logger                     = GloboDns::StringIOLogger.new
+        @logger = MultipleLoggers.new
+        
         # @stringIO = StringIO.new
         # @logger = Logger.new(@stringIO)
         lock_tables                 = options.delete(:lock_tables)
