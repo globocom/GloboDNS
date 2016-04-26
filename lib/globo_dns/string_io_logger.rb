@@ -35,9 +35,9 @@ class StringIOLogger < ActiveSupport::Logger
         @sio.string
     end
     
-    def error(*args)
-        add(*args)
-    end
+    # def error(*args)
+    #     add(*args)
+    # end
 
     # def warn(*args)
     #     self.add(*args, "[WARNING]")
