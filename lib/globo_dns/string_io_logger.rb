@@ -17,6 +17,7 @@ module GloboDns
 
 # class StringIOLogger < ActiveSupport::TaggedLogging
 class StringIOLogger < ::Logger
+    public
     def initialize()
         @stringIO = StringIO.new
         @string_log = Logger.new(@stringIO)
