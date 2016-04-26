@@ -19,7 +19,7 @@ module GloboDns
 class StringIOLogger < ActiveSupport::Logger
 
     def initialize()
-        super
+        super(Rails.logger)
         @stringIO = StringIO.new
         @string_log = Logger.new(@stringIO)
         @console_log = Logger.new(STDOUT)
