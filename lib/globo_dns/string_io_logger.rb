@@ -24,7 +24,7 @@ class StringIOLogger < ActiveSupport::Logger
         @console_log = Logger.new(STDOUT)
     end
 
-    def add(severity, message = nil, progname = nil, &block, tag)
+    def add(severity, message = nil, progname = nil, &block)
         message = (block_given? ? block.call : progname) if message.nil?
         @sio_logger.add(severity, "#{tag}#{message}", progname)
         # @sio_logger.add(severity, "#{message}", progname)
