@@ -28,7 +28,6 @@
 //= require audits
 //= require bind
 //= require_self
-//= require_tree ./shared
 
 $(document).ready(function() {
     // ----------------- ajax activity indicator -----------------
