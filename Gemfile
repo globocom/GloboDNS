@@ -1,24 +1,35 @@
-source 'http://rubygems.org'
+source "http://artifactory.globoi.com/artifactory/api/gems/gem-repos/"
 
-gem 'rails',                '~> 3.2.0'
-gem 'mysql2',               '~> 0.3.0'
-gem 'haml',                 '~> 3.1.4'
-gem 'jquery-rails',         '~> 2.0.1'
-gem 'will_paginate',        '~> 3.0.2'
-gem 'audited-activerecord', '~> 3.0.0.rc1'
-gem 'devise',               '~> 2.0.4'
+group :development do
+  gem "capistrano", "~> 2"
+  gem "net-ssh", "~> 2.7.0"
+end
+
+gem 'iconv'
+gem 'json', 			    '~>1.8.0'
+gem 'rails',                '~> 4.2.1'
+gem 'mysql2',               '~> 0.3.15'
+gem 'haml',					'~>4.0.7'
+gem 'jquery-rails',			'~>4.1.1'
+gem 'will_paginate',		'~>3.1.0'	
+gem 'audited-activerecord',	'~>4.2.0'
+gem 'devise',				'~>3.5.6'
 gem 'awesome_print',        '~> 1.0'
-gem 'responders',           '~> 0.9.1'
+gem 'responders',			'~>2.1.2'
 gem 'citrus',               '~> 2.4.1'
 gem 'validation_scopes',    '~> 0.4.1'
 gem 'syslogger',            '~> 1.3'
-gem 'unicorn'
+gem 'unicorn',				'~>5.1.0'
+gem 'activerecord-import',	'~>0.13.0'
+gem 'whenever',             '0.9.4'
+gem 'devise-encryptable'
+gem 'protected_attributes'
 
 group :assets do
-    gem 'sass-rails',       '~> 3.2.3'
-    gem 'coffee-rails',     '~> 3.2.1'
-    gem 'therubyracer'
-    gem 'uglifier',         '~> 1.0.3'
+    gem 'sass-rails',		'~>5.0.4'
+    gem 'coffee-rails',		'~>4.1.1'
+    gem 'therubyracer',		'~>0.12.2'
+    gem 'uglifier',			'~>3.0.0'
 end
 
 group :development, :test do
@@ -26,7 +37,3 @@ group :development, :test do
     # gem 'RedCloth', '>= 4.1.1'
 end
 
-
-group :test do
-    gem 'tconsole',          '~> 1.1'
-end
