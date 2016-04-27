@@ -55,7 +55,7 @@ class StringIOLogger
 
     def debug(*args)
         rv = @logger.debug(*args)
-        add(Logger::Severity::DEBUG,*args,'globodns')
+        # add(Logger::Severity::DEBUG,*args,'globodns')
         rv
     end
 end
