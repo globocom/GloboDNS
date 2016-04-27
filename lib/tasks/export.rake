@@ -4,7 +4,7 @@ namespace :globodns do
 
     include GloboDns::Config
 
-    @logger = ActiveSupport::TaggedLogging.new(Rails.logger)
+    @logger = GloboDns::StringIOLogger.new(Rails.logger)
 
     scheduled = Schedule.run_exclusive :schedule do |s|
         s.date
