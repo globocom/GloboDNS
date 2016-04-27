@@ -31,8 +31,8 @@
 
 $(document).ready(function() {
     // ----------------- ajax activity indicator -----------------
-    $('body').append('<div id="ajaxBusy"><img src="<%= image_path('loading.gif') %>"/></div>');
-    // $('body').append('<div id="ajaxBusy"><img src="/assets/loading.gif"></div>');
+    // $('body').append('<div id="ajaxBusy"><img src="<%= image_path('loading.gif') %>"/></div>');
+    $('body').append('<div id="ajaxBusy"><img src="/assets/loading.gif"></div>');
     
 
     // setup tooltips where required
