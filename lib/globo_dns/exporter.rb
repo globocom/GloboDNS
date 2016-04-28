@@ -176,7 +176,7 @@ class Exporter
         @something_exported = true
     rescue ExitStatusError => err
       if err.message == "Nothing to be exported!"
-        @logger.info("[GloboDns::Exporter][INFO] #{err.message}")
+        @logger.info "[GloboDns::Exporter][INFO] #{err.message}"
       else
         raise err
       end
