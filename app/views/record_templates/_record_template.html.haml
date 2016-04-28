@@ -11,7 +11,7 @@
   %td.content= record_template.content
   %td.actions
     = link_to '', '#', :class => 'edit-record-template-button ui-icon-edit', :title => t(:generic_edit)
-    = link_to '', record_template_path(record_template), :remote => true, :method => :delete, :confirm => t(:confirm_delete_record_template), :class => 'delete-record-template-button ui-icon-trash', :title => t(:generic_delete)
+    = link_to '', record_template_path(record_template), :remote => true, :method => :delete, :data => {:confirm => t(:confirm_delete_record_template)}, :class => 'delete-record-template-button ui-icon-trash', :title => t(:generic_delete)
 
 %tr[ record_template, :edit ]{:class => "#{even_odd} edit-record-template hidden"}
   = form_for(record_template, :as => 'record_template', :url => record_template_path(record_template)) do |f|
