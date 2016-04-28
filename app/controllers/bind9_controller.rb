@@ -107,8 +107,8 @@ class Bind9Controller < ApplicationController
         begin
             # sleep 60   # Keep this commented. Only for tests
             exporter.export_all(params['master-named-conf'], params['slave-named-conf'], :all => params['all'] == 'true', :keep_tmp_dir => true, :reset_repository_on_failure => true)
-            # [ exporter.logger, :ok ]
-            [ "teste", :ok ]
+            [ exporter.logger.string, :ok ]
+            # [ "teste", :ok ]
         ensure
             Schedule.run_exclusive :export do |s|
                 s.date = nil
