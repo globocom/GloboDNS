@@ -18,6 +18,7 @@ class Notifier < ActionMailer::Base
             :to      => GloboDns::Config::MAIL_RECIPIENTS
 
     def import_successful(message_body)
+        Logger.new().info(message_body)
         @message_body = message_body
         mail(:subject => I18n.t(:mail_subject_import_successful, :dns_group => GloboDns::Config::DNS_GROUP ,:env => Rails.env ))
     end
