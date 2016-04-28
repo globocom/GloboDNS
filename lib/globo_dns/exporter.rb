@@ -58,7 +58,7 @@ class Exporter
         end
 
         syslog_info('export successful')
-        Notifier.export_successful(@logger.string).deliver if @something_exported
+        Notifier.export_successful(@logger.string).deliver #if @something_exported
     rescue Exception => e
         @logger.error(e.to_s + e.backtrace.join("\n"))
 
@@ -176,7 +176,7 @@ class Exporter
         @something_exported = true
     rescue ExitStatusError => err
         if err.message == "Nothing to be exported!"
-            @logger.warn "[GloboDns::Exporter][INFO] #{err.message}"
+            @logger.info "[GloboDns::Exporter][INFO] #{err.message}"
         else
             raise err
         end
