@@ -175,11 +175,11 @@ class Exporter
         sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, updated_zones)
         @something_exported = true
     rescue ExitStatusError => err
-      if err.message == "Nothing to be exported!"
-        @logger.info "[GloboDns::Exporter][INFO] #{err.message}"
-      else
-        raise err
-      end
+        if err.message == "Nothing to be exported!"
+            @logger.warn "[GloboDns::Exporter][INFO] #{err.message}"
+        else
+            raise err
+        end
     rescue Exception => e
         if @revert_operation_data && @options[:reset_repository_on_failure] != false
             @logger.error(e.to_s + e.backtrace.join("\n"))
