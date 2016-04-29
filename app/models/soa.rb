@@ -77,7 +77,8 @@ class SOA < Record
     # serial is YYYYMMDDNN, where NN is the number of the change for the day
     def update_serial(save = false)
         current_date = Time.now.strftime('%Y%m%d')
-        if self.serial.to_s.start_with?(current_date)
+        if self.serial/100 >= current_date.to_i 
+        # if self.serial.to_s.start_with?(current_date)
             self.serial += 1
         else
             self.serial = (current_date + '00').to_i
