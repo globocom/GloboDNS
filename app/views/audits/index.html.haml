@@ -6,7 +6,7 @@
 %h2 Filter
 = form_for(@audits, :remote => true, :html => {:id => 'filter-form'}) do |f|
 
-    %table#filter
+    / %table#filter
       / %tbody
         / %tr
         /   %td= f.label :type, t(:label_domain_record_type)
