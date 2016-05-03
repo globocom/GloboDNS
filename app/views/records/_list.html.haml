@@ -1,6 +1,6 @@
 %div.record-table-container
-  / - if records.empty?
-  /     %div.flash-error= "erro"
+  - if records.empty?
+    %div.flash-error='message_no_domains_found'
   %table.record-table
     %thead
       %tr
