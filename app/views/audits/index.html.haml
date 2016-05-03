@@ -1,9 +1,7 @@
 %h1= t(:title_audits)
 / = render :partial => 'filter'
-/ %h2 Filter
-	.search-bar
-        = text_field_tag :query, '', :class => 'search-field', 'data-help' => 'help-audits-search'
-        %span.search-icon
-    %div.clearer
+	%h2 Filter
+		= text_field_tag :query, '', :class => 'search-field', 'data-help' => 'help-audits-search'
+		%span.search-icon
 
 = render :partial => 'list', :object => @audits, :as => :audits
