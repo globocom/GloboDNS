@@ -116,7 +116,7 @@ class Domain < ActiveRecord::Base
     #             where("#{self.table_name}.name" => query)
     #         end
     #     }}
-     scope :matching,          -> (query){lambda {
+     scope :matching,          -> (query){lambda { |query|
             if query.index('*')
                 where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))
             else
