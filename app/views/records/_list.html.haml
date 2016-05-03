@@ -2,7 +2,8 @@
   - if records.empty?
     %table.record-table
       <br>
-      %div.flash-error='No records found'
+      %div.flash-error=t('message_no_recordss_found')
+      / %div.flash-error='No records found'
   -else
     %table.record-table
       %thead
