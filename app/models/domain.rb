@@ -108,7 +108,7 @@ class Domain < ActiveRecord::Base
     scope :_reverse,          -> {reverse} # 'reverse' is an Array method; having an alias is useful when using the scope on associations
     # scope :updated_since,     -> {lambda { |timestamp| Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }}
     scope :updated_since,     -> (timestamp) {Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }
-    scope :matching,          -> (query){where("#{self.table_name}.name" => query)}
+    # scope :matching,          -> (query){where("#{self.table_name}.name" => query)}
     # scope :matching,          -> {lambda { |query|
     #         if query.index('*')
     #             where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))
@@ -116,6 +116,13 @@ class Domain < ActiveRecord::Base
     #             where("#{self.table_name}.name" => query)
     #         end
     #     }}
+     scope :matching,          -> (query){lambda {
+            if query.index('*')
+                where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))
+            else
+                where("#{self.table_name}.name" => query)
+            end
+        }}
 
     def self.last_update
         select('updated_at').reorder('updated_at DESC').limit(1).first.updated_at
