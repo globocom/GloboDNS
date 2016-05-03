@@ -7,7 +7,7 @@
 = form_for([@audits, :remote => true, :html => {:id => 'filter-form'}) do |f|
 
     %table#filter
-      %tbody
+    	%tbody
         / %tr
         /   %td= f.label :type, t(:label_domain_record_type)
         /   %td= f.select :type, Record::high_priority_types + (Record::record_types - ['SOA'] - Record::high_priority_types)
@@ -20,10 +20,10 @@
         / %tr
         /   %td= f.label :prio, t(:label_domain_record_priority)
         /   %td= f.text_field :prio
-        %tr
-          %td= f.label :action, "Action"
-          %td= f.text_field :action
-        %tr.actions
-          %td{:colspan => 2}
-            # = button_tag(t(:generic_cancel), :class => 'cancel-new-record-button ui-icon-ban-circle')
-            = f.button(t(:generic_create),   :class => 'create-record-button ui-icon-download-alt')
+	        %tr
+	          %td= f.label :action, "Action"
+	          %td= f.text_field :action
+	        %tr.actions
+	          %td{:colspan => 2}
+	            # = button_tag(t(:generic_cancel), :class => 'cancel-new-record-button ui-icon-ban-circle')
+	            = f.button(t(:generic_create),   :class => 'create-record-button ui-icon-download-alt')
