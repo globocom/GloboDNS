@@ -7,7 +7,7 @@
 = form_for(@audits, :remote => true, :html => {:id => 'filter-form'}) do |f|
 
     %table#filter
-      %tbody
+      / %tbody
         / %tr
         /   %td= f.label :type, t(:label_domain_record_type)
         /   %td= f.select :type, Record::high_priority_types + (Record::record_types - ['SOA'] - Record::high_priority_types)
