@@ -1,7 +1,9 @@
 %div.record-table-container
   - if records.empty?
     %table.record-table
-      %div.flash-error='No records found'
+    %thead
+        %tr
+        %div.flash-error='No records found'
   -else
     %table.record-table
       %thead
