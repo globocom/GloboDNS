@@ -4,6 +4,7 @@
 = render :partial => 'list', :object => @audits, :as => :audits
 
 %h2 Filter
+= form_for(@audits, :remote => true, :html => {:id => 'filter-form'}) do |f|
 / %table#filter
 / 	%tbody
 / 		%tr
