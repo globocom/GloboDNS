@@ -2,7 +2,6 @@
 / = render :partial => 'filter'
 / %h2 Filter
 	.search-bar
-      = form_tag(audits_path(@audits), :remote => true, :method => :get, :class => 'records-search-form') do
         = text_field_tag :query, '', :class => 'search-field', 'data-help' => 'help-audits-search'
         %span.search-icon
     %div.clearer
