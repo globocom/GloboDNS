@@ -12,5 +12,5 @@ class Audits < ActiveRecord::Base
     #                                 else
     #                                     where("#{self.table_name}.name" => userQuery)
     #                                 end
-                                }
+    #                             }
 end
