@@ -117,13 +117,13 @@ class Domain < ActiveRecord::Base
     #         end
     #     }}
 
-    scope :matching, do
-        if query.index('*')
-            where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))
-        else
-            where("#{self.table_name}.name" => query)
-        end
-    end
+    # scope :matching, do
+    #     if query.index('*')
+    #         where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))
+    #     else
+    #         where("#{self.table_name}.name" => query)
+    #     end
+    # end
 
     def self.last_update
         select('updated_at').reorder('updated_at DESC').limit(1).first.updated_at
