@@ -18,5 +18,6 @@
 
       %tbody
         = render :partial => 'records/record', :collection => records
-  - if records && records.any?#
+  / - if records && records.any?
+  - if records.respond_to?(:current_page)
     = will_paginate records, :class => 'record-table-pagination', :previous_label => '«'.html_safe, :next_label => '»'.html_safe#, :params => { :controller => 'records', :action => 'index', :domain_id => records.first.domain_id, :id => nil }
