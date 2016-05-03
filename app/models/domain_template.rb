@@ -15,7 +15,8 @@
 
 class DomainTemplate < ActiveRecord::Base
     has_many :record_templates, :dependent => :destroy, :inverse_of => :domain_template
-    has_one  :soa_record_template, :class_name => 'RecordTemplate', :conditions => { 'type' => 'SOA' }, :inverse_of => :domain_template
+    has_one  :soa_record_template,  -> {where(type: 'SOA')}, :class_name => 'RecordTemplate', :inverse_of => :domain_template
+    # has_one  :soa_record_template, :class_name => 'RecordTemplate', :conditions => { 'type' => 'SOA' }, :inverse_of => :domain_template
 
     belongs_to :view
 
@@ -32,10 +33,8 @@ class DomainTemplate < ActiveRecord::Base
         delegate field.to_sym, (field.to_s + '=').to_sym, :to => :soa_record_template
     end
 
-    # scopes
-    scope :with_soa, joins(:record_templates).where('record_templates.type = ?', 'SOA')
-    default_scope order('name')
-    # scope :user, lambda { |user| user.admin? ? nil : where(:user_id => user.id) }
+    scope :with_soa, ->{joins(:record_templates).where('record_templates.type = ?', 'SOA')}
+    default_scope {order('name')}
 
     def soa_record_template
         super || (self.soa_record_template = RecordTemplate.new('type' => 'SOA').tap{ |soa|

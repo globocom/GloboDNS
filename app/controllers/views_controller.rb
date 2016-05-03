@@ -20,7 +20,7 @@ class ViewsController < ApplicationController
     before_filter :admin?
 
     def index
-        @views = View.scoped
+        @views = View.all
         @views = @views.paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
         respond_with(@views) do |format|
             format.html { render :partial => 'list', :object => @views, :as => :views if request.xhr? }

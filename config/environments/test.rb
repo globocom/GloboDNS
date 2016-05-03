@@ -22,6 +22,9 @@ GloboDns::Application.configure do
   # and recreated between test runs.  Don't rely on the data there!
   config.cache_classes = true
 
+  # config.eager_load required for Devise version 3.5.6
+  config.eager_load = false
+
   # Log error messages when you accidentally call methods on nil.
   config.whiny_nils = true
 
@@ -57,7 +60,8 @@ GloboDns::Application.configure do
   config.active_support.deprecation = :stderr
 
   # Configure static asset server for tests with Cache-Control for performance
-  config.serve_static_assets = true
+  config.serve_static_files = true # used on Rails 5.0
+
   config.static_cache_control = "public, max-age=3600"
 
   # Allow pass debug_assets=true as a query parameter to load pages with unpackaged assets

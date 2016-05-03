@@ -15,7 +15,7 @@
 %h1
   = DomainTemplate.model_name.human.titleize
   = link_to('', '#', :class => 'edit-domain-template-button ui-icon-edit', :title => t(:generic_edit))
-  = link_to('', domain_template_path(@domain_template), :class => 'delete-domain-template-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :confirm => t(:confirm_delete_domain_template, :name => @domain_template.name))
+  = link_to('', domain_template_path(@domain_template), :class => 'delete-domain-template-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :data => {:confirm => t(:confirm_delete_domain_template, :name => @domain_template.name)})
 = render :partial => 'form', :object => @domain_template, :as => :domain_template
 
 #domain-template-view

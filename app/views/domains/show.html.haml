@@ -35,7 +35,7 @@
   = Domain.model_name.human.titleize
   - if current_user.admin? || current_user.operator?
     = link_to('', '#', :class => 'edit-domain-button ui-icon-edit', :title => t(:generic_edit))
-    = link_to('', domain_path(@domain), :class => 'delete-domain-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :confirm => t(:confirm_domain_delete, :domain => @domain.name))
+    = link_to('', domain_path(@domain), :class => 'delete-domain-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :data => {:confirm => t(:confirm_domain_delete, :domain => @domain.name)})
 = render :partial => 'form', :object => @domain, :as => :domain
 
 - if @domain.master?

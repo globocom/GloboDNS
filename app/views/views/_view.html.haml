@@ -10,7 +10,7 @@
   %td.destinations= view.destinations
   %td.actions
     = link_to '', '#', :class => 'edit-view-button ui-icon-edit', :title => t(:generic_edit)
-    = link_to '', view_path(view), :remote => true, :method => :delete, :confirm => t(:confirm_view_delete), :class => 'delete-view-button ui-icon-trash', :title => t(:generic_delete)
+    = link_to '', view_path(view), :remote => true, :method => :delete, :data => {:confirm => t(:confirm_user_remove)}, :class => 'delete-view-button ui-icon-trash', :title => t(:generic_delete)
 
 %tr[ view, :edit ]{ :class => "#{even_odd} hidden edit-view"}
   = form_for(view, :as => 'view', :url => view_path(view)) do |f|

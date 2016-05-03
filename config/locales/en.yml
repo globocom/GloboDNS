@@ -232,6 +232,7 @@ en:
   label_macro_apply: "Apply macro"
 
 # Domains show
+  message_no_recordss_found: "No records found"
   records_for_sibling_domain:
     Records for Sibling Domain
   help_record_template_new:

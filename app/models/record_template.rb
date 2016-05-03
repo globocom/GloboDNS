@@ -33,7 +33,7 @@ class RecordTemplate < ActiveRecord::Base
     after_initialize      :update_convenience_accessors
     validate              :validate_record_template
 
-    scope :without_soa, where('type != ?', 'SOA')
+    scope :without_soa, ->{where('type != ?', 'SOA')}
 
     # We need to cope with the SOA convenience
     SOA::SOA_FIELDS.each do |field|
