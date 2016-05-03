@@ -108,7 +108,7 @@ class Domain < ActiveRecord::Base
     scope :_reverse,          -> {reverse} # 'reverse' is an Array method; having an alias is useful when using the scope on associations
     # scope :updated_since,     -> {lambda { |timestamp| Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }}
     scope :updated_since,     -> (timestamp) {Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }
-    scope :matching,          -> {where("#{self.table_name}.name = ?", query)}
+    scope :matching,          -> {where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))}
     # scope :matching,          -> {lambda { |query|
     #         if query.index('*')
     #             where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))
