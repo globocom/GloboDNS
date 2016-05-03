@@ -2,6 +2,5 @@
 / = render :partial => 'filter'
 	%h2 Filter
 		# = text_field_tag :query, '', :class => 'search-field', 'data-help' => 'help-audits-search'
-		%span.search-icon
 
 = render :partial => 'list', :object => @audits, :as => :audits
