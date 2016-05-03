@@ -4,8 +4,7 @@
 = render :partial => 'list', :object => @audits, :as => :audits
 
 %h2 Filter
-= form_for(:html => {:id => 'filter-form'}) do |f|
   %table#filter
     %tbody
       %tr
-        %td= f.label :action, "Action"
+        %td= label :action, "Action"
