@@ -229,7 +229,7 @@ class Record < ActiveRecord::Base
         #     end
         # end
         # if self.class.where('id != ?', self.id).where('name' => self.name).first != nill
-        if Domain.where(id: :domain_id).first.records.where(name: :name).first
+        if Domain.where(id: :domain_id).first.records.where(name: :name).first != nil
             self.errors.add(:name, I18n.t('recursive_subdomain', :domain => domain.name, :scope => 'activerecord.errors.messages'))
         end
     end
