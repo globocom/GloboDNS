@@ -217,18 +217,19 @@ class Record < ActiveRecord::Base
     end
 
     def validate_name_unique
-        unless self.name != '@'
-            names = []
-            domain = Domain.where(id: :domain_id).first
-            for n in domain.records
-                names.append(n)
-            end
-            
-            if names.include?(self.name)
-                puts "teste"
-                self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
-            end
+        return if self.name.blank? || self.name == '@'
+
+        names = []
+        domain = Domain.where(id: self.domain_id).first
+        for n in domain.records
+            names.append(n)
         end
+        
+        if names.include?(self.name)
+            puts "teste"
+            self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+        end
+
         # if self.class.where('id != ?', self.id).where('name' => self.name).first != nill
         # if Domain.where(id: :domain_id).first.records.where(name: :name).first != nil
         # if self.class.where('id != ?', self.id).where('name' => self.name, 'domain_id' => self.domain_id).first != nil
