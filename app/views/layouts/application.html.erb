@@ -44,7 +44,7 @@
               </div>
             </div>
             <%= form_tag(domains_path, { :method => :get }) do %>
-              <%= text_field_tag :query, params[:query] || '', :class => 'search-field', 'data-help' => 'help-search' %>
+              <%= text_field_tag :query, params[:query] || '', :class => 'search-field', :data => {'help' => 'help-search'} %>
               <span class="search-icon"></span>
             <% end %>
           </div>
