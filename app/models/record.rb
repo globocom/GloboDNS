@@ -219,7 +219,7 @@ class Record < ActiveRecord::Base
     def validate_name_unique
         unless self.name != '@'
             names = []
-            # domain = Domain.where(id: :domain_id).first
+            domain = Domain.where(id: :domain_id).first
             # for n in domain.records
             #     names.append(n)
             # end
