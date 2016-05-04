@@ -217,22 +217,17 @@ class Record < ActiveRecord::Base
     end
 
     def validate_name_unique
-        puts "huehue"
-        # if self.name == "ipypi"
-        #     self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
-        # end
+        return if self.name.blank? || self.name == '@'
 
-        # return if self.name.blank? || self.name == '@'
-
-        # names = []
-        # domain = Domain.where(id: self.domain_id).first
-        # for n in domain.records
-        #     names.append(n)
-        # end
+        names = []
+        domain = Domain.where(:id => self.domain_id).first
+        for n in domain.records
+            names.append(n)
+        end
         
-        # if names.include?(self.name)
-        #     self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
-        # end
+        if names.include?(self.name)
+            self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+        end
 
         # if self.class.where('id != ?', self.id).where('name' => self.name).first != nill
         # if Domain.where(id: :domain_id).first.records.where(name: :name).first != nil
