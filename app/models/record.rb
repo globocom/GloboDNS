@@ -217,9 +217,7 @@ class Record < ActiveRecord::Base
     end
 
     def validate_name_unique
-        logger = Rails.logger
-        logger.debug "teste"
-        logger.debug self.name
+        puts "huehue"
         # if self.name == "ipypi"
         #     self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
         # end
