@@ -6,7 +6,7 @@
   %td.action= audit.action
   %td.auditable= "#{audit.audited_changes['name']}"
   %td.association= audit.associated_type ? ( (au = Audited::Adapters::ActiveRecord::Audit.where(auditable_type:"Domain",auditable_id:audit.associated_id).first).nil? ? "" : "#{au.audited_changes['name']}") : ''
-  %td.changes{'title' => audit.audited_changes}
+  %td.changes{'title' => "teste"}
     %span= audit.audited_changes
 
   / %th= audit.comment
