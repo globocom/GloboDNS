@@ -226,7 +226,7 @@ class Record < ActiveRecord::Base
             
             if names.include?(self.name)
                 puts "teste"
-            #     self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+                self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
             end
         end
         # if self.class.where('id != ?', self.id).where('name' => self.name).first != nill
