@@ -220,9 +220,16 @@ class Record < ActiveRecord::Base
         return if self.name.blank? || self.name == '@'
 
         self.name.split('.').each_with_index do |part, index|
-            unless (index == 0 && part == '*') || part =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?<!-)$/
-                self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
-                return
+            if self.type == "SRV"
+                unless (index == 0 && part == '*') || part =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?<!-)$/
+                    self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+                    return
+                end
+            else
+                unless (index == 0 && part == '*') || part =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?<!-)$/
+                    self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+                    return
+                end
             end
         end
     end
