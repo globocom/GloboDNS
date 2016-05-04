@@ -220,9 +220,9 @@ class Record < ActiveRecord::Base
         unless self.name != '@'
             names = []
             domain = Domain.where(id: :domain_id).first
-            # for n in domain.records
-            #     names.append(n)
-            # end
+            for n in domain.records
+                names.append(n)
+            end
             
             # if names.include?(self.name)
             #     self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
