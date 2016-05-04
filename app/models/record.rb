@@ -35,6 +35,7 @@ class Record < ActiveRecord::Base
     validates_presence_of      :name
     validates_presence_of      :content
     validates_bind_time_format :ttl
+    # validate                   :validate_name_unique,          :unless => :importing?
     validate                   :validate_name_format,          :unless => :importing?
     validate                   :validate_recursive_subdomains, :unless => :importing?
 
@@ -213,6 +214,20 @@ class Record < ActiveRecord::Base
 
     def importing?
         !!importing
+    end
+
+    def validate_name_unique
+        unless self.name != '@'
+            names = []n
+            domain = Domain.where(id: :domain_id).first
+            for n in domain.records
+                names.append(n)
+            end
+            
+            if names.include?(self.name)
+                self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+            end
+        end
     end
 
     def validate_name_format
