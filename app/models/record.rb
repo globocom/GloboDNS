@@ -219,6 +219,10 @@ class Record < ActiveRecord::Base
         # default implementation: validation of 'hostnames'
         return if self.name.blank? || self.name == '@'
 
+        if self.type == 'SRV'
+            Rails.logger("´E SRV!!!!!")
+        end
+
         self.name.split('.').each_with_index do |part, index|
             unless (index == 0 && part == '*') || part =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?<!-)$/
                 self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
