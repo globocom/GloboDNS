@@ -36,9 +36,9 @@ class Record < ActiveRecord::Base
     validates_presence_of      :content
     validates_bind_time_format :ttl
     validate                   :validate_name_cname,                        :unless => :importing?
-    validate                   :validate_name_format,                       :unless => :importing?
+    # validate                   :validate_name_format,                       :unless => :importing?
     validate                   :validate_recursive_subdomains,              :unless => :importing?
-    validate                   :validate_same_name_and_type_and_content,    :unless => :importing?
+    # validate                   :validate_same_name_and_type_and_content,    :unless => :importing?
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
