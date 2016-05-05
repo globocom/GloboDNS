@@ -217,17 +217,21 @@ class Record < ActiveRecord::Base
     end
 
     def validate_name_unique
-        return if self.name.blank? || self.name == '@'
-
-        names = []
-        domain = Domain.where(:id => self.domain_id).first
-        for n in domain.records
-            names.append(n)
-        end
-        
-        if names.include?(self.name)
+        if self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first != nil
             self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
         end
+
+        # return if self.name.blank? || self.name == '@'
+
+        # names = []
+        # domain = Domain.where(id: self.domain_id).first
+        # for n in domain.records
+        #     names.append(n)
+        # end
+        
+        # if names.include?(self.name)
+        #     self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+        # end
 
         # if self.class.where('id != ?', self.id).where('name' => self.name).first != nill
         # if Domain.where(id: :domain_id).first.records.where(name: :name).first != nil
@@ -258,6 +262,12 @@ class Record < ActiveRecord::Base
     def validate_same_name_and_type
         if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first
             self.warnings.add(:base, I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
+        end
+    end
+
+    def validate_same_name_and_type_and_content
+        if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
+            self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
         end
     end
 
