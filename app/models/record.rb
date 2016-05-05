@@ -38,7 +38,7 @@ class Record < ActiveRecord::Base
     # validate                   :validate_name_cname,                        :unless => :importing?
     validate                   :validate_name_format,                       :unless => :importing?
     validate                   :validate_recursive_subdomains,              :unless => :importing?
-    # validate                   :validate_same_name_and_type_and_content,    :unless => :importing?
+    validate                   :validate_same_name_and_type_and_content,    :unless => :importing?
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
@@ -254,7 +254,7 @@ class Record < ActiveRecord::Base
 
     def validate_same_name_and_type_and_content
         if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
-            self.errors.add(I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
+            # self.errors.add(I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
             return
         end
     end
