@@ -42,7 +42,7 @@ class Record < ActiveRecord::Base
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
-        # scope.validate :validate_same_name_and_type
+        scope.validate :validate_same_name_and_type
     end
 
     class_attribute :batch_soa_updates
