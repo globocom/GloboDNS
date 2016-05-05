@@ -256,7 +256,7 @@ class Record < ActiveRecord::Base
 
     def validate_same_name_and_type_and_content
         if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
-            self.errors.add(:name, I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
+            self.errors.add(:base, I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
             return
         end
     end
