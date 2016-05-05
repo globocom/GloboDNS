@@ -26,7 +26,7 @@ class Record < ActiveRecord::Base
     belongs_to :domain, :inverse_of => :records
 
     attr_accessor :importing
-    attr_accessible :domain_id, :name, :type, :content, :ttl, :prio
+    attr_accessible :domain_id, :name, :type, :content, :ttl, :prio, :same_name_and_type = false
 
     audited :associated_with => :domain
     self.non_audited_columns.delete(self.inheritance_column) # audit the 'type' column
@@ -246,16 +246,20 @@ class Record < ActiveRecord::Base
         end
     end
 
-    def validate_same_name_and_type
+    def validate_same_name_and_type_and_content
         if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first
-            self.warnings.add(:base, I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
+            if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
+                self.errors.add(I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
+            return
+            else
+                :same_name_and_type == true
+            end
         end
     end
 
-    def validate_same_name_and_type_and_content
-        if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
-            self.errors.add(I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
-            return
+    def validate_same_name_and_type
+        if same_name_and_type
+            :self.warnings.add(:base, I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
         end
     end
 
