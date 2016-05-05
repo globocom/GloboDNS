@@ -252,13 +252,13 @@ class Record < ActiveRecord::Base
                 self.errors.add(I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
                 return
             else
-                :same_name_and_type == true
+                :same_name_and_type
             end
         end
     end
 
     def validate_same_name_and_type
-        if same_name_and_type
+        if :same_name_and_type
             :self.warnings.add(:base, I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
         end
     end
