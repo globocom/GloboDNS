@@ -248,9 +248,9 @@ class Record < ActiveRecord::Base
 
     def validate_same_name_and_type
         if record = self.class.where('id != ?', self.id).where('content = ?', self.content).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first
-            if record = self.class.where('id != ?', self.id).where('content != ?', self.content).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first
-                self.warnings.add(:base, I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
-            end
+            return
+        elsif record = self.class.where('id != ?', self.id).where('content != ?', self.content).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first
+            self.warnings.add(:base, I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
         end
     end
 
