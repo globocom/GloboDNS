@@ -217,11 +217,13 @@ class Record < ActiveRecord::Base
         !!importing
     end
 
-    def validate_name_unique
-        if record = self.class.where('id != ?', self.id).where('name' => self.name, 'domain_id' => self.domain_id).first
-            self.errors.add(:name, "deve ser único")
-            record.delete
-            return
+    def validate_cname
+        if self.type == "CNAME"
+            # if record = self.class.where('id != ?', self.id).where('name' => self.name, 'domain_id' => self.domain_id).first
+            if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => "A", 'domain_id' => self.domain_id).first
+                self.errors.add(:name, "deve ser único para o tipo CNAME")
+                return
+            end
         end
     end
 
@@ -253,7 +255,6 @@ class Record < ActiveRecord::Base
     def validate_same_name_and_type_and_content
         if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
             self.errors.add(I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
-            record.delete
             return
         end
     end
