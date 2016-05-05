@@ -222,7 +222,7 @@ class Record < ActiveRecord::Base
             # if record = self.class.where('id != ?', self.id).where('name' => self.name, 'domain_id' => self.domain_id).first
             # if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => "A", 'domain_id' => self.domain_id).first
             # self.errors.add(:name, "deve ser único para o tipo CNAME")
-            self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+            self.errors.add(:name, I18n.t('cname_name', :name => self.name, :scope => 'activerecord.errors.messages'))
             return
             # end
         end
