@@ -35,7 +35,7 @@ class Record < ActiveRecord::Base
     validates_presence_of      :name
     validates_presence_of      :content
     validates_bind_time_format :ttl
-    validate                   :validate_name_unique,                       :unless => :importing?
+    validate                   :validate_name_cname,                        :unless => :importing?
     validate                   :validate_name_format,                       :unless => :importing?
     validate                   :validate_recursive_subdomains,              :unless => :importing?
     validate                   :validate_same_name_and_type_and_content,    :unless => :importing?
@@ -217,7 +217,7 @@ class Record < ActiveRecord::Base
         !!importing
     end
 
-    def validate_cname
+    def validate_name_cname
         if self.type == "CNAME"
             # if record = self.class.where('id != ?', self.id).where('name' => self.name, 'domain_id' => self.domain_id).first
             if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => "A", 'domain_id' => self.domain_id).first
