@@ -42,7 +42,7 @@ class Record < ActiveRecord::Base
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
-        scope.validate :validate_same_name_and_type
+        # scope.validate :validate_same_name_and_type
     end
 
     class_attribute :batch_soa_updates
@@ -254,7 +254,7 @@ class Record < ActiveRecord::Base
 
     def validate_same_name_and_type_and_content
         if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
-            # self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+            self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
             return
         end
     end
