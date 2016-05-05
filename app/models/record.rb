@@ -218,9 +218,11 @@ class Record < ActiveRecord::Base
     end
 
     def validate_name_unique
-        # if self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first != nil
-        #     self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
-        # end
+        if record = self.class.where('id != ?', self.id).where('name' => self.name, 'domain_id' => self.domain_id).first
+        if self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first
+            # self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+            self.errors.add(:name, "deve ser único")
+        end
 
         # return if self.name.blank? || self.name == '@'
 
