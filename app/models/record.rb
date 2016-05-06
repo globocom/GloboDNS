@@ -221,7 +221,8 @@ class Record < ActiveRecord::Base
         tp = 'CNAME'
         # tp = 'SRV'
         if self.type == 'CNAME'
-            if record = Resolv::DNS::Resource::IN::A.where('id != ?', self.id).where('name' => self.name, 'type' => tp, 'domain_id' => self.domain_id).first
+            if record = Resolv::DNS::Resource::IN::CNAME.where('id != ?', self.id).where('name' => self.name, 'type' => tp, 'domain_id' => self.domain_id).first
+            # if record = Resolv::DNS::Resource::IN::A.where('id != ?', self.id).where('name' => self.name, 'type' => tp, 'domain_id' => self.domain_id).first
             # if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => tp, 'domain_id' => self.domain_id).first
                 self.errors.add(:name, I18n.t('cname_name', :name => self.name, :scope => 'activerecord.errors.messages'))
                 return
