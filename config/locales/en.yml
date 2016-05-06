@@ -75,7 +75,7 @@ en:
         inclusion: "is not included in the list"
         exclusion: "is reserved"
         invalid: "is invalid"
-        cname_name: "\"%{name}\" already in use for a A record"
+        cname_name: "\"%{name}\" already in use for a %{type} record"
         confirmation: "doesn't match confirmation"
         accepted: "must be accepted"
         empty: "can't be empty"
