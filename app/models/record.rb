@@ -220,7 +220,7 @@ class Record < ActiveRecord::Base
     def validate_name_cname
         if self.type == 'CNAME'
             if record = Record.where('name' => self.name, 'domain_id' => self.domain_id).first
-                self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => self.type, :scope => 'activerecord.errors.messages'))
+                self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
                 return
             end
         end
