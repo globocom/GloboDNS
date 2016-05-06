@@ -218,7 +218,7 @@ class Record < ActiveRecord::Base
     end
 
     def validate_name_cname
-        tp = 'CNAME'
+        tp = 'A'
         # tp = 'SRV'
         if self.type == 'CNAME'
             if record = Record.where('id != ?', self.id).where('name' => self.name, 'type' => tp, 'domain_id' => self.domain_id).first
