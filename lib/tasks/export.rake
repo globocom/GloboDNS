@@ -30,7 +30,7 @@ namespace :globodns do
 
     Schedule.run_exclusive :export do |s|
       if not s.date.nil?
-        @logger.warn "There are another process running. To run export again, remove row #{s.id} in schedules table"
+        @logger.warn "There is another process running. To run export again, remove row #{s.id} in schedules table"
         next
       end
       # register last execution in schedule
