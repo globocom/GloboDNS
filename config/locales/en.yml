@@ -76,6 +76,7 @@ en:
         exclusion: "is reserved"
         invalid: "is invalid"
         cname_name: "\"%{name}\" already in use for a %{type} record"
+        cname_name_taken: "\"%{name}\" already in use for a CNAME record"
         confirmation: "doesn't match confirmation"
         accepted: "must be accepted"
         empty: "can't be empty"

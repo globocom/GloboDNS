@@ -219,8 +219,14 @@ class Record < ActiveRecord::Base
 
     def validate_name_cname
         if self.type == 'CNAME'
-            if record = Record.where('name' => self.name, 'domain_id' => self.domain_id).first
+            if record = Record.where('type != ?', "CNAME").where('name' => self.name, 'domain_id' => self.domain_id).first
                 self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
+                return
+            end
+        else
+            # verificar se ja existe um record CNAME com esse nome
+            if record = Record.where('type = ?', 'CNAME').where('name' => self.name, 'domain_id' => self.domain_id).first
+                self.errors.add(:name, I18n.t('cname_name_taken', :name => self.name, :scope => 'activerecord.errors.messages'))
                 return
             end
         end
@@ -255,7 +261,7 @@ class Record < ActiveRecord::Base
 
     def validate_same_name_and_type_and_content
         if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
-            self.errors.add(:base, I18n.t('record_same_name_and_type_and_content', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
+            self.errors.add(:name, I18n.t('record_same_name_and_type_and_content', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
             return
         end
     end
