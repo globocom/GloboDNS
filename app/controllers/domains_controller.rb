@@ -23,7 +23,7 @@ class DomainsController < ApplicationController
 
     def index
         session[:show_reverse_domains] = (params[:reverse] == 'true') if params.has_key?(:reverse)
-        @domains = session[:show_reverse_domains] ? Domain.scoped : Domain.nonreverse
+        @domains = session[:show_reverse_domains] ? Domain.all : Domain.nonreverse
         @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
         @domains = @domains.matching(params[:query]) if params[:query].present?
         respond_with(@domains) do |format|
