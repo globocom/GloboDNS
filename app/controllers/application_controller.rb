@@ -18,6 +18,7 @@ class ApplicationController < ActionController::Base
 
     before_filter :set_token_param_from_http_headers
     before_filter :authenticate_user!  # all pages require a login
+    before_filter :authenticate_user_from_token!
     after_filter  :flash_headers
 
     protect_from_forgery
@@ -100,5 +101,15 @@ class ApplicationController < ActionController::Base
 
     def navigation_format?
         request.format.html? || request.format.js?
+    end
+
+    private
+    def authenticate_user_from_token!
+        user_token = params[:user_token].presence
+        user       = user_token && User.find_by_authentication_token(user_token.to_s)
+
+        if user
+          sign_in user
+        end
     end
 end
