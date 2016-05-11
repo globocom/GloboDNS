@@ -17,7 +17,7 @@ class ApplicationController < ActionController::Base
     HTTP_AUTH_TOKEN_HEADER = 'X-Auth-Token'
 
     before_filter :set_token_param_from_http_headers
-    before_filter :authenticate_user!  # all pages require a login
+    # before_filter :authenticate_user!  # all pages require a login
     before_filter :authenticate_user_from_token!
     after_filter  :flash_headers
 
