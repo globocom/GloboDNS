@@ -7,5 +7,5 @@ test/mock/named_chroot/etc/named/**
 *.swp
 .DS_Store
 vendor/bundle
-vendor/cache
+vendor/cache/*
 REVISION
