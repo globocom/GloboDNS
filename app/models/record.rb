@@ -218,10 +218,10 @@ class Record < ActiveRecord::Base
     end
 
     def validate_name_cname
-        if self.type == 'CNAME' # check if the new cname record matches a ald record name
+        if self.type == 'CNAME' # check if the new cname record matches a old record name
             if record = Record.where('name' => self.name, 'domain_id' => self.domain_id).first
                 self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
-                return
+                return 
             end
         else # check if there is a CNAME record with the new record name
             if record = Record.where('type = ?', 'CNAME').where('name' => self.name, 'domain_id' => self.domain_id).first
@@ -251,7 +251,8 @@ class Record < ActiveRecord::Base
     end
 
     def validate_same_record
-        if record = Record.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
+        id = self.id || 0
+        if self.type!="CNAME" && record = Record.where('id != ?', id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
             self.errors.add(:base, I18n.t('record_same_name_and_type_and_content', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
             return
         end
@@ -259,7 +260,7 @@ class Record < ActiveRecord::Base
 
 
     def validate_same_name_and_type
-        if record = Record.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
+        if self.type!="CNAME" && record = Record.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
             return
         elsif self.type!="CNAME" && record = self.class.where('id != ?', self.id).where('content != ?', self.content).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first
             self.warnings.add(:base, I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
