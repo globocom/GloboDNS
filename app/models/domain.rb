@@ -80,13 +80,14 @@ class Domain < ActiveRecord::Base
 
     # validations
     validates_presence_of      :name
-    validates_uniqueness_of    :name, :scope => :view_id
-    validates_inclusion_of     :authority_type,  :in => AUTHORITY_TYPES.keys,  :message => "must be one of #{AUTHORITY_TYPES.keys.join(', ')}"
-    validates_inclusion_of     :addressing_type, :in => ADDRESSING_TYPES.keys, :message => "must be one of #{ADDRESSING_TYPES.keys.join(', ')}"
-    validates_presence_of      :ttl,        :if => :master?
-    validates_bind_time_format :ttl,        :if => :master?
-    validates_associated       :soa_record, :if => :master?
-    validates_presence_of      :master,     :if => :slave?
+    validates_uniqueness_of    :name,               :scope => :view_id
+    validates_inclusion_of     :authority_type,     :in => AUTHORITY_TYPES.keys,  :message => "must be one of #{AUTHORITY_TYPES.keys.join(', ')}"
+    validates_inclusion_of     :addressing_type,    :in => ADDRESSING_TYPES.keys, :message => "must be one of #{ADDRESSING_TYPES.keys.join(', ')}"
+    validates_presence_of      :ttl,                :if => :master?
+    validates_bind_time_format :ttl,                :if => :master?
+    validates_associated       :soa_record,         :if => :master?
+    validates_presence_of      :master,             :if => :slave?
+    # validates_presence_of      :forwarder,          :if => :forward?
     validate                   :validate_recursive_subdomains, :unless => :importing?
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
@@ -148,8 +149,13 @@ class Domain < ActiveRecord::Base
 
     # aliases to mascarade the fact that we're reusing the "master" attribute
     # to hold the "forwarder" values of domains with "forward" type
-    def forwarder; self.master; end
-    def forwarder=(val); self.master = val; end
+    def forwarder
+        self.master 
+    end
+    
+    def forwarder=(val)
+        self.master = val
+    end
 
     def importing?
         !!importing
@@ -206,7 +212,6 @@ class Domain < ActiveRecord::Base
               end
         File::join dir, subdir_path
     end
-
     def zonefile_path
         if self.slave?
             File.join(zonefile_dir, 'dbs.' + self.name)
