@@ -260,9 +260,10 @@ class Record < ActiveRecord::Base
 
 
     def validate_same_name_and_type
-        if self.type!="CNAME" && record = Record.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
+        id = self.id || 0
+        if self.type!="CNAME" && record = Record.where('id != ?', id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
             return
-        elsif self.type!="CNAME" && record = self.class.where('id != ?', self.id).where('content != ?', self.content).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first
+        elsif self.type!="CNAME" && record = self.class.where('id != ?', id).where('content != ?', self.content).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first
             self.warnings.add(:base, I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
         end
     end
