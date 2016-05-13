@@ -55,7 +55,7 @@ class RecordTemplatesController < ApplicationController
 
     def update
         @record_template = RecordTemplate.find(params[:id])
-        @record_template.update_attributes(params[:record_template])
+        @record_template.update(params[:record_template])
         respond_with(@record_template) do |format|
             format.html { render :status  => @record_template.valid? ? :ok              : :unprocessable_entity,
                                  :partial => @record_template.valid? ? @record_template : 'errors' } if request.xhr?

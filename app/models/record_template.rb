@@ -80,6 +80,18 @@ class RecordTemplate < ActiveRecord::Base
         self.type == 'SOA'
     end
 
+    def update(params)
+        if soa?
+            params.each_with_index do |value|
+                field_name  = value[0]
+                field_value = value[1]
+                field_value = field_value.try(:to_i) unless field_name == 'primary_ns' || field_name == 'contact'
+                instance_variable_set("@#{field_name}", field_value)
+            end
+        self.update_attributes(params)
+        end
+    end
+
     # Here we perform some magic to inherit the validations from the "destination"
     # model without any duplication of rules. This allows us to simply extend the
     # appropriate record and gain those validations in the templates
