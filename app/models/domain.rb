@@ -87,7 +87,7 @@ class Domain < ActiveRecord::Base
     validates_bind_time_format :ttl,                :if => :master?
     validates_associated       :soa_record,         :if => :master?
     validates_presence_of      :master,             :if => :slave?
-    # validates_presence_of      :forwarder,          :if => :forward?
+    validates_presence_of      :forwarder,          :if => :forward?
     validate                   :validate_recursive_subdomains, :unless => :importing?
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
