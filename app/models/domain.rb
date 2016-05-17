@@ -95,6 +95,7 @@ class Domain < ActiveRecord::Base
     # end
 
     # callbacks
+    before_save :name_unique?
     after_save :save_soa_record
 
     # scopes
@@ -115,6 +116,13 @@ class Domain < ActiveRecord::Base
                                         where("#{self.table_name}.name" => query)
                                     end
                                 }
+
+    def name_unique?
+        if domain = Domain.where("id != ?", self.id).where(:name => self.name).first
+            self.errors.add(:name, I18n.t('taken', :scope => 'activerecord.errors.messages'))
+            return
+        end
+    end
 
     def self.last_update
         select('updated_at').reorder('updated_at DESC').limit(1).first.updated_at
