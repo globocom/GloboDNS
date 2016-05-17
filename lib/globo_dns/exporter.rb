@@ -105,6 +105,7 @@ class Exporter
         if @options[:all] == true
             # ignore the current git content and export all records
             @last_commit_date = Time.at(0)
+            @last_commit_date_destroyed = last_export_timestamp # usar uma data diferente para os audits de 'destroy'
         else
           if slave
             @last_commit_date = Dir.chdir(File.join(chroot_dir, zones_root_dir)) do
@@ -580,7 +581,8 @@ class Exporter
     end
 
     def remove_destroyed_domains(zonefile_dir,slave = false)
-      destroyed = Audited::Adapters::ActiveRecord::Audit.where(auditable_type:"Domain",action:"destroy" ).where("created_at > ?", @last_commit_date)
+      @last_commit_date_destroyed ||= @last_commit_date
+      destroyed = Audited::Adapters::ActiveRecord::Audit.where(auditable_type:"Domain",action:"destroy" ).where("created_at > ?", @last_commit_date_destroyed)
       domains = destroyed.collect{|a| a.audited_changes['name']}
       @logger.info "[GloboDns::Exporter] Removing destroyed domains: #{domains}" unless domains.empty?
       domains.each do |domain|

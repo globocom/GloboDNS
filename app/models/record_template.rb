@@ -82,7 +82,7 @@ class RecordTemplate < ActiveRecord::Base
 
     def update(params)
         if soa?
-            params.each_with_index do |value|
+            params.each do |value|
                 field_name  = value[0]
                 field_value = value[1]
                 field_value = field_value.try(:to_i) unless field_name == 'primary_ns' || field_name == 'contact'
