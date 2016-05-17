@@ -21,7 +21,8 @@ class ApplicationController < ActionController::Base
     before_filter :authenticate_user!  # all pages require a login
     after_filter  :flash_headers
 
-    protect_from_forgery
+    protect_from_forgery with: :null_session,
+      if: Proc.new { |c| c.request.format =~ %r{application/json} }
 
     rescue_from Exception,                           :with => :render_500
     rescue_from ActiveRecord::RecordNotFound,        :with => :render_404
