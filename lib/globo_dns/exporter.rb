@@ -268,7 +268,7 @@ class Exporter
                 if not export_all_domains and not @slave
                     n_zones << domain
                 end
-                unless @slave #Slaves don't replicate the zone-files.
+                unless @slave or domain.forward? #Slaves and forwards don't replicate the zone-files.
                     @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}; created_at: #{domain.created_at}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated_since-count: #{domain.records.updated_since(@last_commit_date).count})"
                     #create subdir for this domain, if it doesn't exist yet.
                     abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
@@ -591,6 +591,11 @@ class Exporter
         end
     end
 
+    def destroyed_zone_type(name)
+        destroyed = Audited::Adapters::ActiveRecord::Audit.where(auditable_type:"Domain").where("action = 'destroy'").where("created_at > ?", @last_commit_date_destroyed).where('audited_changes LIKE ?', '%'+name+'%').order(created_at: :desc).first
+        return destroyed.audited_changes['authority_type']
+    end
+
     def remove_destroyed_domains(zonefile_dir,slave = false)
       @last_commit_date_destroyed ||= @last_commit_date
       destroyed = Audited::Adapters::ActiveRecord::Audit.where(auditable_type:"Domain",action:"destroy" ).where("created_at > ?", @last_commit_date_destroyed)
@@ -605,15 +610,22 @@ class Exporter
 
       @logger.info "[GloboDns::Exporter] Removing destroyed domains: #{domains}" unless domains.empty?
       domains.each do |domain|
-        tmpdomain = Domain.new(name:domain)
-        tmpdomain.slave! if slave
-        zonefile_path = tmpdomain.zonefile_path
-        abs_zonefile_path = File.join(zonefile_dir,zonefile_path)
-        @logger.debug "[GloboDns::Exporter] removing destroyed zonefile \"#{abs_zonefile_path}\""
-        begin
-          FileUtils.rm(abs_zonefile_path)
-        rescue Errno::ENOENT => e
-          @logger.info "[GloboDns::Exporter] #{e.message}"
+        type = destroyed_zone_type(domain)
+        @logger.debug "#{domain} is a zone of type #{type}"
+        tmpdomain = Domain.new(name:domain, authority_type: type)
+        unless tmpdomain.forward? # Forward zones are configured only in 'forward.conf' and so individual config file doesn't exist
+            tmpdomain.slave! if slave 
+            zonefile_path = tmpdomain.zonefile_path
+            # @logger.info "zonefile_dir (arg): #{zonefile_dir}"
+            # @logger.info "zonefile_dir (attr): #{tmpdomain.zonefile_dir}"
+            # @logger.info "zonefile_path: #{zonefile_path}"
+            abs_zonefile_path = File.join(zonefile_dir,zonefile_path)
+            @logger.debug "[GloboDns::Exporter] removing destroyed zonefile \"#{abs_zonefile_path}\""
+            begin
+              FileUtils.rm(abs_zonefile_path)
+            rescue Errno::ENOENT => e
+              @logger.info "[GloboDns::Exporter] #{e.message}"
+            end
         end
       end
       domains
