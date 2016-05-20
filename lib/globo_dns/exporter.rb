@@ -144,7 +144,7 @@ class Exporter
         if @slave == true
             export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    [], true)
             export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  [], true)
-            export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.master_or_reverse)
+            export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.master_or_reverse_or_slave)
             export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward)
         else
             new_zones_noreverse = export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    Domain.noview.master)
@@ -232,17 +232,17 @@ class Exporter
             View.all.each do |view|
                 file.puts view.to_bind9_conf(zones_root_dir)
                 if @slave == true
-                    #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                        , export_all_domains
-                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                             , true)
-                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                             , true)
-                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.master_or_reverse , view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward           , true)
-                    else
-                    #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                        , export_all_domains
-                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , view.domains.master            , view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , view.domains._reverse          , view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.slave             , view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward           , view.updated_since?(@last_commit_date))
+                    #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                                  , export_all_domains
+                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                                       , true)
+                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                                       , true)
+                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.master_or_reverse_or_slave  , view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , true)
+                else
+                    #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                                  , export_all_domains
+                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , view.domains.master                      , view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , view.domains._reverse                    , view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.slave                       , view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , view.updated_since?(@last_commit_date))
                 end
             end
         end
@@ -292,16 +292,18 @@ class Exporter
 
             # write entries to index file (<domain_type>.conf).
             domains.each do |domain|
-                if @slave and not domain.forward?
+                if @slave or domain.slave? and not domain.forward?
                     domain = domain.clone
                     domain.slave!
                     abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
                     File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
                     abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
                     File.exists?(abs_zonefile_path) or File.open(abs_zonefile_path,'w')
-                    domain.master  = "#{Bind::Master::IPADDR}"
-                    domain.master += " port #{Bind::Master::PORT}"     if defined?(Bind::Master::PORT)
-                    domain.master += " key #{domain.query_key_name}" if domain.query_key_name
+                    if @slave and domain.master == nil
+                        domain.master  = "#{Bind::Master::IPADDR}"
+                        domain.master += " port #{Bind::Master::PORT}"     if defined?(Bind::Master::PORT)
+                        domain.master += " key #{domain.query_key_name}" if domain.query_key_name
+                    end
                 end
                 file.puts domain.to_bind9_conf(zones_root_dir)
             end
@@ -616,9 +618,6 @@ class Exporter
         unless tmpdomain.forward? # Forward zones are configured only in 'forward.conf' and so individual config file doesn't exist
             tmpdomain.slave! if slave 
             zonefile_path = tmpdomain.zonefile_path
-            # @logger.info "zonefile_dir (arg): #{zonefile_dir}"
-            # @logger.info "zonefile_dir (attr): #{tmpdomain.zonefile_dir}"
-            # @logger.info "zonefile_path: #{zonefile_path}"
             abs_zonefile_path = File.join(zonefile_dir,zonefile_path)
             @logger.debug "[GloboDns::Exporter] removing destroyed zonefile \"#{abs_zonefile_path}\""
             begin

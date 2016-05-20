@@ -99,23 +99,23 @@ class Domain < ActiveRecord::Base
     after_save :save_soa_record
 
     # scopes
-    default_scope             { order("#{self.table_name}.name") }
-    scope :master,            -> {where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", NORMAL)}
-    scope :slave,             -> {where("#{self.table_name}.authority_type   = ?", SLAVE)}
-    scope :forward,           -> {where("#{self.table_name}.authority_type   = ?", FORWARD)}
-    scope :master_or_reverse, -> {where("#{self.table_name}.authority_type   = ?", MASTER)}
-    scope :reverse,           -> {where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", REVERSE)}
-    scope :nonreverse,        -> {where("#{self.table_name}.addressing_type  = ?", NORMAL)}
-    scope :noview,            -> {where("#{self.table_name}.view_id IS NULL")}
-    scope :_reverse,          -> {reverse} # 'reverse' is an Array method; having an alias is useful when using the scope on associations
-    scope :updated_since,     -> (timestamp) {Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }
-    scope :matching,          -> (query){
-                                    if query.index('*')
-                                        where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))
-                                    else
-                                        where("#{self.table_name}.name" => query)
-                                    end
-                                }
+    default_scope                       { order("#{self.table_name}.name") }
+    scope :master,                      -> {where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", NORMAL)}
+    scope :slave,                       -> {where("#{self.table_name}.authority_type   = ?", SLAVE)}
+    scope :forward,                     -> {where("#{self.table_name}.authority_type   = ?", FORWARD)}
+    scope :master_or_reverse_or_slave,  -> {where("#{self.table_name}.authority_type   = ? or #{self.table_name}.authority_type   = ?", MASTER, SLAVE)}
+    scope :reverse,                     -> {where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", REVERSE)}
+    scope :nonreverse,                  -> {where("#{self.table_name}.addressing_type  = ?", NORMAL)}
+    scope :noview,                      -> {where("#{self.table_name}.view_id IS NULL")}
+    scope :_reverse,                    -> {reverse} # 'reverse' is an Array method; having an alias is useful when using the scope on associations
+    scope :updated_since,               -> (timestamp) {Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }
+    scope :matching,                    -> (query){
+                                            if query.index('*')
+                                                where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))
+                                            else
+                                                where("#{self.table_name}.name" => query)
+                                            end
+                                        }
 
     def name_unique?
         if domain = Domain.where("id != ?", self.id).where(:name => self.name).first
