@@ -226,7 +226,10 @@ class Exporter
 
     def export_views(chroot_dir, zones_root_dir)
         abs_zones_root_dir = File.join(chroot_dir, zones_root_dir)
+        abs_views_dir = File.join(chroot_dir, zones_root_dir, '/views')
         abs_views_file     = File.join(abs_zones_root_dir, VIEWS_FILE)
+
+        File.exists?(abs_views_dir) or FileUtils.mkdir(abs_views_dir)
 
         File.open(abs_views_file, 'w') do |file|
             View.all.each do |view|
@@ -377,6 +380,7 @@ class Exporter
                                 "--include=*#{SLAVES_FILE}",
                                 "--include=*#{FORWARDS_FILE}",
                                 "--include=*#{REVERSE_FILE}",
+                                "--include=*#{VIEWS_DIR}/***",
                                 "--include=*#{ZONES_DIR}/***",
                                 "--include=*#{SLAVES_DIR}/***",
                                 "--include=*#{FORWARDS_DIR}/***",
@@ -401,6 +405,7 @@ class Exporter
                                 "--include=*#{SLAVES_FILE}",
                                 "--include=*#{FORWARDS_FILE}",
                                 "--include=*#{REVERSE_FILE}",
+                                "--include=*#{VIEWS_DIR}/***",
                                 "--include=*#{ZONES_DIR}/***",
                                 "--include=*#{SLAVES_DIR}/***",
                                 "--include=*#{FORWARDS_DIR}/***",
@@ -468,6 +473,7 @@ class Exporter
                                 "--include=*#{SLAVES_DIR}/***",
                                 "--include=*#{FORWARDS_DIR}/***",
                                 "--include=*#{REVERSE_DIR}/***",
+                                "--include=*#{VIEWS_DIR}/***",
                                 '--exclude=*',
                                 abs_repository_zones_dir,
                                 "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}")
@@ -484,6 +490,7 @@ class Exporter
                                 "--include=*#{SLAVES_FILE}",
                                 "--include=*#{FORWARDS_FILE}",
                                 "--include=*#{REVERSE_FILE}",
+                                "--include=*#{VIEWS_DIR}/***",
                                 '--exclude=*',
                                 abs_repository_zones_dir,
                                 "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}")
@@ -518,6 +525,7 @@ class Exporter
                                 "--include=*#{SLAVES_DIR}/***",
                                 "--include=*#{FORWARDS_DIR}/***",
                                 "--include=*#{REVERSE_DIR}/***",
+                                "--include=*#{VIEWS_DIR}/***",
                                 '--exclude=*',
                                 abs_repository_zones_dir,
                                 "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}")
@@ -613,6 +621,7 @@ class Exporter
       @logger.info "[GloboDns::Exporter] Removing destroyed domains: #{domains}" unless domains.empty?
       domains.each do |domain|
         type = destroyed_zone_type(domain)
+        view_id = domain_view_id(domain)
         @logger.debug "#{domain} is a zone of type #{type}"
         tmpdomain = Domain.new(name:domain, authority_type: type)
         unless tmpdomain.forward? # Forward zones are configured only in 'forward.conf' and so individual config file doesn't exist
