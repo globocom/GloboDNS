@@ -24,7 +24,7 @@
         <%= t :label_user_name %>
       </td>
       <td>
-        <%= f.text_field :login %>
+        <%= f.text_field :name %>
       </td>
       <td>&nbsp;</td>
     </tr>
@@ -39,39 +39,10 @@
     </tr>
     <tr>
       <td>
-        <%= t :label_user_password %>
-      </td>
-      <td>
-        <%= f.password_field :password %>
-      </td>
-      <td>
-        <% if @user.new_record? %>
-          &nbsp;
-        <% else %>
-          <em>
-            <%= t :text_user_password_edit_notice %>
-          </em>
-        <% end %>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <%= t :label_user_password_again %>
-      </td>
-      <td>
-        <%= f.password_field :password_confirmation %>
-      </td>
-      <td>&nbsp;</td>
-    </tr>
-    <tr>
-      <td>
         <%= t :label_user_role_sign %>
       </td>
       <td>
         <%= f.collection_select :role, User::ROLES.to_a, :last, :first %>
-      </td>
-      <td>
-        <%= help_icon('role-help') %>
       </td>
     </tr>
     <tr class="actions">

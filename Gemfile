@@ -24,6 +24,7 @@ gem 'activerecord-import',	'~>0.13.0'
 gem 'whenever',             '0.9.4'
 gem 'devise-encryptable'
 gem 'protected_attributes'
+gem 'omniauth-backstage'
 
 group :assets do
     gem 'sass-rails',		'~>5.0.4'

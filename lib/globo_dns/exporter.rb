@@ -621,7 +621,6 @@ class Exporter
       @logger.info "[GloboDns::Exporter] Removing destroyed domains: #{domains}" unless domains.empty?
       domains.each do |domain|
         type = destroyed_zone_type(domain)
-        view_id = domain_view_id(domain)
         @logger.debug "#{domain} is a zone of type #{type}"
         tmpdomain = Domain.new(name:domain, authority_type: type)
         unless tmpdomain.forward? # Forward zones are configured only in 'forward.conf' and so individual config file doesn't exist

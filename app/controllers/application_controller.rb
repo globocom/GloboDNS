@@ -16,13 +16,19 @@
 class ApplicationController < ActionController::Base
     HTTP_AUTH_TOKEN_HEADER = 'X-Auth-Token'
 
-    before_filter :set_token_param_from_http_headers
-    before_filter :authenticate_user_from_token!
-    before_filter :authenticate_user!  # all pages require a login
-    after_filter  :flash_headers
-
+    protect_from_forgery with: :exception
     protect_from_forgery with: :null_session,
       if: Proc.new { |c| c.request.format =~ %r{application/json} }
+
+    before_filter :check_auth
+
+    # before_filter :set_provider
+
+    before_filter :set_token_param_from_http_headers
+    # before_filter :authenticate_user_from_token!
+    before_filter :authenticate_user!
+    after_filter  :flash_headers
+
 
     rescue_from Exception,                           :with => :render_500
     rescue_from ActiveRecord::RecordNotFound,        :with => :render_404
@@ -31,6 +37,10 @@ class ApplicationController < ActionController::Base
     rescue_from AbstractController::ActionNotFound,  :with => :render_404
 
     helper_method :admin?, :operator?, :admin_or_operator?, :viewer?
+
+    def new_session_path(scope)
+        new_user_session_path
+    end
 
     def admin?
         current_user.admin? or render_401
@@ -46,6 +56,14 @@ class ApplicationController < ActionController::Base
 
     def viewer?
         current_user.viewer? or render_401
+    end
+
+    def logout
+        sign_out current_user
+        path = new_user_session_url
+        client_id = Rails.application.secrets.accounts_backstage_client_id
+        # redirect_to Rails.configuration.gestao_dominios["oauth"]["logout_url"]+ "?client_id=#{client_id}&redirect_uri=#{path}"
+        redirect_to "https://accounts.backstage.dev.globoi.com/logout"+ "?client_id=#{client_id}&redirect_uri=#{path}"
     end
 
     protected
@@ -105,12 +123,42 @@ class ApplicationController < ActionController::Base
     end
 
     private
-    def authenticate_user_from_token!
-        user_token = params[:auth_token].presence
-        user       = user_token && User.find_by_authentication_token(user_token.to_s)
+        # def authenticate_user_from_token!
+        #     user_token = params[:auth_token].presence
+        #     user       = user_token && User.find_by_authentication_token(user_token.to_s)
 
-        if user
-          sign_in user
+        #     if user
+        #       sign_in user
+        #     end
+        # end
+
+        def check_auth
+          unless (res = request.env['HTTP_AUTHORIZATION']).nil?
+            type, token = res.split(' ')
+            if ! type.nil? && type.eql?('Bearer')
+              resource = RestClient::Resource.new(OmniAuth::Backstage::Client.client_options(Rails.env)[:site])
+              begin
+                response = JSON.parse(resource['user'].get(:Authorization => "Bearer #{token}"))
+                response['token'] = token
+                user = OauthUser.from_api(response)
+                logger.debug "User: #{user.inspect}"
+                if user.active
+                  sign_in user, :store => false
+                end
+              rescue Exception => e
+                logger.error e.message
+              end
+            end
+          end
         end
-    end
+
+        # def set_provider
+        #   if params[:provider_id]
+        #     provider = Provider.find(params[:provider_id])
+        #     update_provider(provider)
+        #   elsif current_company
+        #     provider = current_company.providers.first
+        #     update_provider(provider) if provider
+        #   end
+        # end
 end

@@ -17,7 +17,7 @@ class UsersController < ApplicationController
     respond_to :html, :json
     responders :flash
 
-    before_filter :admin?, :except => [:update_password, :save_password_update]
+    before_filter :admin?#, :except => [:update_password, :save_password_update]
 
     def index
         @users = User.all
@@ -42,24 +42,24 @@ class UsersController < ApplicationController
         respond_with(@user)
     end
 
-    def update_password
-      @user = User.find(current_user.id)
-      respond_to do |format|
-        format.html
-      end
-    end
+    # def update_password
+    #   @user = User.find(current_user.id)
+    #   respond_to do |format|
+    #     format.html
+    #   end
+    # end
     
-    def save_password_update
-      @user = User.find(current_user.id)
-      logger.info "Changing password for user #{@user.email}"
+    # def save_password_update
+    #   @user = User.find(current_user.id)
+    #   logger.info "Changing password for user #{@user.email}"
       
-      if @user.update_attributes(:password => params[:user][:password], :password_confirmation => params[:user][:password_confirmation])
-        @user.save
-        redirect_to(root_path, :notice => t(:successful_password_change, :user => @user.email))
-      else
-        render :action => :update_password
-      end
-    end
+    #   if @user.update_attributes(:password => params[:user][:password], :password_confirmation => params[:user][:password_confirmation])
+    #     @user.save
+    #     redirect_to(root_path, :notice => t(:successful_password_change, :user => @user.email))
+    #   else
+    #     render :action => :update_password
+    #   end
+    # end
     
     def create
         @user = User.new(params[:user])
@@ -72,9 +72,9 @@ class UsersController < ApplicationController
     end
 
     def update
-        if params[:user] && params[:user][:password].blank? && params[:user][:password_confirmation].blank?
-            params[:user].delete(:password)
-            params[:user].delete(:password_confirmation)
+        if params[:user]# && params[:user][:password].blank? && params[:user][:password_confirmation].blank?
+            # params[:user].delete(:password)
+            # params[:user].delete(:password_confirmation)
         end
         @user = User.find(params[:id])
         @user.update_attributes(params[:user])
@@ -92,5 +92,47 @@ class UsersController < ApplicationController
             format.html { head :no_content if request.xhr? }
         end
     end
-
 end
+
+
+# class UsersController < ApplicationController
+#   check_authorization except: :show
+#   def index
+#     authorize! :index, User
+#     @users = User::all
+#     @user = User::new
+#   end
+
+#   def show
+#     # doesn't check authorization because it is just a redirect
+#     redirect_to user_roles_url user_id: params[:id]
+#   end
+
+#   def create
+#     authorize! :create, OauthUser
+#     @user = User::new email: params[:oauth_user][:email],
+#                            name:  params[:oauth_user][:name]
+#     if @user.save
+#       flash.notice = "User successfully created."
+#     else
+#       flash.alert = @user.errors.full_messages
+#     end
+
+#     redirect_to users_url
+#   end
+
+#   def deactivate
+#     @user = User::find params[:id]
+#     authorize! :update, @user
+#     @user.update_attributes active: false
+#     redirect_to users_path
+#   end
+
+#   def activate
+#     @user = User::find params[:id]
+#     authorize! :update, @user
+#     @user.update_attributes active: true
+#     redirect_to users_path
+#   end
+# end
+

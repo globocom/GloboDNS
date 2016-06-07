@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160601142408) do
+ActiveRecord::Schema.define(version: 20160609162420) do
 
   create_table "audits", force: :cascade do |t|
     t.integer  "auditable_id",    limit: 4
@@ -107,16 +107,17 @@ ActiveRecord::Schema.define(version: 20160601142408) do
   add_index "schedules", ["name"], name: "index_schedules_on_name", unique: true, using: :btree
 
   create_table "users", force: :cascade do |t|
-    t.string   "login",                limit: 255
-    t.string   "email",                limit: 255
-    t.string   "encrypted_password",   limit: 128, null: false
-    t.string   "password_salt",        limit: 128, null: false
-    t.string   "role",                 limit: 1
-    t.string   "authentication_token", limit: 255
-    t.datetime "remember_created_at"
-    t.datetime "created_at",                       null: false
-    t.datetime "updated_at",                       null: false
+    t.string   "email",             limit: 255
+    t.string   "password",          limit: 255, default: "teste"
+    t.string   "role",              limit: 1
+    t.datetime "created_at",                                      null: false
+    t.datetime "updated_at",                                      null: false
     t.date     "token_expire_date"
+    t.boolean  "active"
+    t.string   "name",              limit: 255
+    t.string   "oauth_token",       limit: 255
+    t.datetime "oauth_expires_at"
+    t.string   "uid",               limit: 255
   end
 
   create_table "views", force: :cascade do |t|

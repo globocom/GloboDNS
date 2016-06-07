@@ -1,4 +1,5 @@
 en:
+  user_deactivated: "User user deactivated"
   date:
     formats:
       # Use the strftime parameters for formats.
@@ -376,6 +377,8 @@ en:
   title_user_reports: "User Reports"
   label_user_search: "Search users"
   label_user_login: "Login"
+  label_user_name: "Name"
+  label_user_active: "Active"
   label_user_domains: "Domains"
   label_user_email: "Email"
   label_user_admin: "Admin"

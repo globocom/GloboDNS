@@ -69,4 +69,12 @@ GloboDns::Application.configure do
 
   # Default host for testing mail
   config.action_mailer.default_url_options = { :host => "example.com" }
+
+end
+
+Rails.application.config.middleware.use OmniAuth::Builder do
+  provider :backstage,
+  Rails.application.secrets.accounts_backstage_client_id,
+  Rails.application.secrets.accounts_backstage_client_secret,
+  {provider_ignores_state: true, environment: Rails.env}
 end

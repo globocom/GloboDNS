@@ -16,29 +16,49 @@
 require 'digest/sha1'
 
 class User < ActiveRecord::Base
+    validates :email, presence: true
 
-    devise :database_authenticatable,
-           :rememberable,
-           :validatable,
-           :encryptable,
-           # :recoverable,
-           # :registerable,
-           :encryptor => :restful_authentication_sha1
-           # :confirmable,
+    devise :omniauthable, :omniauth_providers => [:backstage]
 
     ROLES = define_enum(:role, [:ADMIN, :OPERATOR, :VIEWER])
 
     # before_save :check_auth_tokens
-    before_save   :ensure_authentication_token
+    # before_save   :ensure_authentication_token
     # after_destroy :persist_audits
 
     # has_many :audits, :as => :user
 
-    def ensure_authentication_token
-        if authentication_token.blank?
-          self.authentication_token = generate_authentication_token
-        end
+    def self.from_omniauth(auth)
+      user = User.where(email: auth.info.email).first
+      if user.nil? # Doesnt exist yet. Lets create it
+        user = User.new({
+          active: false,
+          uid: auth.uid,
+          email: auth.info.email,
+          name: auth.info.name,
+          password: Devise.friendly_token[0,20],
+          oauth_token: auth.credentials.token,
+          oauth_expires_at: Time.at(auth.credentials.expires_at)
+        })
+        user.save!
+      else # Already created. lets update it
+        user.update_attributes({
+          uid: auth.uid,
+          email: auth.info.email,
+          name: auth.info.name,
+          password: Devise.friendly_token[0,20],
+          oauth_token: auth.credentials.token,
+          oauth_expires_at: Time.at(auth.credentials.expires_at)
+        })
       end
+      user
+    end
+
+    def ensure_authentication_token
+      if authentication_token.blank?
+        self.authentication_token = generate_authentication_token
+      end
+    end
 
     # ROLES = [:ADMIN, :OPERATOR, :VIEWER].inject(Hash.new) do |hash, role|
     #     role_str = role.to_s[0]
@@ -49,7 +69,7 @@ class User < ActiveRecord::Base
 
     # prevents a user from submitting a crafted form that bypasses activation
     # anything else you want your user to change should be added here.
-    attr_accessible :login, :email, :password, :password_confirmation, :role, :authentication_token
+    attr_accessible :name, :email, :role, :active, :password, :oauth_token, :oauth_expires_at, :uid
 
     # def admin?
     #     role == ROLE_ADMIN

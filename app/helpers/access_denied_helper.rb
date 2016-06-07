@@ -1,0 +1,2 @@
+module AccessDeniedHelper
+end

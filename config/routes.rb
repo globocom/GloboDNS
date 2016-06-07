@@ -14,7 +14,20 @@
 # limitations under the License.
 
 GloboDns::Application.routes.draw do
-    devise_for :users, :controllers => { :sessions => 'sessions' }
+  get 'access_denied/new'
+
+  get 'access_denied/create'
+
+    # devise_for :users, :controllers => { :sessions => 'sessions' }
+    devise_for  :users, 
+                :controllers => { 
+                    :omniauth_callbacks => 'omniauth_callbacks' 
+                }
+
+    devise_scope :users do
+        get 'auth/sign_in' => redirect('users/auth/backstage'), :as => :new_user_session
+        get 'auth/sign_out', :to => 'application#logout', :as => :destroy_user_session
+    end
 
     resources :domains do
         resources :records, :shallow => true do
@@ -30,10 +43,12 @@ GloboDns::Application.routes.draw do
 
     resources :users
 
-    resource :user do
-      get 'update_password' => 'users#update_password', :as => 'update_password'
-      put 'update_password/save' => 'users#save_password_update', :as => 'save_password_update'
-    end
+    # resource :user do
+    #   get 'update_password' => 'users#update_password', :as => 'update_password'
+    #   put 'update_password/save' => 'users#save_password_update', :as => 'save_password_update'
+    # end
+
+    # get "access_denied" => "access_denied#show", as: :access_denied
 
     scope 'bind9', :as => 'bind9', :controller => 'bind9' do
         get  '',       :action => 'index'
@@ -42,6 +57,8 @@ GloboDns::Application.routes.draw do
         post 'schedule_export'
     end
 
+    get "access_denied" => "access_denied#show", as: :access_denied
+    
     match '/audits(/:action(/:id))' => 'audits#index', :as => :audits, :via => :get
 
     root :to => 'dashboard#index'
