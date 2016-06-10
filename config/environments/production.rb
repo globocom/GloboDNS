@@ -79,10 +79,3 @@ GloboDns::Application.configure do
   config.assets.digest = true
 
 end
-
-Rails.application.config.middleware.use OmniAuth::Builder do
-  provider :backstage,
-  Rails.application.secrets.accounts_backstage_client_id,
-  Rails.application.secrets.accounts_backstage_client_secret,
-  {provider_ignores_state: true, environment: Rails.env}
-end

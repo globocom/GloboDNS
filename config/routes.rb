@@ -21,13 +21,22 @@ GloboDns::Application.routes.draw do
     # devise_for :users, :controllers => { :sessions => 'sessions' }
     devise_for  :users, 
                 :controllers => { 
-                    :omniauth_callbacks => 'omniauth_callbacks' 
+                    :omniauth_callbacks => 'omniauth_callbacks'
                 }
 
+
+    # get 'users/sign_in' => redirect('users/auth/backstage')
+
     devise_scope :users do
+        match 'users/sign_in' => 'access_denied#show', via: [:get, :post]
         get 'auth/sign_in' => redirect('users/auth/backstage'), :as => :new_user_session
         get 'auth/sign_out', :to => 'application#logout', :as => :destroy_user_session
     end
+
+    # resource :user do
+      # get 'update_password' => 'users#update_password', :as => 'update_password'
+      # get 'sign_in' => 'sessions#create', :as => :new_session
+    # end
 
     resources :domains do
         resources :records, :shallow => true do
@@ -43,10 +52,7 @@ GloboDns::Application.routes.draw do
 
     resources :users
 
-    # resource :user do
-    #   get 'update_password' => 'users#update_password', :as => 'update_password'
-    #   put 'update_password/save' => 'users#save_password_update', :as => 'save_password_update'
-    # end
+    # resources :sessions
 
     # get "access_denied" => "access_denied#show", as: :access_denied
 

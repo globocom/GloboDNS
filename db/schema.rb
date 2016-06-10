@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160609162420) do
+ActiveRecord::Schema.define(version: 20160613182510) do
 
   create_table "audits", force: :cascade do |t|
     t.integer  "auditable_id",    limit: 4
@@ -40,8 +40,8 @@ ActiveRecord::Schema.define(version: 20160609162420) do
   create_table "domain_templates", force: :cascade do |t|
     t.string   "name",       limit: 255
     t.string   "ttl",        limit: 255, null: false
-    t.datetime "created_at",             null: false
-    t.datetime "updated_at",             null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
     t.integer  "view_id",    limit: 4
   end
 
@@ -56,8 +56,8 @@ ActiveRecord::Schema.define(version: 20160609162420) do
     t.string   "account",         limit: 255
     t.string   "ttl",             limit: 255
     t.text     "notes",           limit: 65535
-    t.datetime "created_at",                    null: false
-    t.datetime "updated_at",                    null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
     t.string   "authority_type",  limit: 1,     null: false
     t.string   "addressing_type", limit: 1,     null: false
     t.integer  "view_id",         limit: 4
@@ -75,8 +75,8 @@ ActiveRecord::Schema.define(version: 20160609162420) do
     t.string   "content",            limit: 4096, null: false
     t.string   "ttl",                limit: 255
     t.integer  "prio",               limit: 4
-    t.datetime "created_at",                      null: false
-    t.datetime "updated_at",                      null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   add_index "record_templates", ["domain_template_id"], name: "fk_record_templates_domain_templates2", using: :btree
@@ -88,8 +88,8 @@ ActiveRecord::Schema.define(version: 20160609162420) do
     t.string   "content",    limit: 4096, null: false
     t.string   "ttl",        limit: 255
     t.integer  "prio",       limit: 4
-    t.datetime "created_at",              null: false
-    t.datetime "updated_at",              null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   add_index "records", ["domain_id"], name: "fk_records_domains2", using: :btree
@@ -100,35 +100,41 @@ ActiveRecord::Schema.define(version: 20160609162420) do
   create_table "schedules", force: :cascade do |t|
     t.string   "name",       limit: 255, null: false
     t.datetime "date"
-    t.datetime "created_at",             null: false
-    t.datetime "updated_at",             null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   add_index "schedules", ["name"], name: "index_schedules_on_name", unique: true, using: :btree
 
   create_table "users", force: :cascade do |t|
-    t.string   "email",             limit: 255
-    t.string   "password",          limit: 255, default: "teste"
-    t.string   "role",              limit: 1
-    t.datetime "created_at",                                      null: false
-    t.datetime "updated_at",                                      null: false
-    t.date     "token_expire_date"
-    t.boolean  "active"
-    t.string   "name",              limit: 255
-    t.string   "oauth_token",       limit: 255
+    t.string   "login",                limit: 255
+    t.string   "email",                limit: 255
+    t.string   "encrypted_password",   limit: 255
+    t.string   "password_salt",        limit: 255
+    t.string   "role",                 limit: 1
+    t.string   "authentication_token", limit: 255
+    t.datetime "remember_created_at"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.boolean  "active",                           default: true
+    t.string   "name",                 limit: 255
+    t.string   "oauth_token",          limit: 255
     t.datetime "oauth_expires_at"
-    t.string   "uid",               limit: 255
+    t.string   "uid",                  limit: 255
+    t.string   "password",             limit: 255, default: "password"
+    t.string   "provider",             limit: 255
   end
 
   create_table "views", force: :cascade do |t|
     t.string   "name",         limit: 32,   null: false
     t.string   "clients",      limit: 1024
     t.string   "destinations", limit: 1024
-    t.datetime "created_at",                null: false
-    t.datetime "updated_at",                null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
     t.string   "key",          limit: 64
   end
 
+  add_foreign_key "audits", "users", name: "fk_audits_users1"
   add_foreign_key "domain_templates", "views", name: "fk_domain_templates_views1"
   add_foreign_key "domains", "users", name: "fk_domains_users"
   add_foreign_key "domains", "views", name: "fk_domains_views1"

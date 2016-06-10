@@ -32,7 +32,7 @@
               = collection_select(:domain, :domain_template_id, DomainTemplate.with_soa.all, :id, :name, :include_blank => true)
             - else
               %em
-                = link_to(t(:label_create_domain_templates), new_domain_template_path)
+                = link_to(t(:label_create_domain_templates), domain_templates_path)
                 = t(:label_domain_for_eazy_management)
           %td &nbsp;
         %tr.notemplate.slave.master.forward

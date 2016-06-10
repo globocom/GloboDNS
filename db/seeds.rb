@@ -17,12 +17,29 @@ FIRST_USER = 'admin@example.com'
 FIRST_PASS = 'password'
 
 # Create our admin user
-user = User.find_by_email(FIRST_USER) || User.new(:email => FIRST_USER)
-user.login                 = 'admin'    # not used anymore
-user.password              = FIRST_PASS
-user.password_confirmation = FIRST_PASS
-user.role                  = User::ADMIN
-user.save!
+# user = User.find_by_email(FIRST_USER) || User.new(:email => FIRST_USER)
+# user.login                 = 'admin'    # not used anymore
+# user.password              = FIRST_PASS
+# user.password_confirmation = FIRST_PASS
+# user.role                  = User::ADMIN
+# user.save!
+
+API_EMAIL = 'api@example.com'
+user = User.find_by_email(API_EMAIL) || User.new(:email => API_EMAIL)
+user.role = "A"
+user.save
+
+ADMIN_EMAIL = 'ana.castro@corp.globo.com'
+user = User.find_by_email(ADMIN_EMAIL) || User.new(:email => ADMIN_EMAIL)
+user.role = "A"
+user.save
+
+ADMIN_EMAIL = 'ernesto@corp.globo.com'
+user = User.find_by_email(ADMIN_EMAIL) || User.new(:email => ADMIN_EMAIL)
+user.role = "A"
+user.save
+
+
 
 
 if Rails.env == "development"

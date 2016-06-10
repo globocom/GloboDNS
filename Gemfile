@@ -1,8 +1,9 @@
 source "http://rubygems.org"
 
 group :development do
-  gem "capistrano", "~> 2"
+  gem "capistrano", "2.15.0"
   gem "net-ssh", "~> 2.7.0"
+  gem 'byebug'
 end
 
 gem 'iconv'
@@ -25,6 +26,7 @@ gem 'whenever',             '0.9.4'
 gem 'devise-encryptable'
 gem 'protected_attributes'
 gem 'omniauth-backstage'
+gem 'rest-client'
 
 group :assets do
     gem 'sass-rails',		'~>5.0.4'
