@@ -198,7 +198,8 @@ class Record < ActiveRecord::Base
     def to_zonefile(output, format)
         # FIXME: fix ending '.' of content on the importer
         content  = self.content
-        content += '.' if self.content =~ /\.(?:com|net|org|br|in-addr\.arpa)$/
+        content = '"' + self.content + '"' if self.type == 'TXT'
+        #content += '.' if self.content =~ /\.(?:com|net|org|br|in-addr\.arpa)$/
             # content += '.' unless self.content[-1] == '.'                                 ||
             #                       self.type        == 'A'                                 ||
             #                       self.type        == 'AAAA'                              ||
