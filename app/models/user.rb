@@ -16,17 +16,19 @@ require 'bcrypt'
 require 'digest/sha1'
 
 class User < ActiveRecord::Base
-    validates :email, presence: true
 
-    devise :omniauthable, :omniauth_providers => [:backstage]
+    if GloboDns::Application.config.omniauth
+      validates :email, presence: true
+      devise :omniauthable, :omniauth_providers => [:oauth_provider]
+    else
+      before_save   :ensure_authentication_token
+      devise :database_authenticatable, :rememberable, :validatable, :encryptable, :encryptor => :restful_authentication_sha1
+
+    end
+
+    attr_accessible :name, :email, :role, :active, :password, :password_confirmation, :oauth_token, :oauth_expires_at, :uid, :password_salt, :provider
 
     ROLES = define_enum(:role, [:ADMIN, :OPERATOR, :VIEWER])
-
-    # before_save :check_auth_tokens
-    # before_save   :ensure_authentication_token
-    # after_destroy :persist_audits
-
-    # has_many :audits, :as => :user
 
     def self.from_api(auth)
       user = User.where(uid: auth['id']).first
@@ -37,7 +39,7 @@ class User < ActiveRecord::Base
           email: 'api@example.com',
           name: auth['name'],
           password: Devise.friendly_token[0,20],
-          provider: :backstage,
+          provider: :oauth_provider,
           oauth_token: auth['token'],
           oauth_expires_at: Time.now + 5.minutes
         })
@@ -62,7 +64,7 @@ class User < ActiveRecord::Base
           email: auth.info.email,
           name: auth.info.name,
           password: Devise.friendly_token[0,20],
-          provider: :backstage,
+          provider: :oauth_provider,
           oauth_token: auth.credentials.token,
           oauth_expires_at: Time.at(auth.credentials.expires_at)
         })
@@ -86,31 +88,6 @@ class User < ActiveRecord::Base
       end
     end
 
-    # ROLES = [:ADMIN, :OPERATOR, :VIEWER].inject(Hash.new) do |hash, role|
-    #     role_str = role.to_s[0]
-    #     const_set(('ROLE_' + role.to_s).to_sym, role_str)
-    #     hash[role_str] = role
-    #     hash
-    # end
-
-    # prevents a user from submitting a crafted form that bypasses activation
-    # anything else you want your user to change should be added here.
-    attr_accessible :name, :email, :role, :active, :password, :oauth_token, :oauth_expires_at, :uid, :password_salt, :provider
-
-    # def admin?
-    #     role == ROLE_ADMIN
-    # end
-
-    # def operator?
-    #     role == ROLE_OPERATOR
-    # end
-
-    # def viewer?
-    #     role == ROLE_VIEWER
-    # end
-
-
-
     def auth_json
       self.to_json(:root => false, :only => [:id, :authentication_token])
     end
@@ -129,7 +106,6 @@ class User < ActiveRecord::Base
 
 
     protected
-
     def persist_audits
       quoted_login = ActiveRecord::Base.connection.quote(self.login)
       Audit.update_all(

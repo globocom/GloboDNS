@@ -8,10 +8,8 @@
   %td.name=   user.name
   %td.email=   user.email
   %td.role=    user.role_str
-  - if user.active
-    %td.active{:class => 'ui-icon-check'}
-  -else
-    %td.active
+  - unless GloboDns::Application.config.omniauth
+    %td.password &nbsp;
   %td.actions
     = link_to '', '#', :class => 'edit-user-button ui-icon-edit', :title => t(:generic_edit)
     = link_to '', user_path(user), :remote => true, :method => :delete, :data => {:confirm => t(:confirm_user_delete)}, :class => 'delete-user-button ui-icon-trash', :title => t(:generic_delete)
@@ -21,7 +19,12 @@
     %td.name= f.text_field :name
     %td.email= f.text_field :email
     %td.role=  f.collection_select :role, User::ROLES.to_a, :first, :last
-    %td.active=  f.check_box :active
+    - unless GloboDns::Application.config.omniauth
+      %td.password
+        = f.password_field :password
+        = '/'
+        = f.password_field :password_confirmation
+        %span= help_icon('password-help')
     %td.actions
       = link_to('', '#', :class => 'update-user-button ui-icon-download-alt',    :title => t(:generic_update))
       = link_to('', '#', :class => 'cancel-edit-user-button ui-icon-ban-circle', :title => t(:generic_cancel))

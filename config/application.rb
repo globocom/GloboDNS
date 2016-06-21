@@ -26,6 +26,9 @@ end
 
 module GloboDns
   class Application < Rails::Application
+    # Set if the application uses OmniAuth or not
+    config.omniauth = true
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.

@@ -21,7 +21,7 @@ class ApplicationController < ActionController::Base
       if: Proc.new { |c| c.request.format =~ %r{application/json} }
 
     before_filter :check_auth
-    respond_to :json
+    # respond_to :json, :html, :js if GloboDns::Application.config.omniauth
 
     # before_filter :set_provider
 
@@ -60,8 +60,8 @@ class ApplicationController < ActionController::Base
     def logout
         sign_out current_user
         path = new_user_session_url
-        client_id = Rails.application.secrets.accounts_backstage_client_id
-        redirect_to "https://accounts.backstage.dev.globoi.com/logout"+ "?client_id=#{client_id}&redirect_uri=#{path}"
+        client_id = Rails.application.secrets.oauth_provider_client_id
+        redirect_to "https://oauthprovider.com/logout"+ "?client_id=#{client_id}&redirect_uri=#{path}" # set providers logout uri
     end
 
     protected
@@ -162,14 +162,4 @@ class ApplicationController < ActionController::Base
         end
       end
     end
-
-    # def set_provider
-    #   if params[:provider_id]
-    #     provider = Provider.find(params[:provider_id])
-    #     update_provider(provider)
-    #   elsif current_company
-    #     provider = current_company.providers.first
-    #     update_provider(provider) if provider
-    #   end
-    # end
 end

@@ -5,7 +5,10 @@
         %th= t :label_user_name
         %th= t :label_user_email
         %th= t :label_user_role
-        %th= t :label_user_active
+        - if GloboDns::Application.config.omniauth
+          %th= t :label_user_active
+        - else
+          %th= t :label_user_password
         %th  &nbsp;
     %tbody
       = render :partial => 'user', :collection => users
