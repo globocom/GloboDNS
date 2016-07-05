@@ -80,13 +80,14 @@ class Domain < ActiveRecord::Base
 
     # validations
     validates_presence_of      :name
-    validates_uniqueness_of    :name, :scope => :view_id
-    validates_inclusion_of     :authority_type,  :in => AUTHORITY_TYPES.keys,  :message => "must be one of #{AUTHORITY_TYPES.keys.join(', ')}"
-    validates_inclusion_of     :addressing_type, :in => ADDRESSING_TYPES.keys, :message => "must be one of #{ADDRESSING_TYPES.keys.join(', ')}"
-    validates_presence_of      :ttl,        :if => :master?
-    validates_bind_time_format :ttl,        :if => :master?
-    validates_associated       :soa_record, :if => :master?
-    validates_presence_of      :master,     :if => :slave?
+    validates_uniqueness_of    :name,               :scope => :view_id
+    validates_inclusion_of     :authority_type,     :in => AUTHORITY_TYPES.keys,  :message => "must be one of #{AUTHORITY_TYPES.keys.join(', ')}"
+    validates_inclusion_of     :addressing_type,    :in => ADDRESSING_TYPES.keys, :message => "must be one of #{ADDRESSING_TYPES.keys.join(', ')}"
+    validates_presence_of      :ttl,                :if => :master?
+    validates_bind_time_format :ttl,                :if => :master?
+    validates_associated       :soa_record,         :if => :master?
+    validates_presence_of      :master,             :if => :slave?
+    validates_presence_of      :forwarder,          :if => :forward?
     validate                   :validate_recursive_subdomains, :unless => :importing?
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
@@ -94,26 +95,34 @@ class Domain < ActiveRecord::Base
     # end
 
     # callbacks
+    before_save :name_unique?
     after_save :save_soa_record
 
     # scopes
-    default_scope             { order("#{self.table_name}.name") }
-    scope :master,            -> {where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", NORMAL)}
-    scope :slave,             -> {where("#{self.table_name}.authority_type   = ?", SLAVE)}
-    scope :forward,           -> {where("#{self.table_name}.authority_type   = ?", FORWARD)}
-    scope :master_or_reverse, -> {where("#{self.table_name}.authority_type   = ?", MASTER)}
-    scope :reverse,           -> {where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", REVERSE)}
-    scope :nonreverse,        -> {where("#{self.table_name}.addressing_type  = ?", NORMAL)}
-    scope :noview,            -> {where("#{self.table_name}.view_id IS NULL")}
-    scope :_reverse,          -> {reverse} # 'reverse' is an Array method; having an alias is useful when using the scope on associations
-    scope :updated_since,     -> (timestamp) {Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }
-    scope :matching,          -> (query){
-                                    if query.index('*')
-                                        where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))
-                                    else
-                                        where("#{self.table_name}.name" => query)
-                                    end
-                                }
+    default_scope                       { order("#{self.table_name}.name") }
+    scope :master,                      -> {where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", NORMAL)}
+    scope :slave,                       -> {where("#{self.table_name}.authority_type   = ?", SLAVE)}
+    scope :forward,                     -> {where("#{self.table_name}.authority_type   = ?", FORWARD)}
+    scope :master_or_reverse_or_slave,  -> {where("#{self.table_name}.authority_type   = ? or #{self.table_name}.authority_type   = ?", MASTER, SLAVE)}
+    scope :reverse,                     -> {where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", REVERSE)}
+    scope :nonreverse,                  -> {where("#{self.table_name}.addressing_type  = ?", NORMAL)}
+    scope :noview,                      -> {where("#{self.table_name}.view_id IS NULL")}
+    scope :_reverse,                    -> {reverse} # 'reverse' is an Array method; having an alias is useful when using the scope on associations
+    scope :updated_since,               -> (timestamp) {Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }
+    scope :matching,                    -> (query){
+                                            if query.index('*')
+                                                where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))
+                                            else
+                                                where("#{self.table_name}.name" => query)
+                                            end
+                                        }
+
+    def name_unique?
+        if domain = Domain.where("id != ?", self.id).where(:name => self.name).first
+            self.errors.add(:name, I18n.t('taken', :scope => 'activerecord.errors.messages'))
+            return
+        end
+    end
 
     def self.last_update
         select('updated_at').reorder('updated_at DESC').limit(1).first.updated_at
@@ -148,8 +157,13 @@ class Domain < ActiveRecord::Base
 
     # aliases to mascarade the fact that we're reusing the "master" attribute
     # to hold the "forwarder" values of domains with "forward" type
-    def forwarder; self.master; end
-    def forwarder=(val); self.master = val; end
+    def forwarder
+        self.master 
+    end
+    
+    def forwarder=(val)
+        self.master = val
+    end
 
     def importing?
         !!importing
@@ -206,7 +220,6 @@ class Domain < ActiveRecord::Base
               end
         File::join dir, subdir_path
     end
-
     def zonefile_path
         if self.slave?
             File.join(zonefile_dir, 'dbs.' + self.name)

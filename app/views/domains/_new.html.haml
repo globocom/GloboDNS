@@ -32,7 +32,7 @@
               = collection_select(:domain, :domain_template_id, DomainTemplate.with_soa.all, :id, :name, :include_blank => true)
             - else
               %em
-                = link_to(t(:label_create_domain_templates), new_domain_template_path)
+                = link_to(t(:label_create_domain_templates), domain_templates_path)
                 = t(:label_domain_for_eazy_management)
           %td &nbsp;
         %tr.notemplate.slave.master.forward
@@ -44,8 +44,8 @@
           %td= f.text_field :master
           %td= help_icon('help-master')
         %tr#forward-address.notemplate.forward
-          %td= f.label :forwarder, t(:label_domain_forwarder)
-          %td= f.text_field :forwarder
+          %td= f.label :master, t(:label_domain_forwarder)
+          %td= f.text_field :master
           %td= help_icon('help-forwarder')
         %tr.notemplate.master.slave.forward
           %td= f.label :view, t(:label_domain_view)
