@@ -41,33 +41,35 @@ class View < ActiveRecord::Base
     end
 
     def zones_dir
-        self.name + '-' + GloboDns::Config::ZONES_DIR
+        'views/' + self.name + '-' + GloboDns::Config::ZONES_DIR
     end
+    
     def zones_file
-        self.name + '-' + GloboDns::Config::ZONES_FILE
+        'views/' + self.name + '-' + GloboDns::Config::ZONES_FILE
     end
 
     def slaves_dir
-        self.name + '-' + GloboDns::Config::SLAVES_DIR
+        'views/' + self.name + '-' + GloboDns::Config::SLAVES_DIR
     end
 
     def slaves_file
-        self.name + '-' + GloboDns::Config::SLAVES_FILE
+        'views/' + self.name + '-' + GloboDns::Config::SLAVES_FILE
     end
 
     def forwards_dir
-        self.name + '-' + GloboDns::Config::FORWARDS_DIR
+        'views/' + self.name + '-' + GloboDns::Config::FORWARDS_DIR
     end
 
     def forwards_file
-        self.name + '-' + GloboDns::Config::FORWARDS_FILE
+        'views/' + self.name + '-' + GloboDns::Config::FORWARDS_FILE
     end
 
     def reverse_dir
-        self.name + '-' + GloboDns::Config::REVERSE_DIR
+        'views/' + self.name + '-' + GloboDns::Config::REVERSE_DIR
     end
+
     def reverse_file
-        self.name + '-' + GloboDns::Config::REVERSE_FILE
+        'views/' + self.name + '-' + GloboDns::Config::REVERSE_FILE
     end
 
     def self.key_name(view_name)

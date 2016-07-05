@@ -225,23 +225,26 @@ class Exporter
 
     def export_views(chroot_dir, zones_root_dir)
         abs_zones_root_dir = File.join(chroot_dir, zones_root_dir)
+        abs_views_dir = File.join(chroot_dir, zones_root_dir, '/views')
         abs_views_file     = File.join(abs_zones_root_dir, VIEWS_FILE)
+
+        File.exists?(abs_views_dir) or FileUtils.mkdir(abs_views_dir)
 
         File.open(abs_views_file, 'w') do |file|
             View.all.each do |view|
                 file.puts view.to_bind9_conf(zones_root_dir)
                 if @slave == true
-                    #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                        , export_all_domains
-                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                             , true)
-                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                             , true)
-                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.master_or_reverse , view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward           , true)
-                    else
-                    #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                        , export_all_domains
-                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , view.domains.master            , view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , view.domains._reverse          , view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.slave             , view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward           , view.updated_since?(@last_commit_date))
+                    #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                                  , export_all_domains
+                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                                       , true)
+                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                                       , true)
+                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.master_or_reverse_or_slave  , view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , true)
+                else
+                    #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                                  , export_all_domains
+                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , view.domains.master                      , view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , view.domains._reverse                    , view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.slave                       , view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , view.updated_since?(@last_commit_date))
                 end
             end
         end
@@ -374,6 +377,7 @@ class Exporter
                                 "--include=*#{SLAVES_FILE}",
                                 "--include=*#{FORWARDS_FILE}",
                                 "--include=*#{REVERSE_FILE}",
+                                "--include=*#{VIEWS_DIR}/***",
                                 "--include=*#{ZONES_DIR}/***",
                                 "--include=*#{SLAVES_DIR}/***",
                                 "--include=*#{FORWARDS_DIR}/***",
@@ -398,6 +402,7 @@ class Exporter
                                 "--include=*#{SLAVES_FILE}",
                                 "--include=*#{FORWARDS_FILE}",
                                 "--include=*#{REVERSE_FILE}",
+                                "--include=*#{VIEWS_DIR}/***",
                                 "--include=*#{ZONES_DIR}/***",
                                 "--include=*#{SLAVES_DIR}/***",
                                 "--include=*#{FORWARDS_DIR}/***",
@@ -465,6 +470,7 @@ class Exporter
                                 "--include=*#{SLAVES_DIR}/***",
                                 "--include=*#{FORWARDS_DIR}/***",
                                 "--include=*#{REVERSE_DIR}/***",
+                                "--include=*#{VIEWS_DIR}/***",
                                 '--exclude=*',
                                 abs_repository_zones_dir,
                                 "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}")
@@ -481,6 +487,7 @@ class Exporter
                                 "--include=*#{SLAVES_FILE}",
                                 "--include=*#{FORWARDS_FILE}",
                                 "--include=*#{REVERSE_FILE}",
+                                "--include=*#{VIEWS_DIR}/***",
                                 '--exclude=*',
                                 abs_repository_zones_dir,
                                 "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}")
@@ -515,6 +522,7 @@ class Exporter
                                 "--include=*#{SLAVES_DIR}/***",
                                 "--include=*#{FORWARDS_DIR}/***",
                                 "--include=*#{REVERSE_DIR}/***",
+                                "--include=*#{VIEWS_DIR}/***",
                                 '--exclude=*',
                                 abs_repository_zones_dir,
                                 "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}")
