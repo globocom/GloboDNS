@@ -35,8 +35,10 @@ class Record < ActiveRecord::Base
     validates_presence_of      :name
     validates_presence_of      :content
     validates_bind_time_format :ttl
-    validate                   :validate_name_format,          :unless => :importing?
-    validate                   :validate_recursive_subdomains, :unless => :importing?
+    validate                   :validate_name_cname,                        :unless => :importing?
+    validate                   :validate_name_format,                       :unless => :importing?
+    validate                   :validate_recursive_subdomains,              :unless => :importing?
+    validate                   :validate_same_record,                       :unless => :importing?
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
@@ -215,20 +217,53 @@ class Record < ActiveRecord::Base
         !!importing
     end
 
-    def validate_name_format
-        # default implementation: validation of 'hostnames'
-        return if self.name.blank? || self.name == '@'
-
-        self.name.split('.').each_with_index do |part, index|
-            unless (index == 0 && part == '*') || part =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?<!-)$/
-                self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+    def validate_name_cname
+        if self.type == 'CNAME' # check if the new cname record matches a old record name
+            if record = Record.where('name' => self.name, 'domain_id' => self.domain_id).first
+                self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
+                return 
+            end
+        else # check if there is a CNAME record with the new record name
+            if record = Record.where('type = ?', 'CNAME').where('name' => self.name, 'domain_id' => self.domain_id).first
+                self.errors.add(:name, I18n.t('cname_name_taken', :name => self.name, :scope => 'activerecord.errors.messages'))
                 return
             end
         end
     end
 
+    def validate_name_format
+        # default implementation: validation of 'hostnames'
+        return if self.name.blank? || self.name == '@'
+
+        self.name.split('.').each_with_index do |part, index|
+            if self.type == "SRV"
+                unless (index == 0 && part == '*') || part =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9\-_]{,63}(?<!-)$/
+                    self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+                    return
+                end
+            else
+                unless (index == 0 && part == '*') || part =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?<!-)$/
+                    self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
+                    return
+                end
+            end
+        end
+    end
+
+    def validate_same_record
+        id = self.id || 0
+        if self.type!="CNAME" && record = Record.where('id != ?', id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
+            self.errors.add(:base, I18n.t('record_same_name_and_type_and_content', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
+            return
+        end
+    end
+
+
     def validate_same_name_and_type
-        if record = self.class.where('id != ?', self.id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first
+        id = self.id || 0
+        if self.type!="CNAME" && record = Record.where('id != ?', id).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id, 'content' => self.content).first
+            return
+        elsif self.type!="CNAME" && record = self.class.where('id != ?', id).where('content != ?', self.content).where('name' => self.name, 'type' => self.type, 'domain_id' => self.domain_id).first
             self.warnings.add(:base, I18n.t('record_same_name_and_type', :name => record.name, :type => record.type, :content => record.content, :scope => 'activerecord.errors.messages'))
         end
     end
