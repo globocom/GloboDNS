@@ -98,8 +98,8 @@ class Bind9Controller < ApplicationController
         # if export is too long. So, I fill date field and clear in the end.
         Schedule.run_exclusive :export do |s|
             if not s.date.nil?
-                logger.warn "There are another process running. To run export again, remove row #{s.id} in schedules table"
-                raise "There are another process running"
+                logger.warn "There is another process running. To run export again, remove row #{s.id} in schedules table"
+                raise "There is another process running"
             end
             # register last execution in schedule
             s.date = DateTime.now
