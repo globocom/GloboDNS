@@ -17,7 +17,7 @@ module SyslogHelper
     def syslog_audit(audit)
         msg  = "[#{audit.auditable_type.downcase}:#{audit.action}:#{audit.auditable_id}]"
         msg << "[#{audit.associated_type.downcase}:#{audit.associated_id}]" if audit.associated_type
-        msg << "[user:#{audit.user.login}]"                                 if audit.user && audit.user.login
+        msg << "[user:#{audit.user.name}]"                                 if audit.user && audit.user.name
         msg << "[from:#{audit.remote_address}]"                             if audit.remote_address
         msg << " #{audit.audited_changes.to_json}"
         msg << " (#{audit.comment})"                                        if audit.comment

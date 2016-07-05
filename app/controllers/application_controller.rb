@@ -16,12 +16,18 @@
 class ApplicationController < ActionController::Base
     HTTP_AUTH_TOKEN_HEADER = 'X-Auth-Token'
 
-    before_filter :set_token_param_from_http_headers
-    before_filter :authenticate_user_from_token!
-    before_filter :authenticate_user!  # all pages require a login
+    protect_from_forgery with: :exception
+    protect_from_forgery with: :null_session,
+      if: Proc.new { |c| c.request.format =~ %r{application/json} }
+
+    before_filter :check_auth
+    # respond_to :json, :html, :js if GloboDns::Application.config.omniauth
+
+    # before_filter :set_provider
+
+    before_filter :authenticate_user!
     after_filter  :flash_headers
 
-    protect_from_forgery
 
     rescue_from Exception,                           :with => :render_500
     rescue_from ActiveRecord::RecordNotFound,        :with => :render_404
@@ -30,6 +36,10 @@ class ApplicationController < ActionController::Base
     rescue_from AbstractController::ActionNotFound,  :with => :render_404
 
     helper_method :admin?, :operator?, :admin_or_operator?, :viewer?
+
+    def new_session_path(scope)
+        new_user_session_path
+    end
 
     def admin?
         current_user.admin? or render_401
@@ -47,12 +57,14 @@ class ApplicationController < ActionController::Base
         current_user.viewer? or render_401
     end
 
-    protected
-
-    def set_token_param_from_http_headers
-        params[:auth_token] = request.headers[HTTP_AUTH_TOKEN_HEADER] if params[:auth_token].blank? && request.headers[HTTP_AUTH_TOKEN_HEADER].present?
+    def logout
+        sign_out current_user
+        path = new_user_session_url
+        client_id = Rails.application.secrets.oauth_provider_client_id
+        redirect_to "https://oauthprovider.com/logout"+ "?client_id=#{client_id}&redirect_uri=#{path}" # set providers logout uri
     end
 
+    protected
     def flash_headers
         return unless request.xhr?
 
@@ -103,13 +115,51 @@ class ApplicationController < ActionController::Base
         request.format.html? || request.format.js?
     end
 
-    private
-    def authenticate_user_from_token!
-        user_token = params[:auth_token].presence
-        user       = user_token && User.find_by_authentication_token(user_token.to_s)
 
-        if user
-          sign_in user
+    private
+    def login_present?
+        if !params[:user].nil? 
+            !params[:user][:email].blank? && !params[:user][:password].blank?
+        else
+            false
         end
+    end
+
+    def token_present?
+        !request.env['HTTP_X_AUTH_TOKEN'].nil?
+    end
+
+    def check_auth
+      if !(res = request.env['HTTP_AUTHORIZATION']).nil?
+        type, token = res.split(' ')
+        if !type.nil? && type.eql?('Bearer')
+          resource = RestClient::Resource.new(OmniAuth::Backstage::Client.client_options(Rails.env)[:site])
+          
+          begin
+            response = JSON.parse(resource['user'].get(:Authorization => "Bearer #{token}"))
+            response['token'] = token
+            user = User.from_api(response)
+            logger.debug "User: #{user.inspect}"
+            if user.active
+              sign_in user, :store => false
+            end
+          rescue Exception => e
+            logger.error e.message
+          end
+        end
+      elsif login_present? 
+        user = User.find_by_email(params[:user][:email])
+        if user && user.valid_password?(params[:user][:password])
+            sign_in user
+            respond_with current_user, :location => after_sign_in_path_for(current_user) do |format|
+                format.json { render :status => :ok, :json => current_user.auth_json }
+            end
+        end
+      elsif token_present?
+        user = User.find_by_authentication_token(request.env['HTTP_X_AUTH_TOKEN'])
+        if user
+            sign_in user
+        end
+      end
     end
 end

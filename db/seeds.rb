@@ -13,16 +13,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FIRST_USER = 'admin@example.com'
-FIRST_PASS = 'password'
+if GloboDns::Application.config.omniauth
+	# configure default user admin from the oauth provider
+	ADMIN_USER = 'api@example.com'
+	user = User.find_by_email(ADMIN_USER) || User.new(:email => ADMIN_USER)
+	user.role = "A"
+	user.save
 
-# Create our admin user
-user = User.find_by_email(FIRST_USER) || User.new(:email => FIRST_USER)
-user.login                 = 'admin'    # not used anymore
-user.password              = FIRST_PASS
-user.password_confirmation = FIRST_PASS
-user.role                  = User::ADMIN
-user.save!
+	puts <<-EOF
+	-------------------------------------------------------------------------------
+	Congratulations on setting up your GloboDns on Rails database. 
+
+	If '#{ADMIN_USER}' isn't your admin's email for omniauth provider, please change it ('ADMIN_USER') at file 'db/seeds.rb'.
+
+	Thanks for trying out GloboDns
+	-------------------------------------------------------------------------------
+	EOF
+else
+	# default user admin
+	FIRST_USER = 'admin@example.com'
+	FIRST_PASS = 'password'
+
+	# Create our admin user
+	user = User.find_by_email(FIRST_USER) || User.new(:email => FIRST_USER)
+	user.name                 = 'admin'    # not used anymore
+	user.password              = FIRST_PASS
+	user.password_confirmation = FIRST_PASS
+	user.role                  = User::ADMIN
+	user.save!
+
+	puts <<-EOF
+	-------------------------------------------------------------------------------
+	Congratulations on setting up your GloboDns on Rails database. You can now
+	start the server by running the command below, and then pointing your browser
+	to http://localhost:3000/
+
+	$ ./script/rails s
+
+	You can then login with "#{FIRST_USER}" using the password "#{FIRST_PASS}".
+
+	Thanks for trying out GloboDns
+	-------------------------------------------------------------------------------
+	EOF
+end
 
 
 if Rails.env == "development"
@@ -151,18 +184,7 @@ if Rails.env == "development"
 	#   :prio    => 10
 	# })
 
-	puts <<-EOF
-	-------------------------------------------------------------------------------
-	Congratulations on setting up your GloboDns on Rails database. You can now
-	start the server by running the command below, and then pointing your browser
-	to http://localhost:3000/
 
-	$ ./script/rails s
-
-	You can then login with "#{FIRST_USER}" using the password "#{FIRST_PASS}".
-
-	Thanks for trying out GloboDns
-	-------------------------------------------------------------------------------
-	EOF
+	
 
 end

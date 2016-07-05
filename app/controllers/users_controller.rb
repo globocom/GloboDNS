@@ -92,5 +92,6 @@ class UsersController < ApplicationController
             format.html { head :no_content if request.xhr? }
         end
     end
-
 end
+
+

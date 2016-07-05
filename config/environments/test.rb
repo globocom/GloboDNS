@@ -69,4 +69,5 @@ GloboDns::Application.configure do
 
   # Default host for testing mail
   config.action_mailer.default_url_options = { :host => "example.com" }
+
 end

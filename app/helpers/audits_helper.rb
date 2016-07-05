@@ -58,7 +58,7 @@ module AuditsHelper
 
   def audit_user( audit )
     if audit.user.is_a?( User )
-      audit.user.login
+      audit.user.name
     else
       audit.username || 'UNKNOWN'
     end

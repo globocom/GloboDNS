@@ -5,24 +5,26 @@
       %span
 
 %tr[ user, :show ]{ :class => "#{even_odd} show-user" }
-  %td.login=   user.login
+  %td.name=   user.name
   %td.email=   user.email
-  %td.password &nbsp;
   %td.role=    user.role_str
+  - unless GloboDns::Application.config.omniauth
+    %td.password &nbsp;
   %td.actions
     = link_to '', '#', :class => 'edit-user-button ui-icon-edit', :title => t(:generic_edit)
     = link_to '', user_path(user), :remote => true, :method => :delete, :data => {:confirm => t(:confirm_user_delete)}, :class => 'delete-user-button ui-icon-trash', :title => t(:generic_delete)
 
 %tr[ user, :edit ]{ :class => "#{even_odd} hidden edit-user"}
   = form_for(user, :as => 'user', :url => user_path(user)) do |f|
-    %td.login= f.text_field :login
+    %td.name= f.text_field :name
     %td.email= f.text_field :email
-    %td.password
-      = f.password_field :password
-      = '/'
-      = f.password_field :password_confirmation
-      %span= help_icon('password-help')
     %td.role=  f.collection_select :role, User::ROLES.to_a, :first, :last
+    - unless GloboDns::Application.config.omniauth
+      %td.password
+        = f.password_field :password
+        = '/'
+        = f.password_field :password_confirmation
+        %span= help_icon('password-help')
     %td.actions
       = link_to('', '#', :class => 'update-user-button ui-icon-download-alt',    :title => t(:generic_update))
       = link_to('', '#', :class => 'cancel-edit-user-button ui-icon-ban-circle', :title => t(:generic_cancel))

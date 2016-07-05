@@ -14,11 +14,13 @@
         <% if current_user %>
           <div class="status">
             <span>
-              <%= t(:logged_user, :user => current_user.login) %>
+              <%= t(:logged_user, :user => current_user.name) %>
             </span>
-            <span>
-              <%= link_to((t :change_passord), update_password_user_path) %>
-            </span>
+            <% unless GloboDns::Application.config.omniauth %>
+              <span>
+                <%= link_to((t :change_passord), update_password_user_path) %>
+              </span>
+            <% end %>
             <br/>
             <span>
               <%= t(:last_export, :timestamp => last_export_timestamp.to_formatted_s(:short)) %>
@@ -83,9 +85,11 @@
                 <%= link_to((t :layout_menu_export), bind9_schedule_export_path(:format => :json), :remote => true, :method => :post, :class => 'export-menu-item') %>
               </li>
             <% end %>
-            <li>
-              <%= link_to((t :layout_menu_logout), destroy_user_session_path, :method => :delete) %>
-            </li>
+              <% if GloboDns::Application.config.omniauth %>
+                <li><%= link_to(:Logout, destroy_user_session_path) if current_user %></li>
+              <% else %>
+                <%= link_to((t :layout_menu_logout), destroy_user_session_path, :method => :delete) %>
+              <% end %>
           <% end %>
         </ul>
       </div>
