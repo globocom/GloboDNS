@@ -1,5 +1,4 @@
 .byebug_history
-config/secrets.yml
 .bundle
 db/*.sqlite3
 log/*.log
