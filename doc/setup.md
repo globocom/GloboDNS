@@ -174,6 +174,64 @@ Use the 'public' directory as your DocumentRoot path on httpd server.
 for your test, you can run:
 
      $ bundle exec unicorn_rails
-     
+
 TIP: Problems ? SELinux and/or iptables are running ? 
 
+**12. Using OAuth login**
+
+1) First you have to enable the use of OmniAuth at file [config/application.rb](./config/application.rb).
+
+         config.omniauth = true
+
+
+
+2) Add the provider settings at file [config/initializers/omniauth.rb](./config/initializers/omniauth.rb).
+
+3) Set the logout path at [app/controllers/application_controller.rb](./app/controllers/application_controller.rb)
+
+        def logout
+            sign_out current_user
+            path = new_user_session_url
+            client_id = Rails.application.secrets.oauth_provider_client_id
+            redirect_to "https://oauthprovider.com/logout"+ "?client_id=#{client_id}&redirect_uri=#{path}" # set providers logout uri
+        end
+
+
+4) Add the provider configured in step 2 at the [User model](./app/models/user.rb).
+    
+        ...
+        devise :omniauthable, :omniauth_providers => [:oauth_provider] # change ':oauth_provider'
+        ...
+        def self.from_api(auth)
+            ...
+            if user.nil?
+                ...
+                provider: :oauth_provider, # also change 
+                ...    
+            else
+                ...
+                provider: :oauth_provider, # also change 
+            ...
+
+
+5) Change the [routes](config/routes.rb) settings. Uncomment the following line and change 'oauthprovider' to the name of the OAuth provider.
+
+        # get 'auth/sign_in' => redirect('users/auth/oauthprovider'), :as => :new_user_session
+
+6) Finally, you need to change the [OmniauthCallbacksController](https://github.com/globocom/GloboDNS/blob/production/app/controllers/omniauth_callbacks_controller.rb).
+
+    Uncomment the whole function and do the necessary changes, such ass:
+    
+        def <YOUR_PROVIDER> 
+    
+    Also change 
+    
+        set_flash_message(:notice, :success, :kind => "<YOUR PROVIDER HERE>") if is_navigational_format?
+
+    Lastly
+
+        session["devise.<YOUR_PROVIDER>_data"] = request.env["omniauth.auth"]
+
+
+
+**NOTE**: You probably will need to add the OAuth provider gem at Gemfile.

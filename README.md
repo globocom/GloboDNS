@@ -52,6 +52,8 @@ Below: Some screenshots from the admin user.
 Documentation
 =============
 
+[Changelog](./CHANGELOG.md)
+
 [Setup your environment](./doc/setup.md)
 
 [Administrator's Guide](./doc/administrator.md)
