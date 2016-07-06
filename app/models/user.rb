@@ -41,7 +41,8 @@ class User < ActiveRecord::Base
           password: Devise.friendly_token[0,20],
           provider: :oauth_provider,
           oauth_token: auth['token'],
-          oauth_expires_at: Time.now + 5.minutes
+          oauth_expires_at: Time.now + 5.minutes,
+          role: "O"
         })
         user.save!
       else
@@ -66,7 +67,8 @@ class User < ActiveRecord::Base
           password: Devise.friendly_token[0,20],
           provider: :oauth_provider,
           oauth_token: auth.credentials.token,
-          oauth_expires_at: Time.at(auth.credentials.expires_at)
+          oauth_expires_at: Time.at(auth.credentials.expires_at),
+          role: "O"
         })
         user.save!
       else # Already created. lets update it

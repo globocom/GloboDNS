@@ -21,9 +21,6 @@ class ApplicationController < ActionController::Base
       if: Proc.new { |c| c.request.format =~ %r{application/json} }
 
     before_filter :check_auth
-    # respond_to :json, :html, :js if GloboDns::Application.config.omniauth
-
-    # before_filter :set_provider
 
     before_filter :authenticate_user!
     after_filter  :flash_headers
@@ -151,7 +148,7 @@ class ApplicationController < ActionController::Base
         user = User.find_by_email(params[:user][:email])
         if user && user.valid_password?(params[:user][:password])
             sign_in user
-            respond_with current_user, :location => after_sign_in_path_for(current_user) do |format|
+            respond_to do |format|
                 format.json { render :status => :ok, :json => current_user.auth_json }
             end
         end
