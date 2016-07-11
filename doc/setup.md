@@ -187,7 +187,9 @@ TIP: Problems ? SELinux and/or iptables are running ?
 
 2) Add the provider settings at file [config/initializers/omniauth.rb](./config/initializers/omniauth.rb).
 
-3) Set the logout path at [app/controllers/application_controller.rb](./app/controllers/application_controller.rb)
+3) At [app/controllers/application_controller.rb](./app/controllers/application_controller.rb)
+
+    3.1) Set the logout path 
 
         def logout
             sign_out current_user
@@ -195,6 +197,10 @@ TIP: Problems ? SELinux and/or iptables are running ?
             client_id = Rails.application.secrets.oauth_provider_client_id
             redirect_to "https://oauthprovider.com/logout"+ "?client_id=#{client_id}&redirect_uri=#{path}" # set providers logout uri
         end
+
+    3.2) Also, change "YourProvider" to your provider 
+    
+                  resource = RestClient::Resource.new(OmniAuth::YourProvider::Client.client_options(Rails.env)[:site]) # set the OAut hProvider
 
 
 4) Add the provider configured in step 2 at the [User model](./app/models/user.rb).
