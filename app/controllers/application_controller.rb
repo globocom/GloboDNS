@@ -130,7 +130,7 @@ class ApplicationController < ActionController::Base
       if !(res = request.env['HTTP_AUTHORIZATION']).nil?
         type, token = res.split(' ')
         if !type.nil? && type.eql?('Bearer')
-          resource = RestClient::Resource.new(OmniAuth::Backstage::Client.client_options(Rails.env)[:site])
+          resource = RestClient::Resource.new(OmniAuth::YourProvider::Client.client_options(Rails.env)[:site]) # set the OAut hProvider
           
           begin
             response = JSON.parse(resource['user'].get(:Authorization => "Bearer #{token}"))
@@ -144,7 +144,7 @@ class ApplicationController < ActionController::Base
             logger.error e.message
           end
         end
-      elsif login_present? 
+      elsif login_present? && request.format == "text/x-json"
         user = User.find_by_email(params[:user][:email])
         if user && user.valid_password?(params[:user][:password])
             sign_in user
