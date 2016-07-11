@@ -8,7 +8,11 @@
   %td.name=   user.name
   %td.email=   user.email
   %td.role=    user.role_str
-  - unless GloboDns::Application.config.omniauth
+  - if GloboDns::Application.config.omniauth
+    %td.active
+      - if user.active 
+        %i.ui-icon-check
+  -else
     %td.password &nbsp;
   %td.actions
     = link_to '', '#', :class => 'edit-user-button ui-icon-edit', :title => t(:generic_edit)
@@ -19,7 +23,10 @@
     %td.name= f.text_field :name
     %td.email= f.text_field :email
     %td.role=  f.collection_select :role, User::ROLES.to_a, :first, :last
-    - unless GloboDns::Application.config.omniauth
+    - if GloboDns::Application.config.omniauth
+      %td.active
+        = f.check_box :active
+    - else
       %td.password
         = f.password_field :password
         = '/'
