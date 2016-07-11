@@ -18,12 +18,11 @@ require 'digest/sha1'
 class User < ActiveRecord::Base
 
     if GloboDns::Application.config.omniauth
-      validates :email, presence: true
+      validates :email, presence: true, uniqueness: true
       devise :omniauthable, :omniauth_providers => [:oauth_provider]
     else
       before_save   :ensure_authentication_token
       devise :database_authenticatable, :rememberable, :validatable, :encryptable, :encryptor => :restful_authentication_sha1
-
     end
 
     attr_accessible :name, :email, :role, :active, :password, :password_confirmation, :oauth_token, :oauth_expires_at, :uid, :password_salt, :provider
