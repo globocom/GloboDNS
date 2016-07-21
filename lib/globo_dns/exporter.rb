@@ -422,7 +422,7 @@ class Exporter
 
         #--- check status output; if there are no changes, just return
         git_status_output = exec('git status', Binaries::GIT, 'status')
-        if git_status_output =~ /nothing to commit \(working directory clean\)/
+        if git_status_output =~ /nothing to commit \(working directory clean\)/ or git_status_output =~ /On branch master\nnothing to commit, working directory clean/
           raise ExitStatusError, "Nothing to be exported!"
         end
 
