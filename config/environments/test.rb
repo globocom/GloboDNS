@@ -1,4 +1,4 @@
-# Licensed to the Apache Software Foundation (ASF) under one or more
+ertando configu# Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
 # The ASF licenses this file to You under the Apache License, Version 2.0
@@ -60,7 +60,7 @@ GloboDns::Application.configure do
   config.active_support.deprecation = :stderr
 
   # Configure static asset server for tests with Cache-Control for performance
-  config.serve_static_files = true # used on Rails 5.0
+  config.serve_static_files = false # used on Rails 5.0
 
   config.static_cache_control = "public, max-age=3600"
 
