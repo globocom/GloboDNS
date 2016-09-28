@@ -5,7 +5,7 @@
       %span
 
 %tr[ user, :show ]{ :class => "#{even_odd} show-user" }
-  %td.name=   user.name
+  %td.name=   user.login
   %td.email=   user.email
   %td.role=    user.role_str
   - if GloboDns::Application.config.omniauth
@@ -20,7 +20,7 @@
 
 %tr[ user, :edit ]{ :class => "#{even_odd} hidden edit-user"}
   = form_for(user, :as => 'user', :url => user_path(user)) do |f|
-    %td.name= f.text_field :name
+    %td.login= f.text_field :login
     %td.email= f.text_field :email
     %td.role=  f.collection_select :role, User::ROLES.to_a, :first, :last
     - if GloboDns::Application.config.omniauth
