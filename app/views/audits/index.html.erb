@@ -1,0 +1,43 @@
+<h1><%= t :title_audits %></h1>
+<%= render :partial => 'list', :object => @audits, :as => :audits%>
+
+<h1> Filtrar: </h1>  
+
+<%= form_tag(audits_path, { :method => :get }) do %>
+  <table>
+    <tr>
+      <td><b><%= "Ação:" %></b></td>
+      <td><%= radio_button_tag("audit_action", "all", params[:audit_action]=="all" || !params[:audit_action]) %> Todos 
+      <%= radio_button_tag("audit_action", "create", params[:audit_action]=="create") %> Criados  
+      <%= radio_button_tag("audit_action", "destroy", params[:audit_action]=="destroy") %> Destruidos
+      <%= radio_button_tag("audit_action", "update", params[:audit_action]=="update") %> Atualizados</td>
+    </tr>
+    <tr>
+      <td><b><%= "Domain:" %></b></td>
+      <td><%= text_field_tag :audit_domain, params[:audit_domain], :class => 'search-field', :data => {'help' => 'help-search'} %></td>
+    </tr>
+    <tr>
+      <td><b><%= "Record:" %></b></td>
+      <td><%= text_field_tag :audit_record, params[:audit_record], :class => 'search-field', :data => {'help' => 'help-search'} %></td>
+    </tr>
+    <tr>
+      <td><b><%= "Record type:" %></b></td>
+      <td><%= select_tag :audit_record_type, options_for_select(Record::record_types, params[:audit_record_type]), :include_blank => true %></td>
+    </tr>
+    <tr>
+      <td><b><%= "User:" %></b></td>
+      <td><%= select_tag :audit_user, options_for_select(User.order(:login).pluck(:login,:id), params[:audit_user]), :include_blank => true  %></td>
+    </tr>
+    <tr>
+      <td><p></td>
+    </tr>
+    <tr>
+      <td><%= button_tag "Filtrar", :class => 'ui-icon-search' %></td>
+    </tr>
+    <tr>
+      <td><%= link_to "Cancelar filtros", audits_path %></td>
+    </tr>
+  </table>
+<% end %>
+
+
