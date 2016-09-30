@@ -7,10 +7,12 @@
   <table>
     <tr>
       <td><b><%= "Ação:" %></b></td>
-      <td><%= radio_button_tag("audit_action", "all", params[:audit_action]=="all" || !params[:audit_action]) %> Todos 
-      <%= radio_button_tag("audit_action", "create", params[:audit_action]=="create") %> Criados  
-      <%= radio_button_tag("audit_action", "destroy", params[:audit_action]=="destroy") %> Destruidos
-      <%= radio_button_tag("audit_action", "update", params[:audit_action]=="update") %> Atualizados</td>
+      <td>
+        <%= radio_button_tag("audit_action", "all", params[:audit_action]=="all" || !params[:audit_action]) %> Todos 
+        <%= radio_button_tag("audit_action", "create", params[:audit_action]=="create") %> Criados  
+        <%= radio_button_tag("audit_action", "destroy", params[:audit_action]=="destroy") %> Destruidos
+        <%= radio_button_tag("audit_action", "update", params[:audit_action]=="update") %> Atualizados
+      </td>
     </tr>
     <tr>
       <td><b><%= "Domain:" %></b></td>
@@ -25,8 +27,23 @@
       <td><%= select_tag :audit_record_type, options_for_select(Record::record_types, params[:audit_record_type]), :include_blank => true %></td>
     </tr>
     <tr>
-      <td><b><%= "User:" %></b></td>
-      <td><%= select_tag :audit_user, options_for_select(User.order(:login).pluck(:login,:id), params[:audit_user]), :include_blank => true  %></td>
+      <td><b><%= "User email:" %></b></td>
+      <td><%= text_field_tag :audit_email, params[:audit_email], :class => 'search-field', :data => {'help' => 'help-search'} %>
+      or
+      <b><%= "User login:" %></b>
+      <%= select_tag :audit_user, options_for_select(User.order(:login).pluck(:login,:id), params[:audit_user]), :include_blank => true  %></td>
+    </tr>
+    <tr>
+      <td><b><%= "Time:" %></b></td>
+      <td>
+        <% params[:audit_hours] = 24 if params[:audit_hours].nil?%>
+        <% params[:audit_mins] = 00 if params[:audit_mins].nil?%>
+
+        <%= number_field_tag(:audit_hours, params[:audit_hours], in: 0..999, step: 1) %>
+        :
+        <%= number_field_tag(:audit_mins, params[:audit_mins], in: 0..59, step: 1) %>
+        ago
+      </td>
     </tr>
     <tr>
       <td><p></td>

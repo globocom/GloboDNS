@@ -23,27 +23,33 @@ class AuditsController < ApplicationController
         @audits = Audited::Adapters::ActiveRecord::Audit.includes(:user)
 
         # filtros dos logs
+        if params[:audit_hours] || params[:audit_mins]
+            @audits = @audits.where('created_at >= :time_ago', :time_ago => Time.now - params[:audit_hours].to_i.hours - params[:audit_mins].to_i.minutes)
+        end
         if params[:audit_action] 
             @audits = @audits.where(action: params[:audit_action]) unless params[:audit_action] == "all"
         end
-        if params[:audit_user] && params[:audit_user]!=""
+        if params[:audit_email] && params[:audit_email] != ""
+            @audits = @audits.where(user: User.where(email: params[:audit_email]))
+        end
+        if (!params[:audit_email] && params[:audit_email] == "") && (params[:audit_user] && params[:audit_user] != "")
             @audits = @audits.where(user: User.find(params[:audit_user]))
         end
-        if params[:audit_record] && params[:audit_record]!=""
+        if params[:audit_record] && params[:audit_record] != ""
             ids = []
             @audits.where(auditable_type: "Record").each do |a|
                 ids.push(a.id) if a['audited_changes']['name'] == params[:audit_record]
             end
             @audits = @audits.where({id: ids})
         end
-        if params[:audit_record_type] && params[:audit_record_type]!=""
+        if params[:audit_record_type] && params[:audit_record_type] != ""
             ids = []
             @audits.where(auditable_type: "Record").each do |a|
                 ids.push(a.id) if a['audited_changes']['type'] == params[:audit_record_type]
             end
             @audits = @audits.where({id: ids})
         end
-        if params[:audit_domain] && params[:audit_domain]!=""
+        if params[:audit_domain] && params[:audit_domain] != ""
             ids = []
             domain_id = 0
             # audits do domain buscado

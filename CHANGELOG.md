@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.5.10](https://github.com/globocom/GloboDNS/releases/tag/1.5.9) (28/09/16)
+## [1.5.10](https://github.com/globocom/GloboDNS/releases/tag/1.5.10) (30/09/16)
 ##### - Enhancements
  * Logs filtering options
 
