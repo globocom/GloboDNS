@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.11](https://github.com/globocom/GloboDNS/releases/tag/1.5.11) (30/09/16)
+##### - Enhancements
+ * Add 'day' to time log filter 
+ * User login and email are now only one text input
+
+
 ## [1.5.10](https://github.com/globocom/GloboDNS/releases/tag/1.5.10) (30/09/16)
 ##### - Enhancements
  * Logs filtering options

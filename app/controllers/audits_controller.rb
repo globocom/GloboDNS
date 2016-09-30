@@ -23,17 +23,16 @@ class AuditsController < ApplicationController
         @audits = Audited::Adapters::ActiveRecord::Audit.includes(:user)
 
         # filtros dos logs
-        if params[:audit_hours] || params[:audit_mins]
-            @audits = @audits.where('created_at >= :time_ago', :time_ago => Time.now - params[:audit_hours].to_i.hours - params[:audit_mins].to_i.minutes)
+        if params[:audit_days] || params[:audit_hours] || params[:audit_mins]
+            @audits = @audits.where('created_at >= :time_ago', :time_ago => Time.now - params[:audit_days].to_i.days - params[:audit_hours].to_i.hours - params[:audit_mins].to_i.minutes)
         end
         if params[:audit_action] 
             @audits = @audits.where(action: params[:audit_action]) unless params[:audit_action] == "all"
         end
-        if params[:audit_email] && params[:audit_email] != ""
-            @audits = @audits.where(user: User.where(email: params[:audit_email]))
-        end
-        if (!params[:audit_email] && params[:audit_email] == "") && (params[:audit_user] && params[:audit_user] != "")
-            @audits = @audits.where(user: User.find(params[:audit_user]))
+        if params[:audit_user] && params[:audit_user] != ""
+            user = User.where("login like :login", login: "%#{params[:audit_user]}%").first 
+            user = User.where("email like :email", email: "%#{params[:audit_user]}%").first if user.nil?
+            @audits = @audits.where(user: user)
         end
         if params[:audit_record] && params[:audit_record] != ""
             ids = []
