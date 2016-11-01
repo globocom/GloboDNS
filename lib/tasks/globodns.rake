@@ -41,6 +41,7 @@ namespace :globodns do
 
                 Dir.chdir(File.join(base, zones_dir)) do
                     exec('git init',   'git', 'init', '.')
+		    File.write("README.md", "dummy")
                     exec('git add',    'git', 'add', '.')
                     exec('git commit', 'git', 'commit', "--date=#{Time.local(2012, 1, 1, 0, 0, 0).to_i}", "--author=#{GIT_AUTHOR}", '-m', 'Initial commit.')
                 end

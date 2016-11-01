@@ -6,9 +6,10 @@ development: &devconf
         ipaddr:          '127.0.0.1'
         port:            53
         rndc_port:       953
-        chroot_dir:      '/etc/named'
+        #chroot_dir:      '/etc/named'
+        chroot_dir:      '/var/named/chroot'
         zones_dir:       '/var/named'
-        named_conf_file: '/etc/named.conf'  # must be inside zones_dir
+        named_conf_file: '/etc/named/named.conf'  # must be inside zones_dir
         named_conf_link: '/etc/named.conf'  # can be anywhere
         export_chroot_dir:    <%= Rails.root.join('tmp', 'named', 'chroot_master') %>
 

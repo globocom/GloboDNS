@@ -136,6 +136,7 @@ class Importer
         master_root = nil
         begin
             master_root = NamedConf.parse(master_canonical_named_conf)
+	    master_root.inspect
         rescue Citrus::ParseError => e
             raise RuntimeError.new("[ERROR] unable to parse canonical master BIND configuration #{master_canonical_named_conf} (line #{e.line_number}, column #{e.line_offset}: #{e.line})")
         end
@@ -257,7 +258,8 @@ class Importer
                                               :abort_on_rndc_failure => false,
                                               :logger                => logger)
         else
-            save_config(master_config, Bind::Master::EXPORT_CHROOT_DIR, Bind::Master::ZONES_DIR, Bind::Master::NAMED_CONF_FILE, import_timestamp)
+            #save_config(master_config, Bind::Master::EXPORT_CHROOT_DIR, Bind::Master::ZONES_DIR, Bind::Master::NAMED_CONF_FILE, import_timestamp)
+            save_config(master_config, Bind::Master::EXPORT_CHROOT_DIR, '/etc/named' , Bind::Master::NAMED_CONF_FILE, import_timestamp)
             Bind::Slaves.each_with_index do |slave, index|
                 save_config(slaves_configs[index],  slave::EXPORT_CHROOT_DIR,  slave::ZONES_DIR,  slave::NAMED_CONF_FILE,  import_timestamp) if SLAVE_ENABLED?
             end
@@ -287,8 +289,8 @@ class Importer
     end
 
     # saves *and commits the changes to git*
-    def save_config(content, chroot_dir, zones_dir, named_conf_file, timestamp)
-        Dir.chdir(File.join(chroot_dir, zones_dir)) do
+    def save_config(content, chroot_dir, target_dir, named_conf_file, timestamp)
+        Dir.chdir(File.join(chroot_dir, target_dir)) do
             File.open(File.basename(named_conf_file), 'w') do |file|
                 file.write(content)
                 file.puts GloboDns::Exporter::CONFIG_START_TAG

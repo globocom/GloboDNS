@@ -131,8 +131,10 @@ class Exporter
         # recursivelly copy the current configuration to the tmp dir
         exec('rsync chroot', 'rsync', '-v', '-a', '--exclude', 'session.key', '--exclude', '.git/', File.join(chroot_dir, '.'), tmp_dir)
 
+	puts "HHHHHHHH#{chroot_dir} #{named_conf_file}"
         # export main configuration file
         named_conf_content = self.class.load_named_conf(chroot_dir, named_conf_file) if named_conf_content.blank?
+	puts "HHHHHHHH#{named_conf_content}"
         export_named_conf(named_conf_content, tmp_dir, zones_root_dir, named_conf_file)
 
         # export all views
