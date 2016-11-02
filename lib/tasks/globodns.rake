@@ -7,7 +7,7 @@ namespace :globodns do
             include GloboDns::Config
             include GloboDns::Util
 
-            def create_chroot_dir(base, zones_dir, named_conf_file, named_conf_link)
+            def create_chroot_dir(base, zones_dir, named_conf_file)
                 File.exists?(base) and raise RuntimeError.new("[ERROR] chroot dir \"#{base}\" already exists")
                 FileUtils.mkdir_p(base)
                 FileUtils.mkdir_p(File.join(base, 'dev'))
@@ -31,7 +31,6 @@ namespace :globodns do
 
                 base_path = Pathname.new base
                 named_file_path = Pathname.new File.join(base, named_conf_file)
-                named_link_path = Pathname.new File.join(base, named_conf_link)
                 Dir.chdir(base) do
                     FileUtils.touch named_file_path.relative_path_from(base_path).to_s, :verbose => true
                 end
@@ -47,10 +46,10 @@ namespace :globodns do
                 end
             end
 
-            create_chroot_dir(Bind::Master::EXPORT_CHROOT_DIR, Bind::Master::ZONES_DIR, Bind::Master::NAMED_CONF_FILE, Bind::Master::NAMED_CONF_LINK)
+            create_chroot_dir(Bind::Master::EXPORT_CHROOT_DIR, Bind::Master::ZONES_DIR, Bind::Master::NAMED_CONF_FILE)
             if SLAVE_ENABLED?
                 Bind::Slaves.each do |slave|
-                    create_chroot_dir(slave::EXPORT_CHROOT_DIR,  slave::ZONES_DIR,  slave::NAMED_CONF_FILE,  slave::NAMED_CONF_LINK)
+                    create_chroot_dir(slave::EXPORT_CHROOT_DIR,  slave::ZONES_DIR,  slave::NAMED_CONF_FILE)
                 end
             end
         end
