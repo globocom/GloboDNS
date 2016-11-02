@@ -136,7 +136,6 @@ class Importer
         master_root = nil
         begin
             master_root = NamedConf.parse(master_canonical_named_conf)
-	    master_root.inspect
         rescue Citrus::ParseError => e
             raise RuntimeError.new("[ERROR] unable to parse canonical master BIND configuration #{master_canonical_named_conf} (line #{e.line_number}, column #{e.line_offset}: #{e.line})")
         end
