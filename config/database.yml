@@ -5,8 +5,8 @@ development:
   adapter:  mysql2
   database: globodns
   host: localhost
-  username: globodns
-  password: "aWZ4G8rTPDsF7BHF"
+  username: root
+  password:
 
 # Warning: The database defined as 'test' will be erased and
 # re-generated from your development database when you run 'rake'.
@@ -15,15 +15,15 @@ test:
   adapter:  mysql2
   database: globodns_test
   host: localhost
-  username: globodns
-  password: "aWZ4G8rTPDsF7BHF"
+  username: root
+  password:
 
 production:
   adapter:  mysql2
   database: globodns_prod
   socket:   /var/lib/mysql/mysql.sock
-  username: globodns_prod
-  password: "pztBrCYH2vrQ85"
+  username: globodns
+  password: ""
 
 <%
   additional_environments = '/mnt/dbmigrate/globodns/globodns.yml'
