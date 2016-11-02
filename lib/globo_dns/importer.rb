@@ -258,9 +258,10 @@ class Importer
                                               :logger                => logger)
         else
             #save_config(master_config, Bind::Master::EXPORT_CHROOT_DIR, Bind::Master::ZONES_DIR, Bind::Master::NAMED_CONF_FILE, import_timestamp)
-            save_config(master_config, Bind::Master::EXPORT_CHROOT_DIR, '/etc/named' , Bind::Master::NAMED_CONF_FILE, import_timestamp)
+            save_config(master_config, Bind::Master::EXPORT_CHROOT_DIR, File.dirname(Bind::Master::NAMED_CONF_FILE) , Bind::Master::NAMED_CONF_FILE, import_timestamp)
             Bind::Slaves.each_with_index do |slave, index|
-                save_config(slaves_configs[index],  slave::EXPORT_CHROOT_DIR,  slave::ZONES_DIR,  slave::NAMED_CONF_FILE,  import_timestamp) if SLAVE_ENABLED?
+                #save_config(slaves_configs[index],  slave::EXPORT_CHROOT_DIR,  slave::ZONES_DIR,  slave::NAMED_CONF_FILE,  import_timestamp) if SLAVE_ENABLED?
+                save_config(slaves_configs[index],  slave::EXPORT_CHROOT_DIR,  File.dirname(slave::NAMED_CONF_FILE),  slave::NAMED_CONF_FILE,  import_timestamp) if SLAVE_ENABLED?
             end
         end
 
