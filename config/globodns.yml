@@ -6,9 +6,10 @@ development: &devconf
         ipaddr:          '127.0.0.1'
         port:            53
         rndc_port:       953
-        chroot_dir:      '/var/named/chroot'
-        zones_dir:       '/var/named' 
-        named_conf_file: "/etc/named.conf"
+        chroot_dir:      '/etc/named'
+        zones_dir:       '/var/named'
+        named_conf_file: '/etc/named.conf'  # must be inside zones_dir
+        named_conf_link: '/etc/named.conf'  # can be anywhere
         export_chroot_dir:    <%= Rails.root.join('tmp', 'named', 'chroot_master') %>
 
       slaves:
@@ -22,6 +23,7 @@ development: &devconf
           zones_dir:        '/var/named'
           #zones_dir:        '/etc/named'
           named_conf_file:  '/etc/named/named.conf'  # must be inside zones_dir
+          named_conf_link:  '/etc/named.conf'  # can be anywhere
           export_chroot_dir: <%= Rails.root.join('tmp', 'named', 'chroot_slave1') %>
 
         - user:             'globodns'
@@ -32,6 +34,7 @@ development: &devconf
           chroot_dir:       '/var/named/chroot'
           zones_dir:        '/etc/named'
           named_conf_file:  '/etc/named/named.conf'  # must be inside zones_dir
+          named_conf_link:  '/etc/named.conf'  # can be anywhere
           export_chroot_dir: <%= Rails.root.join('tmp', 'named', 'chroot_slave2') %>
 
     bind_user:                   'named'
