@@ -439,7 +439,7 @@ class Exporter
     end
 
     def sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, updated_zones)
-        abs_repository_zones_dir = File.join(chroot_dir, zones_root_dir, '')
+        abs_repository_zones_dir = File.join(chroot_dir, zones_root_dir)
         sync_remote(abs_repository_zones_dir , named_conf_file, bind_server_data)
 
         @to_reload = updated_zones
