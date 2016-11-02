@@ -39,6 +39,8 @@ namespace :globodns do
                         named_link_path.relative_path_from(base_path).to_s, :verbose => true
         		end
 
+                FileUtils.chown_R(Bind::Master::USER, BIND_GROUP, base_path)
+
                 Dir.chdir(File.join(base, zones_dir)) do
                     exec('git init',   'git', 'init', '.')
 		    File.write("README.md", "dummy")
