@@ -29,21 +29,19 @@ namespace :globodns do
                 FileUtils.mkdir_p(File.join(base, 'var', 'run', 'named'))
                 FileUtils.mkdir_p(File.join(base, 'var', 'tmp'))
 
-        		base_path = Pathname.new base
+                base_path = Pathname.new base
                 named_file_path = Pathname.new File.join(base, named_conf_file)
                 named_link_path = Pathname.new File.join(base, named_conf_link)
-        		Dir.chdir(base) do
+                Dir.chdir(base) do
                     FileUtils.touch named_file_path.relative_path_from(base_path).to_s, :verbose => true
-    
-                    FileUtils.ln_s named_file_path.relative_path_from(named_link_path.parent).to_s, \
-                        named_link_path.relative_path_from(base_path).to_s, :verbose => true
-        		end
+                end
 
                 FileUtils.chown_R(Bind::Master::USER, BIND_GROUP, base_path)
 
                 Dir.chdir(File.join(base, zones_dir)) do
                     exec('git init',   'git', 'init', '.')
-		    File.write("README.md", "dummy")
+                    # To fix commit error which is occurred if the directory is empty
+                    File.write("README.md", "dummy")
                     exec('git add',    'git', 'add', '.')
                     exec('git commit', 'git', 'commit', "--date=#{Time.local(2012, 1, 1, 0, 0, 0).to_i}", "--author=#{GIT_AUTHOR}", '-m', 'Initial commit.')
                 end
