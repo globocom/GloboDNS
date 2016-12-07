@@ -1,7 +1,7 @@
 - even_odd = cycle('odd', 'even')
 %tr{:class => even_odd}
   %td.timestamp= audit.created_at.to_formatted_s(:short)
-  %td.user= audit.user && audit.user.name
+  %td.user= audit.user && audit.user.login
   %td.from= audit.remote_address
   %td.action= audit.action
   %td.auditable= "#{audit.audited_changes['name']}"

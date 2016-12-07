@@ -25,7 +25,7 @@ class User < ActiveRecord::Base
       devise :database_authenticatable, :rememberable, :validatable, :encryptable, :encryptor => :restful_authentication_sha1
     end
 
-    attr_accessible :name, :email, :role, :active, :password, :password_confirmation, :oauth_token, :oauth_expires_at, :uid, :password_salt, :provider
+    attr_accessible :login, :email, :role, :active, :password, :password_confirmation, :oauth_token, :oauth_expires_at, :uid, :password_salt, :provider
 
     ROLES = define_enum(:role, [:ADMIN, :OPERATOR, :VIEWER])
 
@@ -36,7 +36,7 @@ class User < ActiveRecord::Base
           active: false,
           uid: auth['id'],
           email: 'api@example.com',
-          name: auth['name'],
+          login: auth['name'],
           password: Devise.friendly_token[0,20],
           provider: :oauth_provider,
           oauth_token: auth['token'],
@@ -46,7 +46,7 @@ class User < ActiveRecord::Base
         user.save!
       else
         user.update_attributes({
-          name: auth['name'],
+          login: auth['name'],
           password: Devise.friendly_token[0,20],
           oauth_token: auth['token'],
           oauth_expires_at: Time.now + 5.minutes
@@ -62,7 +62,7 @@ class User < ActiveRecord::Base
           active: false,
           uid: auth.uid,
           email: auth.info.email,
-          name: auth.info.name,
+          login: auth.info.name,
           password: Devise.friendly_token[0,20],
           provider: :oauth_provider,
           oauth_token: auth.credentials.token,
@@ -74,7 +74,7 @@ class User < ActiveRecord::Base
         user.update_attributes({
           uid: auth.uid,
           email: auth.info.email,
-          name: auth.info.name,
+          login: auth.info.name,
           password: Devise.friendly_token[0,20],
           oauth_token: auth.credentials.token,
           oauth_expires_at: Time.at(auth.credentials.expires_at)

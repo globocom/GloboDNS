@@ -13,8 +13,8 @@
       %tbody
         - unless GloboDns::Application.config.omniauth
           %tr
-            %td= f.label :name, t(:label_user_name)
-            %td= f.text_field :name
+            %td= f.label :login, t(:label_user_login)
+            %td= f.text_field :login
             %td &nbsp;
 
         %tr

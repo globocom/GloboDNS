@@ -14,7 +14,7 @@
         <% if current_user %>
           <div class="status">
             <span>
-              <%= t(:logged_user, :user => current_user.name) %>
+              <%= t(:logged_user, :user => current_user.login) %>
             </span>
             <% unless GloboDns::Application.config.omniauth %>
               <span>

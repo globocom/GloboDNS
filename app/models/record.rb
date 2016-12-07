@@ -39,6 +39,7 @@ class Record < ActiveRecord::Base
     validate                   :validate_name_format,                       :unless => :importing?
     validate                   :validate_recursive_subdomains,              :unless => :importing?
     validate                   :validate_same_record,                       :unless => :importing?
+    validate                   :validate_txt,                               :unless => :importing?
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
@@ -219,7 +220,7 @@ class Record < ActiveRecord::Base
 
     def validate_name_cname
         if self.type == 'CNAME' # check if the new cname record matches a old record name
-            if record = Record.where('name' => self.name, 'domain_id' => self.domain_id).first
+            if record = Record.where('id != ?', self.id).where('name' => self.name, 'domain_id' => self.domain_id).first
                 self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
                 return 
             end
@@ -236,7 +237,7 @@ class Record < ActiveRecord::Base
         return if self.name.blank? || self.name == '@'
 
         self.name.split('.').each_with_index do |part, index|
-            if self.type == "SRV"
+            if self.type == "SRV" or self.type == "TXT"
                 unless (index == 0 && part == '*') || part =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9\-_]{,63}(?<!-)$/
                     self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
                     return
@@ -284,6 +285,10 @@ class Record < ActiveRecord::Base
         if domain = Domain.where(conditions).first
             self.errors.add(:name, I18n.t('recursive_subdomain', :domain => domain.name, :scope => 'activerecord.errors.messages'))
         end
+    end
+
+    def validate_txt
+        self.errors.add(:content, "Excede o tamanho limite (255)") if self.content.size > 255
     end
     
     # Checks if this record is a replica of another
