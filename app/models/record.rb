@@ -289,7 +289,12 @@ class Record < ActiveRecord::Base
     end
 
     def validate_txt
-        self.errors.add(:content, "Excede o tamanho limite (255)") if self.content.size > 255
+        # self.errors.add(:content, "Excede o tamanho limite (255)") if self.content.size > 255
+        strings = self.content.split("\"\"")
+        strings.each do |s|
+            self.errors.add(:content, "String excede o tamanho limite (255)") if s.sub("\"","").size > 255
+        end
+
     end
     
     # Checks if this record is a replica of another
