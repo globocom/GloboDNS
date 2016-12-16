@@ -40,6 +40,7 @@ class Record < ActiveRecord::Base
     validate                   :validate_recursive_subdomains,              :unless => :importing?
     validate                   :validate_same_record,                       :unless => :importing?
     validate                   :validate_txt,                               :unless => :importing?
+    validate                   :check_cname_content
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
@@ -219,7 +220,7 @@ class Record < ActiveRecord::Base
     end
 
     def validate_name_cname
-        self.id ||= 0
+        # self.id ||= 0
         if self.type == 'CNAME' # check if the new cname record matches a old record name
             if record = Record.where(name: self.name, domain_id: self.domain_id).where("id != ?", self.id).first
                 self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
@@ -295,6 +296,21 @@ class Record < ActiveRecord::Base
             self.errors.add(:content, "String excede o tamanho limite (255)") if s.sub("\"","").size > 255
         end
 
+    end
+
+    def check_cname_content 
+        unless self.type != "CNAME"
+            if self.content.ends_with? "."
+                begin
+                    http = Net::HTTP.start(self.content[0..self.content.length-2])
+                rescue
+                    self.errors.add(:content, "Content não responde") unless http
+                end
+            else
+                records = self.domain.records.map{|r| r.name}
+                self.errors.add(:content, "Content não existe na zona") unless records.include? self.content
+            end
+        end
     end
     
     # Checks if this record is a replica of another
