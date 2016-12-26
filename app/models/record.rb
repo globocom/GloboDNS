@@ -220,14 +220,14 @@ class Record < ActiveRecord::Base
     end
 
     def validate_name_cname
-        # self.id ||= 0
+        id = self.id || 0
         if self.type == 'CNAME' # check if the new cname record matches a old record name
-            if record = Record.where(name: self.name, domain_id: self.domain_id).where("id != ?", self.id).first
+            if record = Record.where(name: self.name, domain_id: self.domain_id).where("id != ?", id).first
                 self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
-                return 
+                return
             end
         else # check if there is a CNAME record with the new record name
-            if record = Record.where('id != ?', self.id).where('type = ?', 'CNAME').where('name' => self.name, 'domain_id' => self.domain_id).first
+            if record = Record.where('id != ?', id).where('type = ?', 'CNAME').where('name' => self.name, 'domain_id' => self.domain_id).first
                 self.errors.add(:name, I18n.t('cname_name_taken', :name => self.name, :scope => 'activerecord.errors.messages'))
                 return
             end
