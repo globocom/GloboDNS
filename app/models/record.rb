@@ -290,10 +290,9 @@ class Record < ActiveRecord::Base
     end
 
     def validate_txt
-        # self.errors.add(:content, "Excede o tamanho limite (255)") if self.content.size > 255
         strings = self.content.split("\"\"")
         strings.each do |s|
-            self.errors.add(:content, "String excede o tamanho limite (255)") if s.sub("\"","").size > 255
+            self.errors.add(:content, I18n.t('string_txt_exceeds', :scope => 'activerecord.errors.messages')) if s.sub("\"","").size > 255
         end
 
     end
@@ -306,13 +305,13 @@ class Record < ActiveRecord::Base
                         http = Net::HTTP.start(self.content[0..self.content.length-2])
                     }
                 rescue Timeout::Error => e
-                    self.errors.add(:content, "\"#{self.content}\" está levando muito tempo para responder")
+                    self.errors.add(:content, I18n.t('cname_content_timeout', content: self.content, :scope => 'activerecord.errors.messages'))
                 rescue
-                    self.errors.add(:content, "\"#{self.content}\" não responde") unless status
+                    self.errors.add(:content, I18n.t('cname_content_fqdn_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless status
                 end
             else
                 records = self.domain.records.map{|r| r.name}
-                self.errors.add(:content, "\"#{self.content}\" não existe na zona") unless records.include? self.content
+                self.errors.add(:content, I18n.t('cname_content_record_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless records.include? self.content
             end
         end
     end
