@@ -233,7 +233,7 @@ class Record < ActiveRecord::Base
             end
         end
     end
-
+ 
     def validate_name_format
         # default implementation: validation of 'hostnames'
         return if self.name.blank? || self.name == '@'
@@ -302,13 +302,17 @@ class Record < ActiveRecord::Base
         unless self.type != "CNAME"
             if self.content.ends_with? "."
                 begin
-                    http = Net::HTTP.start(self.content[0..self.content.length-2])
+                    status = Timeout::timeout(1) {
+                        http = Net::HTTP.start(self.content[0..self.content.length-2])
+                    }
+                rescue Timeout::Error => e
+                    self.errors.add(:content, "\"#{self.content}\" está levando muito tempo para responder")
                 rescue
-                    self.errors.add(:content, "Content não responde") unless http
+                    self.errors.add(:content, "\"#{self.content}\" não responde") unless status
                 end
             else
                 records = self.domain.records.map{|r| r.name}
-                self.errors.add(:content, "Content não existe na zona") unless records.include? self.content
+                self.errors.add(:content, "\"#{self.content}\" não existe na zona") unless records.include? self.content
             end
         end
     end
