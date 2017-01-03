@@ -298,16 +298,14 @@ class Record < ActiveRecord::Base
     end
 
     def check_cname_content 
-        unless self.type != "CNAME"
+        if self.type == "CNAME"
             if self.content.ends_with? "."
+                dns = Resolv::DNS.new
+                url = self.content[0..self.content.length-2]
                 begin
-                    status = Timeout::timeout(1) {
-                        http = Net::HTTP.start(self.content[0..self.content.length-2])
-                    }
-                rescue Timeout::Error => e
-                    self.errors.add(:content, I18n.t('cname_content_timeout', content: self.content, :scope => 'activerecord.errors.messages'))
+                    dns.getaddress(url)
                 rescue
-                    self.errors.add(:content, I18n.t('cname_content_fqdn_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless status
+                    self.errors.add(:content, I18n.t('cname_content_fqdn_invalid', content: self.content, :scope => 'activerecord.errors.messages'))
                 end
             else
                 records = self.domain.records.map{|r| r.name}
