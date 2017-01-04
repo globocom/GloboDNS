@@ -51,7 +51,7 @@
     #sibling-records
       %h1= link_to t("records_for_sibling_domain"), @sibling
       .records-search-bar
-        = form_tag(domain_records_path(@sibling), :remote => true, :method => :get, :class => 'records-search-form') do
+        = form_tag(domain_path(@sibling), :method => :get) do
           = text_field_tag :query, '', :class => 'search-field', :data => {'help' => 'help-records-search'}
           %span.search-icon
       %div.clearer
@@ -61,7 +61,7 @@
   #domain-records
     %h1= t(:title_records)
     .records-search-bar
-      = form_tag(domain_records_path(@domain), :remote => true, :method => :get, :class => 'records-search-form') do
+      = form_tag(domain_path(@domain), :method => :get) do
         = text_field_tag :query, '', :class => 'search-field', :data => {'help' => 'help-records-search'}
         %span.search-icon
     %div.clearer
