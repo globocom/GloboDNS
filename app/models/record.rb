@@ -301,7 +301,7 @@ class Record < ActiveRecord::Base
         if self.type == "CNAME"
             if self.content.ends_with? "."
                 dns = Resolv::DNS.new
-                url = self.content[0..self.content.length-2]
+                url = self.content[0...-1]
                 begin
                     dns.getaddress(url)
                 rescue
