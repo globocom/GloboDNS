@@ -34,6 +34,17 @@ class AuditsController < ApplicationController
             user = User.where("email like :email", email: "%#{params[:audit_user]}%").first if user.nil?
             @audits = @audits.where(user: user)
         end
+        if params[:audit_content] && params[:audit_content] != ""
+            ids = []
+            @audits.each do |a|
+                if a.action == "update"
+                    ids.push(a.id) if a['audited_changes']['content'].include? params[:audit_content]
+                else
+                    ids.push(a.id) if a['audited_changes']['content'] == params[:audit_content]
+                end
+            end
+            @audits = @audits.where({id: ids})
+        end
         if params[:audit_record] && params[:audit_record] != ""
             ids = []
             @audits.where(auditable_type: "Record").each do |a|
