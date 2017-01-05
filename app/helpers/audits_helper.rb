@@ -15,6 +15,17 @@
 
 module AuditsHelper
 
+  def updated_changes (audit)
+    if audit.action == "update"
+      changes = audit.audited_changes
+      record = Record.find(audit.auditable_id).attributes # remover content
+      record.delete("content")
+      changes.merge(record)
+    else
+      audit.audited_changes
+    end
+  end
+
   def parenthesize( text )
     "(#{text})"
   end
