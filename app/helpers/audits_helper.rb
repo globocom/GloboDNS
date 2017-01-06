@@ -19,7 +19,9 @@ module AuditsHelper
     if audit.action == "update"
       changes = audit.audited_changes
       record = Record.find(audit.auditable_id).attributes # remover content
-      record.delete("content")
+      changes.keys.each do |key|
+        record.delete(key)
+      end
       changes.merge(record)
     else
       audit.audited_changes
