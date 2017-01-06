@@ -103,6 +103,11 @@ en:
         record_same_name_and_type: "Another %{type} record named \"%{name}\" already exists (content: \"%{content}\")"
         recursive_subdomain: "Subdomain \"%{domain}\" is already defined; the record must be added directly to it."
         records_unreachable_by_domain: "Existing records will be concealed and thus unreachable by this domain (%{records})"
+        string_txt_exceeds: "String exceeds size limit (255)"
+        cname_content_timeout: "\"%{content}\" is taking too long to respond"
+        cname_content_fqdn_invalid: "\"%{content}\" is not responding"
+        cname_content_record_invalid: "\"%{content}\" doesn't exist in this zone"
+
 
 # Generic texts
   generic_save: "Save"

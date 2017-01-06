@@ -21,6 +21,9 @@ class UsersController < ApplicationController
 
     def index
         @users = User.all
+        if params[:user_query]
+            @users = User.where("login like :login or email like :email", login: "%#{params[:user_query]}%", email: "%#{params[:user_query]}%") 
+        end
         @users = @users.paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
         respond_with(@users) do |format|
             format.html { render :partial => 'list', :object => @users, :as => :users if request.xhr? }

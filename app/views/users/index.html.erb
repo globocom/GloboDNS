@@ -1,0 +1,21 @@
+<h1><%= t :title_users %></h1>
+<%= render :partial => 'list', :object => @users, :as => :users%>
+
+<%= button_tag t(:label_add_user).titleize, :class => 'new-user-button ui-icon-plus' %>
+<%= render :partial => 'new', :object => User.new, :as => :user%>
+
+<h1> Filter: </h1>  
+<p>
+<%= form_tag(users_path, { :method => :get }) do %>
+  <table>
+   <tr>
+      <td><%= text_field_tag :user_query, params[:user_query], :class => 'search-field' %> <i>(login or email)</i>
+    </tr>
+    <tr><td>&nbsp</td></tr>
+    <tr>
+      <td><%= button_tag "Filter", :class => 'ui-icon-search' %></td>
+    </tr>
+  </table>
+<% end %>
+
+ 

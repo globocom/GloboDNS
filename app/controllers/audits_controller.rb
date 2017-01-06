@@ -34,6 +34,19 @@ class AuditsController < ApplicationController
             user = User.where("email like :email", email: "%#{params[:audit_user]}%").first if user.nil?
             @audits = @audits.where(user: user)
         end
+        if params[:audit_content] && params[:audit_content] != ""
+            ids = []
+            @audits.each do |a|
+                if a.action == "update" and a['audited_changes'].keys.include? 'content'
+                    a['audited_changes']['content'].each do |c|
+                        ids.push(a.id) if c.include? params[:audit_content]
+                    end
+                else
+                    ids.push(a.id) if a['audited_changes']['content'] == params[:audit_content]
+                end
+            end
+            @audits = @audits.where({id: ids})
+        end
         if params[:audit_record] && params[:audit_record] != ""
             ids = []
             @audits.where(auditable_type: "Record").each do |a|
@@ -51,15 +64,20 @@ class AuditsController < ApplicationController
         if params[:audit_domain] && params[:audit_domain] != ""
             ids = []
             domain_id = 0
-            # audits do domain buscado
-            @audits.where(auditable_type: "Domain").each do |a|
-                ids.push(a.id) if a['audited_changes']['name'] == params[:audit_domain]
-            end
-            # audits de records do domain buscado
             if domain = Domain.where(name: params[:audit_domain]).first
                 # o dominio buscado ainda existe no banco de dados
                 @audits.where(auditable_type: "Record").each do |a|
-                    ids.push(a.id) if a['audited_changes']['domain_id'] == domain.id
+                    id = a['audited_changes']['domain_id'] || a.associated_id
+                    ids.push(a.id) if id == domain.id
+                end
+                @audits.where(auditable_type: "Domain").each do |a|
+                    if a.associated_id?
+                        ids.push(a.id) if a.associated_id == domain.id
+                    elsif !a['audited_changes']['name'].nil?
+                        ids.push(a.id) if a['audited_changes']['name'] == params[:audit_domain]
+                    else
+                        ids.push(a.id) if Record.find(a.auditable_id).domain.id == domain.id
+                    end
                 end
             else
                 # procura a id do dominio nos logs dos domains deletados
@@ -73,7 +91,17 @@ class AuditsController < ApplicationController
                 # o dominio buscado foi deletado
                 if domain_id != 0
                     @audits.where(auditable_type: "Record").each do |a|
-                        ids.push(a.id) if a['audited_changes']['domain_id'] == domain_id
+                        id = a['audited_changes']['domain_id'] || a.associated_id
+                        ids.push(a.id) if id == domain_id
+                    end
+                    @audits.where(auditable_type: "Domain").each do |a|
+                        if a.associated_id?
+                            ids.push(a.id) if a.associated_id == domain_id
+                        elsif !a['audited_changes']['name'].nil?
+                            ids.push(a.id) if a['audited_changes']['name'] == params[:audit_domain]
+                        else
+                            ids.push(a.id) if Record.find(a.auditable_id).domain.id == domain_id
+                        end
                     end
                 # dominio nunca existiu
                 else

@@ -40,6 +40,7 @@ class Record < ActiveRecord::Base
     validate                   :validate_recursive_subdomains,              :unless => :importing?
     validate                   :validate_same_record,                       :unless => :importing?
     validate                   :validate_txt,                               :unless => :importing?
+    validate                   :check_cname_content
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
@@ -219,19 +220,20 @@ class Record < ActiveRecord::Base
     end
 
     def validate_name_cname
+        id = self.id || 0
         if self.type == 'CNAME' # check if the new cname record matches a old record name
-            if record = Record.where('id != ?', self.id).where('name' => self.name, 'domain_id' => self.domain_id).first
+            if record = Record.where(name: self.name, domain_id: self.domain_id).where("id != ?", id).first
                 self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
-                return 
+                return
             end
         else # check if there is a CNAME record with the new record name
-            if record = Record.where('type = ?', 'CNAME').where('name' => self.name, 'domain_id' => self.domain_id).first
+            if record = Record.where('id != ?', id).where('type = ?', 'CNAME').where('name' => self.name, 'domain_id' => self.domain_id).first
                 self.errors.add(:name, I18n.t('cname_name_taken', :name => self.name, :scope => 'activerecord.errors.messages'))
                 return
             end
         end
     end
-
+ 
     def validate_name_format
         # default implementation: validation of 'hostnames'
         return if self.name.blank? || self.name == '@'
@@ -288,7 +290,28 @@ class Record < ActiveRecord::Base
     end
 
     def validate_txt
-        self.errors.add(:content, "Excede o tamanho limite (255)") if self.content.size > 255
+        strings = self.content.split("\"\"")
+        strings.each do |s|
+            self.errors.add(:content, I18n.t('string_txt_exceeds', :scope => 'activerecord.errors.messages')) if s.sub("\"","").size > 255
+        end
+
+    end
+
+    def check_cname_content 
+        if self.type == "CNAME"
+            if self.content.ends_with? "."
+                dns = Resolv::DNS.new
+                url = self.content[0...-1]
+                begin
+                    dns.getaddress(url)
+                rescue
+                    self.errors.add(:content, I18n.t('cname_content_fqdn_invalid', content: self.content, :scope => 'activerecord.errors.messages'))
+                end
+            else
+                records = self.domain.records.map{|r| r.name}
+                self.errors.add(:content, I18n.t('cname_content_record_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless records.include? self.content
+            end
+        end
     end
     
     # Checks if this record is a replica of another
