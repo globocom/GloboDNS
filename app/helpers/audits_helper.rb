@@ -17,12 +17,16 @@ module AuditsHelper
 
   def updated_changes (audit)
     if audit.action == "update"
-      changes = audit.audited_changes
-      record = Record.find(audit.auditable_id).attributes # remover content
-      changes.keys.each do |key|
-        record.delete(key)
+      begin
+        changes = audit.audited_changes
+        record = Record.find(audit.auditable_id).attributes # remover content
+        changes.keys.each do |key|
+          record.delete(key)
+        end
+        changes.merge(record)
+      rescue
+        audit.audited_changes
       end
-      changes.merge(record)
     else
       audit.audited_changes
     end
