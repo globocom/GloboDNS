@@ -37,8 +37,10 @@ class AuditsController < ApplicationController
         if params[:audit_content] && params[:audit_content] != ""
             ids = []
             @audits.each do |a|
-                if a.action == "update"
-                    ids.push(a.id) if a['audited_changes']['content'].include? params[:audit_content]
+                if a.action == "update" and a['audited_changes'].keys.include? 'content'
+                    a['audited_changes']['content'].each do |c|
+                        ids.push(a.id) if c.include? params[:audit_content]
+                    end
                 else
                     ids.push(a.id) if a['audited_changes']['content'] == params[:audit_content]
                 end
