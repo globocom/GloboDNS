@@ -19,7 +19,7 @@ module AuditsHelper
     if audit.action == "update"
       begin
         changes = audit.audited_changes
-        record = Record.find(audit.auditable_id).attributes # remover content
+        record = Record.find(audit.auditable_id).attributes.except('created_at', 'updated_at') 
         changes.keys.each do |key|
           record.delete(key)
         end
