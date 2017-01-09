@@ -40,6 +40,8 @@ class Record < ActiveRecord::Base
     validate                   :validate_recursive_subdomains,              :unless => :importing?
     validate                   :validate_same_record,                       :unless => :importing?
     validate                   :validate_txt,                               :unless => :importing?
+    validate                   :check_cname_content
+    validate                   :check_a_content
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
@@ -148,11 +150,11 @@ class Record < ActiveRecord::Base
     def supports_weight?
         false
     end
-    
+
     def supports_port?
         false
     end
-    
+
     def url
         if self.name != '@'
             "#{self.name}.#{self.domain.name}"
@@ -168,7 +170,7 @@ class Record < ActiveRecord::Base
     def responding_from_dns_server ip
         conn = Resolv::DNS.new(:nameserver => ip)
         begin
-            conn.getaddress(url).to_s 
+            conn.getaddress(url).to_s
         rescue
         end
     end
@@ -176,7 +178,7 @@ class Record < ActiveRecord::Base
     def resolve
         success = []
         failed = []
-        begin 
+        begin
             servers_extra = GloboDns::Config::ADDITIONAL_DNS_SERVERS.sub(/[\[\]\,]/, "").split
         rescue
             servers_extra = []
@@ -297,7 +299,7 @@ class Record < ActiveRecord::Base
             end
         end
     end
- 
+
     def validate_name_format
         # default implementation: validation of 'hostnames'
         return if self.name.blank? || self.name == '@'
@@ -362,7 +364,7 @@ class Record < ActiveRecord::Base
         end
     end
 
-    def check_cname_content 
+    def check_cname_content
         if self.type == "CNAME"
             if self.content.ends_with? "."
                 dns = Resolv::DNS.new
@@ -380,7 +382,7 @@ class Record < ActiveRecord::Base
         return
     end
 
-    def check_a_content 
+    def check_a_content
         if self.type == "A"
             p = Net::Ping::External.new self.content
             self.warnings.add(:content, I18n.t('a_content_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless p.ping?
@@ -388,7 +390,7 @@ class Record < ActiveRecord::Base
 
         return
     end
-    
+
     # Checks if this record is a replica of another
     def same_as? other_record
       self.name    == other_record.name &&

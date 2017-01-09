@@ -107,6 +107,7 @@ en:
         cname_content_timeout: "\"%{content}\" is taking too long to respond"
         cname_content_fqdn_invalid: "\"%{content}\" is not responding"
         cname_content_record_invalid: "\"%{content}\" doesn't exist in this zone"
+        a_content_invalid: "\"%{content}\" is not responding"
 
 
 # Generic texts
