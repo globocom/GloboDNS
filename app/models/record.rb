@@ -41,6 +41,7 @@ class Record < ActiveRecord::Base
     validate                   :validate_same_record,                       :unless => :importing?
     validate                   :validate_txt,                               :unless => :importing?
     validate                   :check_cname_content
+    validate                   :check_a_content
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
@@ -310,6 +311,18 @@ class Record < ActiveRecord::Base
             else
                 records = self.domain.records.map{|r| r.name}
                 self.errors.add(:content, I18n.t('cname_content_record_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless records.include? self.content
+            end
+        end
+    end
+
+    def check_a_content 
+        if self.type == "A"
+            begin
+                status = Timeout::timeout(2) {
+                    http = Net::HTTP.start(self.content)
+                }
+            rescue
+                self.errors.add(:content, I18n.t('a_content_invalid', content: self.content, :scope => 'activerecord.errors.messages'))
             end
         end
     end
