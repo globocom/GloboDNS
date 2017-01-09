@@ -58,12 +58,12 @@ class Exporter
         end
 
         syslog_info('export successful')
-        Notifier.export_successful(@logger.string).deliver if @something_exported
+        Notifier.export_successful(@logger.string).deliver_now if @something_exported
     rescue Exception => e
         @logger.error(e.to_s + e.backtrace.join("\n"))
 
         syslog_error('export failed')
-        Notifier.export_failed("#{e}\n\n#{@logger.string}\n\nBacktrace:\n#{e.backtrace.join("\n")}").deliver
+        Notifier.export_failed("#{e}\n\n#{@logger.string}\n\nBacktrace:\n#{e.backtrace.join("\n")}").deliver_now
 
         raise e
     ensure
