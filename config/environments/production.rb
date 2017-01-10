@@ -39,8 +39,9 @@ GloboDns::Application.configure do
 
 
   # Use a different logger for distributed setups
-
-  config.logger = Syslogger.new('globodns', Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_LOCAL0)
+  app_config = YAML::load_file Rails.root.join("config", "globodns.yml")
+  app_name = app_config[Rails.env]['appname'] || "globodns"
+  config.logger = Syslogger.new(app_name, Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_LOCAL0)
 
   # See everything in the log (default is :info)
   config.logger.level = Logger::DEBUG
