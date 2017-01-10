@@ -1,4 +1,5 @@
 development: &devconf
+    appname: 'globodns'
     bind:
       master:
         user:            'globodns'
