@@ -26,6 +26,7 @@ gem 'whenever',             '0.9.4'
 gem 'devise-encryptable'
 gem 'protected_attributes'
 gem 'rest-client'
+gem 'net-ping'
 
 group :assets do
     gem 'sass-rails',		'~>5.0.4'
