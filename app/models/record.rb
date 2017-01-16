@@ -318,13 +318,8 @@ class Record < ActiveRecord::Base
 
     def check_a_content 
         if self.type == "A"
-            begin
-                status = Timeout::timeout(2) {
-                    http = Net::HTTP.start(self.content)
-                }
-            rescue
-                self.errors.add(:content, I18n.t('a_content_invalid', content: self.content, :scope => 'activerecord.errors.messages'))
-            end
+            p = Net::Ping::External.new self.content
+            self.warnings.add(:content, I18n.t('a_content_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless p.ping?
         end
 
         return
