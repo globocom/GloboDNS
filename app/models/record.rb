@@ -40,12 +40,12 @@ class Record < ActiveRecord::Base
     validate                   :validate_recursive_subdomains,              :unless => :importing?
     validate                   :validate_same_record,                       :unless => :importing?
     validate                   :validate_txt,                               :unless => :importing?
-    validate                   :check_cname_content
-    validate                   :check_a_content
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
         scope.validate :validate_same_name_and_type
+        scope.validate :check_cname_content
+        scope.validate :check_a_content
     end
 
     class_attribute :batch_soa_updates
@@ -306,13 +306,14 @@ class Record < ActiveRecord::Base
                 begin
                     dns.getaddress(url)
                 rescue
-                    self.errors.add(:content, I18n.t('cname_content_fqdn_invalid', content: self.content, :scope => 'activerecord.errors.messages'))
+                    self.warnings.add(:content, I18n.t('cname_content_fqdn_invalid', content: self.content, :scope => 'activerecord.errors.messages'))
                 end
             else
                 records = self.domain.records.map{|r| r.name}
-                self.errors.add(:content, I18n.t('cname_content_record_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless records.include? self.content
+                self.warnings.add(:content, I18n.t('cname_content_record_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless records.include? self.content
             end
         end
+        return
     end
 
     def check_a_content 
@@ -325,6 +326,8 @@ class Record < ActiveRecord::Base
                 self.errors.add(:content, I18n.t('a_content_invalid', content: self.content, :scope => 'activerecord.errors.messages'))
             end
         end
+
+        return
     end
     
     # Checks if this record is a replica of another
