@@ -1,6 +1,10 @@
 # Changelog
 
-## [1.5.12](https://github.com/globocom/GloboDNS/releases/tag/1.5.12) (05/01/17)
+## [1.5.14](https://github.com/globocom/GloboDNS/releases/tag/1.5.14) (19/01/17)
+##### - Enhancements
+ * Support to use a different master ip in slaves.conf configurations
+
+## [1.5.13](https://github.com/globocom/GloboDNS/releases/tag/1.5.13) (06/01/17)
 ##### - Bug fixes
  * CNAME validation
  * Records list pagination when querying
