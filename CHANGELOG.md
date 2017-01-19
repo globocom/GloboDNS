@@ -1,10 +1,10 @@
 # Changelog
 
 ## [1.5.19](https://github.com/globocom/GloboDNS/releases/tag/1.5.19) (**/02/17)
-##### - Bug fixies 
+##### - Bug fixies
  * Validation of record TXT was being applied to all record types
  * SRV record must have 'Priority', 'Weight' and 'Port' fields
-##### - Enhancements 
+##### - Enhancements
  * Changed subject exporter/importer mailer, so that the emails received of different environments won't be agrouped
 
 ## [1.5.14](https://github.com/globocom/GloboDNS/releases/tag/1.5.14) (19/01/17)
@@ -23,7 +23,7 @@
 
 ## [1.5.11](https://github.com/globocom/GloboDNS/releases/tag/1.5.11) (30/09/16)
 ##### - Enhancements
- * Add 'day' to time log filter 
+ * Add 'day' to time log filter
  * User login and email are now only one text input
 
 
@@ -35,9 +35,9 @@
 ## [1.5.9](https://github.com/globocom/GloboDNS/releases/tag/1.5.9) (23/09/16)
 ##### - Bug fixes
  * Email notifing of import success or failure
- 
 
-##### - Enhancements 
+
+##### - Enhancements
  * User of type'Operator' cannot delete Domains
 
 
@@ -52,8 +52,6 @@
  * Fixed SOA editing
  * Workaround for when the serial of the zone changes more than 100 times on the same day
 
-##### - Enhancements 
+##### - Enhancements
  * Included changes and settings to optional use of OAuth login
  * Bind Views settings
-
-
