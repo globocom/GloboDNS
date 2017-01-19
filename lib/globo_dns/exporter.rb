@@ -90,7 +90,7 @@ class Exporter
             :zones_dir       => Bind::Slaves[index]::ZONES_DIR,
             :named_conf_file => Bind::Slaves[index]::NAMED_CONF_FILE
         }
-        export(named_conf_content, Bind::Slaves[index]::EXPORT_CHROOT_DIR, bind_server_data, slave = true, options.merge(:label => "slave#{index+1}"))
+        export(named_conf_content, Bind::Slaves[index]::EXPORT_CHROOT_DIR, bind_server_data, slave = true, options.merge(:label => "slave#{index+1}", :index => index))
     end
 
     def export(named_conf_content, chroot_dir, bind_server_data, slave, options = {})
@@ -136,16 +136,15 @@ class Exporter
         export_named_conf(named_conf_content, tmp_dir, zones_root_dir, named_conf_file)
 
         # export all views
-        export_views(tmp_dir, zones_root_dir)
+        export_views(tmp_dir, zones_root_dir, options)
 
         new_zones = []
-
         # export each view-less domain group to a separate file
         if @slave == true
-            export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    [], true)
-            export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  [], true)
-            export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.master_or_reverse_or_slave)
-            export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward)
+            export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    [], true, options)
+            export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  [], true, options)
+            export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.master_or_reverse_or_slave, false, options)
+            export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward, false, options)
         else
             new_zones_noreverse = export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    Domain.noview.master)
             new_zones_reverse   = export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  Domain.noview._reverse)
@@ -224,7 +223,7 @@ class Exporter
         #File.utime(@touch_timestamp, @touch_timestamp, abs_named_conf_file)
     end
 
-    def export_views(chroot_dir, zones_root_dir)
+    def export_views(chroot_dir, zones_root_dir, options = {})
         abs_zones_root_dir = File.join(chroot_dir, zones_root_dir)
         abs_views_dir = File.join(chroot_dir, zones_root_dir, '/views')
         abs_views_file     = File.join(abs_zones_root_dir, VIEWS_FILE)
@@ -236,10 +235,10 @@ class Exporter
                 file.puts view.to_bind9_conf(zones_root_dir)
                 if @slave == true
                     #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                                  , export_all_domains
-                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                                       , true)
-                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                                       , true)
-                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.master_or_reverse_or_slave  , view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , true)
+                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                                       , true                                      , options)
+                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                                       , true                                      , options)
+                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.master_or_reverse_or_slave  , view.updated_since?(@last_commit_date)    , options)
+                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , true                                      , options)
                 else
                     #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                                  , export_all_domains
                     export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , view.domains.master                      , view.updated_since?(@last_commit_date))
@@ -253,7 +252,7 @@ class Exporter
         #File.utime(@touch_timestamp, @touch_timestamp, abs_views_file)
     end
 
-    def export_domain_group(chroot_dir, zones_root_dir, file_name, dir_name, domains, export_all_domains = false)
+    def export_domain_group(chroot_dir, zones_root_dir, file_name, dir_name, domains, export_all_domains = false, options = {})
         # abs stands for absolute
         abs_zones_root_dir = File.join(chroot_dir, zones_root_dir)
         abs_file_name      = File.join(abs_zones_root_dir, file_name)
@@ -308,7 +307,7 @@ class Exporter
                         domain.master += " key #{domain.query_key_name}" if domain.query_key_name
                     end
                 end
-                file.puts domain.to_bind9_conf(zones_root_dir)
+                file.puts domain.to_bind9_conf(zones_root_dir, '', options)
             end
         end
 

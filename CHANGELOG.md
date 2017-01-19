@@ -1,5 +1,22 @@
 # Changelog
 
+<<<<<<< HEAD
+=======
+## [1.5.14](https://github.com/globocom/GloboDNS/releases/tag/1.5.14) (19/01/17)
+##### - Enhancements
+ * Support to use a different master ip in slaves.conf configurations
+
+## [1.5.13](https://github.com/globocom/GloboDNS/releases/tag/1.5.13) (06/01/17)
+##### - Bug fixes
+ * CNAME validation
+ * Records list pagination when querying
+##### - Enhancements
+ * TXT content validation - content must be strings of 255 caracters or less
+ * CNAME content validation - content should be a record of its zone or a valid FQDN
+ * Users search
+ * Search audits by content
+ 
+>>>>>>> 10c0d8c... Supporting use of different master ip on slaves.conf configuration
 ## [1.5.11](https://github.com/globocom/GloboDNS/releases/tag/1.5.11) (30/09/16)
 ##### - Enhancements
  * Add 'day' to time log filter 

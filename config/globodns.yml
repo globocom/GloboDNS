@@ -1,6 +1,7 @@
 development: &devconf
     bind:
       master:
+        # ipaddr_external: '1.2.3.4' # if use a special ip for master for any slave (optional)
         user:            'globodns'
         host:            'master'
         ipaddr:          '192.168.0.100'
@@ -23,6 +24,7 @@ development: &devconf
           named_conf_file:  '/etc/named/named.conf'  # must be inside zones_dir
           named_conf_link:  '/etc/named.conf'  # can be anywhere
           export_chroot_dir: <%= Rails.root.join('tmp', 'named', 'chroot_slave1') %>
+          # masters_external_ip: true # if slave use a different ip for communicate to master, this setting should be set to true
 
         - user:             'globodns'
           host:             'slave1' ### empty means you don't have slave
@@ -34,6 +36,7 @@ development: &devconf
           named_conf_file:  '/etc/named/named.conf'  # must be inside zones_dir
           named_conf_link:  '/etc/named.conf'  # can be anywhere
           export_chroot_dir: <%= Rails.root.join('tmp', 'named', 'chroot_slave2') %>
+          # masters_external_ip: true # if slave use a different ip for communicate to master, this setting should be set to true
 
     bind_user:                   'named'
     bind_group:                  'named'
