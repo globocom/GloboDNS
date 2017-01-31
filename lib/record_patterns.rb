@@ -22,7 +22,7 @@ module RecordPatterns
   end
 
   def hostname?( value )
-    value =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?<!-)$/
+    value =~ /^(?![0-9]+$)(?!-)[_\-.a-zA-Z0-9-]{,63}(?<!-)$/
   end
 
   def ip?( value )
