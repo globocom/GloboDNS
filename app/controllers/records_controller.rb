@@ -77,10 +77,10 @@ class RecordsController < ApplicationController
 
     def resolve
         @record = Record.find(params[:id])
-        @master_response, @slave_response = @record.resolve
+        @response = @record.resolve
         respond_to do |format|
             format.html { render :partial => 'resolve' } if request.xhr?
-            format.json { render :json => {'master' => @master_response, 'slave' => @slave_response}.to_json }
+            # format.json { render :json => {'master' => @master_response, 'slave' => @slave_response}.to_json }
         end
     end
 end

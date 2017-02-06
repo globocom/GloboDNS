@@ -144,9 +144,62 @@ class Record < ActiveRecord::Base
     def supports_prio?
         false
     end
+    
+    def url
+        if self.name != '@'
+            "#{self.name}.#{self.domain.name}"
+        else
+            self.domain.name
+        end
+    end
+
+    def responding destination
+        !Net::DNS::Resolver.start(destination).answer.nil?
+    end
+
+    def responding_from_dns_server ip
+        conn = Resolv::DNS.new(:nameserver => ip)
+        begin
+            conn.getaddress(url).to_s 
+        rescue
+        end
+    end
 
     def resolve
-        [GloboDns::Resolver::MASTER.resolve(self), GloboDns::Resolver::SLAVE.resolve(self)]
+        success = []
+        failed = []
+        begin 
+            servers_extra = GloboDns::Config::ADDITIONAL_DNS_SERVERS.sub(/[\[\]\,]/, "").split
+        rescue
+            servers_extra = []
+        end
+
+        servers_extra.each do |server|
+            if res = responding_from_dns_server(server)
+                success.push({:ip => res, :server => server})
+            else
+                failed.push({:server => server})
+            end
+        end
+
+        zone_info = Net::DNS::Resolver.start self.domain.name
+        servers = zone_info.additional
+
+        servers.each do |server|
+            if res = responding_from_dns_server(server.address.to_s)
+                success.push({:ip => res, :server => server.address.to_s})
+            else
+                failed.push({:server => server.address.to_s})
+            end
+        end
+
+        return {:success => success, :failed => failed}
+
+
+        # p = Net::Ping::External.new self.content
+        # self.warnings.add(:content, I18n.t('a_content_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless p.ping?
+
+        # [GloboDns::Resolver::MASTER.resolve(self), GloboDns::Resolver::SLAVE.resolve(self)]
     end
 
     # return the Resolv::DNS resource instance, based on the 'type' column
