@@ -41,6 +41,7 @@ development: &devconf
 
     bind_user:                   'named'
     bind_group:                  'named'
+    additional_dns_servers: ['8.8.8.8', '8.8.4.4'] # additional dns servers ips to check if record is responding correctly
 
 
     bind_error_log:         '/var/named/chroot_master/var/log/globodns.error.log'

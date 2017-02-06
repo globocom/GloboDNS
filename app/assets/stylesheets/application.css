@@ -366,6 +366,18 @@ textarea#master-named-conf, textarea.slave-named-conf {
 .pagination .previous_page, .pagination .next_page {
     font-size: 11pt;
 }
+table#resolv-table {
+    width: 100%;
+    margin-bottom: 2em;
+    border-bottom: 1px solid #efefef;
+    border-collapse: collapse;
+}
+table#resolv-table td {
+    padding: .5em 0;
+}
+table#resolv-table tr.even {
+    background-color: #f7f7f7;
+}
 table#domains-table {
     width: 100%;
     margin-bottom: 2em;

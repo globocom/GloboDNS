@@ -1,0 +1,22 @@
+<h1> <%= "#{t(:label_record)}: #{@record.name} (#{t(:label_type)}: #{@record.type}, #{t(:label_content)}: #{truncate(@record.content, :length => 30)})" %></h1>
+
+<table id='resolv-table'>
+  <% @response[:success].each do |res| %>
+    <tr class=<%= cycle("odd", "even") %>>
+      <% if @record.content == res[:ip] %>
+	    <td><span class="ui-icon-ok" style="color: #189e08;"></span></td>
+	  <% else %>
+	    <td><span class="ui-icon-warning-sign" style="color: #ead721;"></span></td>
+	  <% end %>
+	  <td>responding to '<span><b><%= res[:server] %></b></span>'' with ip '<span><b><%= res[:ip] %></b></span>'<span></span><td>
+    </tr>
+  <% end %>
+
+  <% @response[:failed].each do |res| %>
+    <tr class=<%= cycle("odd", "even") %>>
+      <td><span class="ui-icon-ban-circle" style="color: #ff0000;"></span></td>
+	  <td>not responding to '<span><b><%= res[:server] %></b></span>'<td>
+    </tr>
+  <% end %>
+
+</table>
