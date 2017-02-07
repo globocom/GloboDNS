@@ -265,10 +265,10 @@ class Importer
         end
 
         syslog_info('import successful')
-        Notifier.import_successful(logger).deliver
+        Notifier.import_successful(@logger.string).deliver
     rescue Exception => e
         syslog_error 'import failed'
-        Notifier.import_failed("#{e}\n\n#{logger}\n\nBacktrace:\n#{e.backtrace.join("\n")}").deliver
+        Notifier.import_failed("#{e}\n\n#{@logger.string}\n\nBacktrace:\n#{e.backtrace.join("\n")}").deliver
         raise e
     # ensure
         # FileUtils.remove_entry_secure master_tmp_dir unless master_tmp_dir.nil? || @options[:keep_tmp_dir] == true
