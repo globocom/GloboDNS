@@ -354,11 +354,12 @@ class Record < ActiveRecord::Base
     end
 
     def validate_txt
-        strings = self.content.split("\"\"")
-        strings.each do |s|
-            self.errors.add(:content, I18n.t('string_txt_exceeds', :scope => 'activerecord.errors.messages')) if s.sub("\"","").size > 255
+        if self.type == "TXT"
+            strings = self.content.split("\"\"")
+            strings.each do |s|
+                self.errors.add(:content, I18n.t('string_txt_exceeds', :scope => 'activerecord.errors.messages')) if s.sub("\"","").size > 255
+            end
         end
-
     end
 
     def check_cname_content 
