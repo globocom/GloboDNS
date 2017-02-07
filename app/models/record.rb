@@ -26,7 +26,7 @@ class Record < ActiveRecord::Base
     belongs_to :domain, :inverse_of => :records
 
     attr_accessor :importing
-    attr_accessible :domain_id, :name, :type, :content, :ttl, :prio
+    attr_accessible :domain_id, :name, :type, :content, :ttl, :prio, :weight, :port
 
     audited :associated_with => :domain
     self.non_audited_columns.delete(self.inheritance_column) # audit the 'type' column
@@ -40,11 +40,12 @@ class Record < ActiveRecord::Base
     validate                   :validate_recursive_subdomains,              :unless => :importing?
     validate                   :validate_same_record,                       :unless => :importing?
     validate                   :validate_txt,                               :unless => :importing?
-    validate                   :check_cname_content
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
         scope.validate :validate_same_name_and_type
+        scope.validate :check_cname_content
+        scope.validate :check_a_content
     end
 
     class_attribute :batch_soa_updates
@@ -138,14 +139,75 @@ class Record < ActiveRecord::Base
     #     end
     # end
 
-    # by default records don't support priorities. Those who do can overwrite
+    # by default records don't support priorities, weight and port. Those who do can overwrite
     # this in their own classes.
     def supports_prio?
         false
     end
 
+    def supports_weight?
+        false
+    end
+    
+    def supports_port?
+        false
+    end
+    
+    def url
+        if self.name != '@'
+            "#{self.name}.#{self.domain.name}"
+        else
+            self.domain.name
+        end
+    end
+
+    def responding destination
+        !Net::DNS::Resolver.start(destination).answer.nil?
+    end
+
+    def responding_from_dns_server ip
+        conn = Resolv::DNS.new(:nameserver => ip)
+        begin
+            conn.getaddress(url).to_s 
+        rescue
+        end
+    end
+
     def resolve
-        [GloboDns::Resolver::MASTER.resolve(self), GloboDns::Resolver::SLAVE.resolve(self)]
+        success = []
+        failed = []
+        begin 
+            servers_extra = GloboDns::Config::ADDITIONAL_DNS_SERVERS.sub(/[\[\]\,]/, "").split
+        rescue
+            servers_extra = []
+        end
+
+        servers_extra.each do |server|
+            if res = responding_from_dns_server(server)
+                success.push({:ip => res, :server => server})
+            else
+                failed.push({:server => server})
+            end
+        end
+
+        zone_info = Net::DNS::Resolver.start self.domain.name
+        servers = zone_info.additional
+
+        servers.each do |server|
+            if res = responding_from_dns_server(server.address.to_s)
+                success.push({:ip => res, :server => server.address.to_s})
+            else
+                failed.push({:server => server.address.to_s})
+            end
+        end
+
+        return {:success => success, :failed => failed}
+
+
+        # p = Net::Ping::External.new self.content
+        # self.warnings.add(:content, I18n.t('a_content_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless p.ping?
+
+        # [GloboDns::Resolver::MASTER.resolve(self), GloboDns::Resolver::SLAVE.resolve(self)]
     end
 
     # return the Resolv::DNS resource instance, based on the 'type' column
@@ -210,9 +272,11 @@ class Record < ActiveRecord::Base
             #                       self.content     =~ /\s[a-fA-F0-9:]+$/                     # ipv6
 
             # FIXME: zone2sql sets prio = 0 for all records
-            prio = (self.type == 'MX' || (self.prio && (self.prio > 0)) ? self.prio : '')
+            prio = ((self.type == 'MX' or self.type == 'SRV') || (self.prio && (self.prio > 0)) ? self.prio : '')
+            weight = (self.type == 'SRV' || self.weight)? self.weight : ''
+            port = (self.type == 'SRV' || self.port)? self.port : ''
 
-        output.printf(format, self.name, self.ttl.to_s || '', self.type, prio || '', content)
+        output.printf(format, self.name, self.ttl.to_s || '', self.type, prio || '', weight || '', port || '', content)
     end
 
     def importing?
@@ -306,13 +370,23 @@ class Record < ActiveRecord::Base
                 begin
                     dns.getaddress(url)
                 rescue
-                    self.errors.add(:content, I18n.t('cname_content_fqdn_invalid', content: self.content, :scope => 'activerecord.errors.messages'))
+                    self.warnings.add(:content, I18n.t('cname_content_fqdn_invalid', content: self.content, :scope => 'activerecord.errors.messages'))
                 end
             else
                 records = self.domain.records.map{|r| r.name}
-                self.errors.add(:content, I18n.t('cname_content_record_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless records.include? self.content
+                self.warnings.add(:content, I18n.t('cname_content_record_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless records.include? self.content
             end
         end
+        return
+    end
+
+    def check_a_content 
+        if self.type == "A"
+            p = Net::Ping::External.new self.content
+            self.warnings.add(:content, I18n.t('a_content_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless p.ping?
+        end
+
+        return
     end
     
     # Checks if this record is a replica of another

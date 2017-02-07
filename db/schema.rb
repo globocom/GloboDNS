@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160613182510) do
+ActiveRecord::Schema.define(version: 20170207122634) do
 
   create_table "audits", force: :cascade do |t|
     t.integer  "auditable_id",    limit: 4
@@ -77,6 +77,8 @@ ActiveRecord::Schema.define(version: 20160613182510) do
     t.integer  "prio",               limit: 4
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "weight",             limit: 4
+    t.integer  "port",               limit: 4
   end
 
   add_index "record_templates", ["domain_template_id"], name: "fk_record_templates_domain_templates2", using: :btree
@@ -90,6 +92,8 @@ ActiveRecord::Schema.define(version: 20160613182510) do
     t.integer  "prio",       limit: 4
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "weight",     limit: 4
+    t.integer  "port",       limit: 4
   end
 
   add_index "records", ["domain_id"], name: "fk_records_domains2", using: :btree

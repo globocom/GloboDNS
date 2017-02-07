@@ -26,11 +26,21 @@
 
 class SRV < Record
     # validates_numericality_of :prio, :greater_than_or_equal_to => 0
+    validates_presence_of :prio, :weight, :port
+    validates :prio, :weight, :port, numericality: { only_integer: true }
 
-    # We support priorities
-    # def supports_prio?
-    #   true
-    # end
+    # We support priorities, weight and port
+    def supports_prio?
+      true
+    end
+
+    def supports_weight?
+      true
+    end
+
+    def supports_port?
+      true
+    end
 
     def resolv_resource_class
         Resolv::DNS::Resource::IN::SRV

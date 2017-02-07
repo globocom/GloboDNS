@@ -288,6 +288,8 @@ en:
   label_domain_record_ttl: "TTL"
   label_domain_record_type: "Type"
   label_domain_record_priority: "Priority"
+  label_domain_record_weight: "Weight"
+  label_domain_record_port: "Port"
   label_domain_record_content: "Content"
   label_dns_query: 'Test'
 
