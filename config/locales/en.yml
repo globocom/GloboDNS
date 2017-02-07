@@ -621,7 +621,7 @@ en:
 
 
 ### Mailers
-  mail_subject_import_successful: "[GloboDNS][%{dns_group}][%{env}][INFO] Import successful"
-  mail_subject_import_failed: "[GloboDNS][%{dns_group}][%{env}][ERROR] Import failed"
-  mail_subject_export_successful: "[GloboDNS][%{dns_group}][%{env}][INFO] Export successful"
-  mail_subject_export_failed: "[GloboDNS][%{dns_group}][%{env}][ERROR] Export failed"
+  mail_subject_import_successful: "[INFO] GloboDNS %{dns_group} %{env} Import successful"
+  mail_subject_import_failed: "[ERROR] GloboDNS %{dns_group} %{env} Import failed"
+  mail_subject_export_successful: "[INFO] GloboDNS %{dns_group} %{env} Export successful"
+  mail_subject_export_failed: "[ERROR] GloboDNS %{dns_group} %{env} Export failed"
