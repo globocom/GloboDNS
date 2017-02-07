@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.5.19](https://github.com/globocom/GloboDNS/releases/tag/1.5.19) (**/02/17)
+##### - Bug fixies 
+ * Validation of record TXT was being applied to all record types
+ * SRV record must have 'Priority', 'Weight' and 'Port' fields
+##### - Enhancements 
+ * Changed subject exporter/importer mailer, so that the emails received of different environments won't be agrouped
+
+## [1.5.14](https://github.com/globocom/GloboDNS/releases/tag/1.5.14) (19/01/17)
+##### - Enhancements
+ * Support to use a different master ip in slaves.conf configurations
+
 ## [1.5.13](https://github.com/globocom/GloboDNS/releases/tag/1.5.13) (06/01/17)
 ##### - Bug fixes
  * CNAME validation
@@ -9,7 +20,7 @@
  * CNAME content validation - content should be a record of its zone or a valid FQDN
  * Users search
  * Search audits by content
- 
+
 ## [1.5.11](https://github.com/globocom/GloboDNS/releases/tag/1.5.11) (30/09/16)
 ##### - Enhancements
  * Add 'day' to time log filter 
