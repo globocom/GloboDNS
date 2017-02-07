@@ -38,7 +38,7 @@ class SOA < Record
     before_validation :set_content
     after_initialize  :update_convenience_accessors
 
-    attr_accessible  :domain_id, :type, :name, :ttl, :prio, :content, *ACCESSIBLE_SOA_FIELDS
+    attr_accessible  :domain_id, :type, :name, :ttl, :prio, :content, *ACCESSIBLE_SOA_FIELDS, :importing
 
     # this allows us to have these convenience attributes act like any other
     # column in terms of validations

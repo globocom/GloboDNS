@@ -31,7 +31,6 @@ class Importer
         slaves_chroot_dirs      = options.delete(:slave_chroot_dir)       || Bind::Slaves.map { |slave| slave::CHROOT_DIR }
         slaves_named_conf_paths = options.delete(:slave_named_conf_file)  || Bind::Slaves.map { |slave| slave::NAMED_CONF_FILE }
         @logger                 = GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
-        @logger.level           = Logger::DEBUG if options[:debug]
         slaves_canonical_named_conf = []
 
         if options[:remote]
@@ -258,17 +257,19 @@ class Importer
                                               :abort_on_rndc_failure => false,
                                               :logger                => logger)
         else
-            save_config(master_config, Bind::Master::EXPORT_CHROOT_DIR, Bind::Master::ZONES_DIR, Bind::Master::NAMED_CONF_FILE, import_timestamp)
+            #save_config(master_config, Bind::Master::EXPORT_CHROOT_DIR, Bind::Master::ZONES_DIR, Bind::Master::NAMED_CONF_FILE, import_timestamp)
+            save_config(master_config, Bind::Master::EXPORT_CHROOT_DIR, File.dirname(Bind::Master::NAMED_CONF_FILE) , Bind::Master::NAMED_CONF_FILE, import_timestamp)
             Bind::Slaves.each_with_index do |slave, index|
-                save_config(slaves_configs[index],  slave::EXPORT_CHROOT_DIR,  slave::ZONES_DIR,  slave::NAMED_CONF_FILE,  import_timestamp) if SLAVE_ENABLED?
+                #save_config(slaves_configs[index],  slave::EXPORT_CHROOT_DIR,  slave::ZONES_DIR,  slave::NAMED_CONF_FILE,  import_timestamp) if SLAVE_ENABLED?
+                save_config(slaves_configs[index],  slave::EXPORT_CHROOT_DIR,  File.dirname(slave::NAMED_CONF_FILE),  slave::NAMED_CONF_FILE,  import_timestamp) if SLAVE_ENABLED?
             end
         end
 
         syslog_info('import successful')
-        Notifier.import_successful(logger).deliver
+        Notifier.import_successful(logger).deliver_now
     rescue Exception => e
         syslog_error 'import failed'
-        Notifier.import_failed("#{e}\n\n#{logger}\n\nBacktrace:\n#{e.backtrace.join("\n")}").deliver
+        Notifier.import_failed("#{e}\n\n#{logger}\n\nBacktrace:\n#{e.backtrace.join("\n")}").deliver_now
         raise e
     # ensure
         # FileUtils.remove_entry_secure master_tmp_dir unless master_tmp_dir.nil? || @options[:keep_tmp_dir] == true
@@ -288,8 +289,8 @@ class Importer
     end
 
     # saves *and commits the changes to git*
-    def save_config(content, chroot_dir, zones_dir, named_conf_file, timestamp)
-        Dir.chdir(File.join(chroot_dir, zones_dir)) do
+    def save_config(content, chroot_dir, target_dir, named_conf_file, timestamp)
+        Dir.chdir(File.join(chroot_dir, target_dir)) do
             File.open(File.basename(named_conf_file), 'w') do |file|
                 file.write(content)
                 file.puts GloboDns::Exporter::CONFIG_START_TAG

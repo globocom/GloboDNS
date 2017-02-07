@@ -4,38 +4,37 @@ development: &devconf
       master:
         # ipaddr_external: '1.2.3.4' # if use a special ip for master for any slave (optional)
         user:            'globodns'
-        host:            'master'
-        ipaddr:          '192.168.0.100'
+        host:            'dns01'
+        ipaddr:          '127.0.0.1'
         port:            53
         rndc_port:       953
         chroot_dir:      '/var/named/chroot'
-        zones_dir:       '/etc/named'
-        named_conf_file: '/etc/named/named.conf'  # must be inside zones_dir
-        named_conf_link: '/etc/named.conf'  # can be anywhere
+        zones_dir:       '/var/named' 
+        named_conf_file: "/etc/named.conf"
         export_chroot_dir:    <%= Rails.root.join('tmp', 'named', 'chroot_master') %>
 
       slaves:
         - user:             'globodns'
-          host:             'slave0' ### empty means you don't have slave
-          ipaddr:           '192.168.0.101'
-          port:             5354
-          rndc_port:        5954
-          chroot_dir:       '/var/named/chroot'
-          zones_dir:        '/etc/named'
+          host:             ''
+          #host:             'slave0' ### empty means you don't have slave
+          ipaddr:           '172.16.0.3'
+          port:             53
+          rndc_port:        954
+          chroot_dir:       '/etc/named'
+          zones_dir:        '/var/named'
+          #zones_dir:        '/etc/named'
           named_conf_file:  '/etc/named/named.conf'  # must be inside zones_dir
-          named_conf_link:  '/etc/named.conf'  # can be anywhere
           export_chroot_dir: <%= Rails.root.join('tmp', 'named', 'chroot_slave1') %>
           # masters_external_ip: true # if slave use a different ip for communicate to master, this setting should be set to true
 
         - user:             'globodns'
-          host:             'slave1' ### empty means you don't have slave
+          host:             '' ### empty means you don't have slave
           ipaddr:           '192.168.0.102'
           port:             5354
           rndc_port:        5954
           chroot_dir:       '/var/named/chroot'
           zones_dir:        '/etc/named'
           named_conf_file:  '/etc/named/named.conf'  # must be inside zones_dir
-          named_conf_link:  '/etc/named.conf'  # can be anywhere
           export_chroot_dir: <%= Rails.root.join('tmp', 'named', 'chroot_slave2') %>
           # masters_external_ip: true # if slave use a different ip for communicate to master, this setting should be set to true
 
@@ -57,6 +56,7 @@ development: &devconf
     slaves_file:            'slaves.conf'
     forwards_dir:           'forwards'
     forwards_file:          'forwards.conf'
+    views_dir:              'views'
     views_file:             'views.conf'
     subdir_depth:           3
 
