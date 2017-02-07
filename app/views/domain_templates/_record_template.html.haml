@@ -81,6 +81,10 @@
           %td{ :width => 30 }
             - if record_template.type == 'MX'
               = f.text_field :prio, :size => 1
+            - if record_template.type == ('SRV')
+              = f.text_field :prio, :size => 1
+              = f.text_field :weight, :size => 1
+              = f.text_field :port, :size => 1
           %td{ :width => 250 }= f.text_field :content, :size => 15
 
         %td.top{ :width => 39 }

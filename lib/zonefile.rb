@@ -255,15 +255,15 @@ class Zonefile
             /ix
             add_record('mx', :name => $1, :ttl => $2, :class => $3, :prio => $4.to_i, :content => $5)
 
-        # elsif line=~/^(#{valid_name})? \s*
-        #     #{ttl_cls}
-        #     SRV \s+
-        #     (\d+) \s+
-        #     (\d+) \s+
-        #     (\d+) \s+
-        #     (#{valid_name})
-        #     /ix
-        #     add_record('srv', :name => $1, :ttl => $2, :class => $3, :prio => $4, :weight => $5, :port => $6, :content => $7)
+        elsif line=~/^(#{valid_name})? \s*
+            #{ttl_cls}
+            SRV \s+
+            (\d+) \s+
+            (\d+) \s+
+            (\d+) \s+
+            (#{valid_name})
+            /ix
+            add_record('srv', :name => $1, :ttl => $2, :class => $3, :prio => $4, :weight => $5, :port => $6, :content => $7)
 
         elsif line =~ /^(#{valid_name}) \s+
             #{ttl_cls}

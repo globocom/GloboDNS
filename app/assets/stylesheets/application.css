@@ -487,7 +487,7 @@ table.record-table td.content span {
     display: inline-block;
     overflow: hidden;
 }
-table.record-table td.ttl, table.record-table td.type, table.record-table td.prio {
+table.record-table td.ttl, table.record-table td.type, table.record-table td.prio, table.record-table td.weight, table.record-table td.port {
     width: 6em;
 }
 table.record-table tr.edit-record td {
@@ -496,7 +496,7 @@ table.record-table tr.edit-record td {
 table.record-table td input#record_name {
     width: 12em;
 }
-table.record-table td input#record_ttl, table.record-table td input#record_prio {
+table.record-table td input#record_ttl, table.record-table td input#record_prio, table.record-table td input#record_weight, table.record-table td input#record_port {
     width: 4em;
 }
 table#new-record td label {
@@ -626,13 +626,13 @@ table#record-templates-table td.actions a {
 table#record-templates-table td.name, table#record-templates-table td.data {
     width: 30%;
 }
-table#record-templates-table td.ttl, table#record-templates-table td.type, table#record-templates-table td.prio {
+table#record-templates-table td.ttl, table#record-templates-table td.type, table#record-templates-table td.prio, table#record-templates-table td.weight, table#record-templates-table td.port {
     width: 10%;
 }
 table#record-templates-table tr.edit-record td {
     padding: 0;
 }
-table#record-templates-table td input#record_template_ttl, table#record-templates-table td input#record_template_prio {
+table#record-templates-table td input#record_template_ttl, table#record-templates-table td input#record_template_prio, table#record-templates-table td input#record_template_weight, table#record-templates-table td input#record_template_port {
     width: 4em;
 }
 table#new-record-template td label {

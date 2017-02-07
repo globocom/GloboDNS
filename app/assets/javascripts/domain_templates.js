@@ -278,6 +278,8 @@ $(document).ready(function() {
 	$('#new-record-template-form select#record_template_type').live('change', function () {
 		var val = $(this).val();
 		$('#new-record-template-form input#record_template_prio').closest('tr').toggle((val == 'MX' || val == 'SRV'));
+		$('#new-record-template-form input#record_template_weight').closest('tr').toggle(val == 'SRV');
+		$('#new-record-template-form input#record_template_port').closest('tr').toggle(val == 'SRV');
 		$(this).blur();
 	});
 	$('#new-record-template-form select#record_template_type').change();

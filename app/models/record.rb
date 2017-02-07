@@ -26,7 +26,7 @@ class Record < ActiveRecord::Base
     belongs_to :domain, :inverse_of => :records
 
     attr_accessor :importing
-    attr_accessible :domain_id, :name, :type, :content, :ttl, :prio
+    attr_accessible :domain_id, :name, :type, :content, :ttl, :prio, :weight, :port
 
     audited :associated_with => :domain
     self.non_audited_columns.delete(self.inheritance_column) # audit the 'type' column
@@ -139,9 +139,17 @@ class Record < ActiveRecord::Base
     #     end
     # end
 
-    # by default records don't support priorities. Those who do can overwrite
+    # by default records don't support priorities, weight and port. Those who do can overwrite
     # this in their own classes.
     def supports_prio?
+        false
+    end
+
+    def supports_weight?
+        false
+    end
+    
+    def supports_port?
         false
     end
     
@@ -264,9 +272,11 @@ class Record < ActiveRecord::Base
             #                       self.content     =~ /\s[a-fA-F0-9:]+$/                     # ipv6
 
             # FIXME: zone2sql sets prio = 0 for all records
-            prio = (self.type == 'MX' || (self.prio && (self.prio > 0)) ? self.prio : '')
+            prio = ((self.type == 'MX' or self.type == 'SRV') || (self.prio && (self.prio > 0)) ? self.prio : '')
+            weight = (self.type == 'SRV' || self.weight)? self.weight : ''
+            port = (self.type == 'SRV' || self.port)? self.port : ''
 
-        output.printf(format, self.name, self.ttl.to_s || '', self.type, prio || '', content)
+        output.printf(format, self.name, self.ttl.to_s || '', self.type, prio || '', weight || '', port || '', content)
     end
 
     def importing?

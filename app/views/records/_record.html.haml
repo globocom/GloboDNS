@@ -9,6 +9,8 @@
   %td.ttl=     record.ttl
   %td.type=    record.type
   %td.prio=    record.supports_prio? ? record.prio : '&nbsp;'.html_safe
+  %td.weight=  record.supports_weight? ? record.weight : '&nbsp;'.html_safe
+  %td.port=    record.supports_port? ? record.port : '&nbsp;'.html_safe
   %td.content{'title' => record.content}
     %span= record.content
   %td.actions
@@ -24,6 +26,8 @@
       %td.ttl=     f.text_field :ttl
       %td.type=    record.type
       %td.prio=    record.supports_prio? ? f.text_field(:prio) : '&nbsp;'.html_safe
+      %td.weight=  record.supports_weight? ? f.text_field(:weight) : '&nbsp;'.html_safe
+      %td.port=    record.supports_port? ? f.text_field(:port) : '&nbsp;'.html_safe
       %td.content= f.text_field :content
       %td.actions
         = link_to('', '#', :class => 'update-record-button      ui-icon-download-alt', :title => t(:generic_update))
