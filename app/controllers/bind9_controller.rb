@@ -70,7 +70,7 @@ class Bind9Controller < ApplicationController
         @output = I18n.t('export_scheduled', :timestamp => schedule_date.to_formatted_s(:short))
         respond_to do |format|
             format.html { render :status => status, :layout => false } if request.xhr?
-            format.json { render :status => status, :json   => { 'output' => @output } }
+            format.json { render :status => status, :json   => { 'output' => @output, 'schedule_date' => "#{schedule_date}" } }
         end
     end
 
