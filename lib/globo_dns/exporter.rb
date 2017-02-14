@@ -231,7 +231,7 @@ class Exporter
 
         File.open(abs_views_file, 'w') do |file|
             View.all.each do |view|
-                file.puts view.to_bind9_conf(zones_root_dir)
+                file.puts view.to_bind9_conf(zones_root_dir) unless view.default?
                 if @slave == true
                     #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                                  , export_all_domains
                     export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                                       , true                                      , options)
@@ -246,6 +246,8 @@ class Exporter
                     export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , view.updated_since?(@last_commit_date))
                 end
             end
+
+            file.puts View.default.to_bind9_conf(zones_root_dir) # write default view at the end
         end
 
         #File.utime(@touch_timestamp, @touch_timestamp, abs_views_file)

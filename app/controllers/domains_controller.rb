@@ -85,6 +85,10 @@ class DomainsController < ApplicationController
             @domain.errors.add(:domain_view, 'Domain view not found')
         end
 
+        # if 'uses_view' is set as true at 'globodns.yml', forces use default view when saving
+        if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true
+            @domain.view = View.default unless @domain.view
+        end
 
         @domain.save unless @domain.errors.any?
         # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?

@@ -31,6 +31,14 @@ class View < ActiveRecord::Base
     before_validation :generate_key, :on => :create
 
     attr_accessible :name, :clients, :destinations
+    
+    scope :default, -> {
+                        default_view = View.where(name: 'default').first || View.new
+                        default_view.name ||= 'default'
+                        default_view.clients ||= 'any;'
+                        default_view.save
+                        default_view
+                    }
 
     def updated_since?(timestamp)
         self.updated_at > timestamp
@@ -92,22 +100,23 @@ class View < ActiveRecord::Base
 
             # then, exclude this address from the list of "match-client"
             # addresses to force the view match using the "key" property
-            match_clients.delete("!#{local_ipaddr}")
-            match_clients.unshift("!#{local_ipaddr}")
+            match_clients.delete("!#{local_ipaddr}") unless self.default?
+            match_clients.unshift("!#{local_ipaddr}") unless self.default?
 
             # additionally, exclude the slave's server address (to enable it to
             # transfer the zones from the view that doesn't match its IP address)
             GloboDns::Config::Bind::Slaves.each do |slave|
-                match_clients.delete("!#{slave::IPADDR}")
-                match_clients.unshift("!#{slave::IPADDR}")
+                match_clients.delete("!#{slave::IPADDR}") unless self.default?
+                match_clients.unshift("!#{slave::IPADDR}") unless self.default?
             end
 
-            key_str = "key \"#{self.key_name}\""
-            match_clients.delete(key_str)
-            match_clients.unshift(key_str)
+            # key_str = "key \"#{self.key_name}\""
+            # match_clients.delete(key_str)
+            # match_clients.unshift(key_str)
         end
 
-        str  = "#{indent}key \"#{self.key_name}\" {\n"
+        str  = ""
+        str << "#{indent}key \"#{self.key_name}\" {\n"
         str << "#{indent}    algorithm hmac-md5;\n"
         str << "#{indent}    secret \"#{self.key}\";\n"
         str << "#{indent}};\n"
@@ -118,16 +127,27 @@ class View < ActiveRecord::Base
         str << "#{indent}    match-clients      { #{match_clients.uniq.join('; ')}; };\n" if match_clients.present?
         str << "#{indent}    match-destinations { #{self.destinations}; };\n"             if self.destinations.present?
         str << "\n"
-        str << "#{indent}    include \"#{File.join(zones_dir, self.zones_file)}\";\n"
-        str << "#{indent}    include \"#{File.join(zones_dir, self.slaves_file)}\";\n"
-        str << "#{indent}    include \"#{File.join(zones_dir, self.forwards_file)}\";\n"
-        str << "#{indent}    include \"#{File.join(zones_dir, self.reverse_file)}\";\n"
+
+        unless self == View.default 
+            str << "#{indent}    include \"#{File.join(zones_dir, self.zones_file)}\";\n"
+            str << "#{indent}    include \"#{File.join(zones_dir, self.slaves_file)}\";\n"
+            str << "#{indent}    include \"#{File.join(zones_dir, self.forwards_file)}\";\n"
+            str << "#{indent}    include \"#{File.join(zones_dir, self.reverse_file)}\";\n"
+            str << "\n"
+        end 
+
+        str << "#{indent}    include \"#{File.join(zones_dir, View.default.zones_file)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, View.default.slaves_file)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, View.default.forwards_file)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, View.default.reverse_file)}\";\n"
         str << "\n"
-        str << "#{indent}    # common zones\n"
-        str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::ZONES_FILE)}\";\n"
-        str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::SLAVES_FILE)}\";\n"
-        str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::FORWARDS_FILE)}\";\n"
-        str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::REVERSE_FILE)}\";\n"
+
+        # common zones
+        # str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::ZONES_FILE)}\";\n"
+        # str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::SLAVES_FILE)}\";\n"
+        # str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::FORWARDS_FILE)}\";\n"
+        # str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::REVERSE_FILE)}\";\n"
+
         str << "#{indent}};\n\n"
         str
     end
