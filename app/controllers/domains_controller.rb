@@ -34,9 +34,9 @@ class DomainsController < ApplicationController
     def show
         @domain = Domain.find(params[:id])
         query    = params[:record].blank? ? nil : params[:record]
-        if params[:query]
-            params[:query] = params[:query].gsub("%","*")
-            @records = @domain.records.matching(params[:query]).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE) 
+        if params[:records_query] and !params[:records_query].nil?
+            params[:records_query] = params[:records_query].gsub("%","*")
+            @records = @domain.records.without_soa.matching(params[:records_query]).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE) 
         else
             @records = @domain.records.without_soa.paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
         end
