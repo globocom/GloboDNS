@@ -283,12 +283,17 @@ class Exporter
                     abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
                     File.exists?(abs_zonefile_path) or File.open(abs_zonefile_path,'w')
                     if @slave and domain.master == nil
-                        domain.master  = "#{Bind::Master::IPADDR}"
+                        masters_external_ip = (GloboDns::Config::Bind::Slaves[options[:index]]::MASTERS_EXTERNAL_IP == true) if defined? GloboDns::Config::Bind::Slaves[options[:index]]::MASTERS_EXTERNAL_IP
+                        if masters_external_ip
+                            domain.master = "#{GloboDns::Config::Bind::Master::IPADDR_EXTERNAL}"
+                        else
+                            domain.master  = "#{Bind::Master::IPADDR}"
+                        end
                         domain.master += " port #{Bind::Master::PORT}"     if defined?(Bind::Master::PORT)
                         domain.master += " key #{domain.query_key_name}" if domain.query_key_name
                     end
                 end
-                file.puts domain.to_bind9_conf(zones_root_dir, '', options)
+                file.puts domain.to_bind9_conf(zones_root_dir, '')
             end
         end
     end
@@ -360,12 +365,17 @@ class Exporter
                     abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
                     File.exists?(abs_zonefile_path) or File.open(abs_zonefile_path,'w')
                     if @slave and domain.master == nil
-                        domain.master  = "#{Bind::Master::IPADDR}"
+                        masters_external_ip = (GloboDns::Config::Bind::Slaves[options[:index]]::MASTERS_EXTERNAL_IP == true) if defined? GloboDns::Config::Bind::Slaves[options[:index]]::MASTERS_EXTERNAL_IP
+                        if masters_external_ip
+                            domain.master = "#{GloboDns::Config::Bind::Master::IPADDR_EXTERNAL}"
+                        else
+                            domain.master  = "#{Bind::Master::IPADDR}"
+                        end
                         domain.master += " port #{Bind::Master::PORT}"     if defined?(Bind::Master::PORT)
                         domain.master += " key #{domain.query_key_name}" if domain.query_key_name
                     end
                 end
-                file.puts domain.to_bind9_conf(zones_root_dir, '', options)
+                file.puts domain.to_bind9_conf(zones_root_dir, '')
             end
         end
 

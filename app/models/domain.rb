@@ -259,22 +259,15 @@ class Domain < ActiveRecord::Base
         end
     end
 
-    def to_bind9_conf(zones_dir, indent = '', options = {})
+    def to_bind9_conf(zones_dir, indent = '')
         masters_external_ip = false
 
         view = self.view || View.first
         str  = "#{indent}zone \"#{self.name}\" {\n"
         str << "#{indent}    type       #{self.authority_type_str.downcase};\n"
         str << "#{indent}    file       \"#{File.join(zones_dir, zonefile_path)}\";\n" unless self.forward?
-        if self.slave?   && self.master
-            masters_external_ip = (GloboDns::Config::Bind::Slaves[options[:index]]::MASTERS_EXTERNAL_IP == true) if defined? GloboDns::Config::Bind::Slaves[options[:index]]::MASTERS_EXTERNAL_IP
-            
-            if masters_external_ip
-                external_ip = GloboDns::Config::Bind::Master::IPADDR_EXTERNAL
-                str << "#{indent}    masters    { #{external_ip.strip.chomp(';')}; };\n"
-            else
-                str << "#{indent}    masters    { #{self.master.strip.chomp(';')}; };\n"
-            end
+        if self.slave? && self.master
+            str << "#{indent}    masters    { #{self.master.strip.chomp(';')}; };\n"
         end
         str << "#{indent}    forwarders { #{self.forwarder.strip.chomp(';')}; };\n"    if self.forward? && (self.master || self.slave?)
         str << "#{indent}};\n\n"
