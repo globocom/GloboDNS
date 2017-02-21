@@ -1,6 +1,14 @@
 # Changelog
 
-## [1.5.19](https://github.com/globocom/GloboDNS/releases/tag/1.5.19) (**/02/17)
+## [1.5.22](https://github.com/globocom/GloboDNS/releases/tag/1.5.22)
+#### - Bug fixies
+ * Record search field had the same name as domain search field
+#### - Enhancements
+ * Supporting the use of views
+ * Task to migrate viewless zones to a default view (when using view, all zones must be in views)
+ * Adding filed 'schedule_date' to 'Schedule Export' JSON output
+
+## [1.5.19](https://github.com/globocom/GloboDNS/releases/tag/1.5.19) (07/02/17)
 ##### - Bug fixies 
  * Validation of record TXT was being applied to all record types
  * SRV record must have 'Priority', 'Weight' and 'Port' fields
