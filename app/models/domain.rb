@@ -100,6 +100,19 @@ class Domain < ActiveRecord::Base
 
     # scopes
     default_scope                       { order("#{self.table_name}.name") }
+    scope :default_view,                -> {
+                                            # default_zones = View.default.all_domains_names
+                                            default_zones = View.default.domains.pluck(:name)
+                                            where(name: default_zones)
+                                        }
+    scope :not_default_view,            -> {
+                                            default_zones = View.default.all_domains_names
+                                            where.not(name: default_zones)
+                                        }
+    scope :not_in_view,                 -> (view){
+                                            view_zones = view.domains.pluck(:name)
+                                            where.not(name: view_zones)
+                                        }
     scope :master,                      -> {where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", NORMAL)}
     scope :slave,                       -> {where("#{self.table_name}.authority_type   = ?", SLAVE)}
     scope :forward,                     -> {where("#{self.table_name}.authority_type   = ?", FORWARD)}
@@ -169,6 +182,23 @@ class Domain < ActiveRecord::Base
         !!importing
     end
 
+    def has_in_default_view?
+       defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true and !View.default.domains.where(name: self.name).empty? 
+    end
+
+    def records_zone_default
+        ids = []
+        if self.has_in_default_view?
+            View.default.domains.where(name: self.name).first.records.each do |record|
+                if self.records.where(name: record.name).where(type: record.type).empty?
+                    r = Record.new(name: record.name, type: record.type, content: record.content, domain: self)
+                    ids.push record.id if r.valid?
+                end
+            end
+        end
+        Record.where(id: ids)
+    end
+
     # expand our validations to include SOA details
     def after_validation_on_create #:nodoc:
         soa = SOA.new( :domain => self )
@@ -220,6 +250,7 @@ class Domain < ActiveRecord::Base
               end
         File::join dir, subdir_path
     end
+    
     def zonefile_path
         if self.slave?
             File.join(zonefile_dir, 'dbs.' + self.name)
@@ -230,6 +261,7 @@ class Domain < ActiveRecord::Base
 
     def to_bind9_conf(zones_dir, indent = '', options = {})
         masters_external_ip = false
+
         view = self.view || View.first
         str  = "#{indent}zone \"#{self.name}\" {\n"
         str << "#{indent}    type       #{self.authority_type_str.downcase};\n"
@@ -259,7 +291,11 @@ class Domain < ActiveRecord::Base
         output.puts
 
         output_records(output, self.sibling.records, output_soa: true) if sibling
-        output_records(output, self.records, output_soa: !sibling) #only show this soa if the soa for the sibling hasn't been shown yet.
+        output_records(output, self.records, output_soa: !sibling) # only show this soa if the soa for the sibling hasn't been shown yet.
+        if self.has_in_default_view? and self.view != View.default 
+            # if the zone is common to a view and the default view, the zone conf will be written only once and merge the records from the default view zone
+            output_records(output, self.records_zone_default, output_soa: !sibling) 
+        end
     ensure
         output.close if output.is_a?(File)
     end

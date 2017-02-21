@@ -56,12 +56,20 @@ class View < ActiveRecord::Base
         'views/' + self.name + '-' + GloboDns::Config::ZONES_FILE
     end
 
+    def default_zones_file
+        'views/' + self.name + '-' + GloboDns::Config::ZONES_DIR + '-default.conf'
+    end
+
     def slaves_dir
         'views/' + self.name + '-' + GloboDns::Config::SLAVES_DIR
     end
 
     def slaves_file
         'views/' + self.name + '-' + GloboDns::Config::SLAVES_FILE
+    end
+
+    def default_slaves_file
+        'views/' + self.name + '-' + GloboDns::Config::SLAVES_DIR + '-default.conf'
     end
 
     def forwards_dir
@@ -72,12 +80,20 @@ class View < ActiveRecord::Base
         'views/' + self.name + '-' + GloboDns::Config::FORWARDS_FILE
     end
 
+    def default_forwards_file
+        'views/' + self.name + '-' + GloboDns::Config::FORWARDS_DIR + '-default.conf'
+    end    
+
     def reverse_dir
         'views/' + self.name + '-' + GloboDns::Config::REVERSE_DIR
     end
 
     def reverse_file
         'views/' + self.name + '-' + GloboDns::Config::REVERSE_FILE
+    end
+
+    def default_reverse_file
+        'views/' + self.name + '-' + GloboDns::Config::REVERSE_DIR + '-default.conf'
     end
 
     def self.key_name(view_name)
@@ -88,7 +104,99 @@ class View < ActiveRecord::Base
         self.class.key_name(self.name)
     end
 
-    def to_bind9_conf(zones_dir, indent = '')
+    def default?
+        self == View.default
+    end
+
+    def all_domains_names
+        domains_names = []
+        self.domains.each do |domain|
+            domains_names.push domain.name
+        end
+        domains_names
+    end
+
+    ### views masters zones methods
+    def domains_master_names
+        self.domains.pluck(:name)
+    end
+
+    def domains_master_default_only
+        # zones that are only at default view
+        Domain.where(id: View.default.domains.master.where.not(name: self.domains_master_names).pluck(:id))
+    end
+
+    def domains_master
+        # domains_master_view + domains_master_default
+        ids = self.domains.master.pluck(:id) + View.default.domains.master.where.not(name: self.domains_master_names).pluck(:id)
+        Domain.where(id: ids.uniq)
+        
+    end
+
+    ### views reverse zones methods
+    def domains_reverse_named
+        domains_names = []
+        self.domains._reverse.each do |domain|
+            domains_names.push domain.name
+        end 
+        domains_names
+    end
+
+    def domains_reverse
+        ids = self.domains._reverse.pluck(:id) + View.default.domains._reverse.where.not(name: self.domains_reverse_names).pluck(:id)
+        Domain.where(id: ids.uniq)
+    end
+
+
+    ### views slaves zones methods
+    def domains_slave_names
+        domains_names = []
+        self.domains.slave.each do |domain|
+            domains_names.push domain.name
+        end 
+        domains_names
+    end
+
+    def domains_slave
+        ids = self.domains.slave.pluck(:id) + View.default.domains.slave.where.not(name: self.domains_slave_names).pluck(:id)
+        Domain.where(id: ids.uniq)
+    end
+
+    ### views forwards zones methods
+    def domains_forward_names
+        domains_names = []
+        self.domains.forward.each do |domain|
+            domains_names.push domain.name
+        end
+        domains_names
+    end
+
+    def domains_forward  
+        ids = self.domains.forward.pluck(:id) + View.default.domains.forward.where.not(name: self.domains_forward_names).pluck(:id)
+        Domain.where(id: ids.uniq)
+    end
+
+
+    ### views masters, reverses or slaves zones methods
+    def domains_master_or_reverse_or_slave_names
+        domains_names = []
+        self.domains.master_or_reverse_or_slave.each do |domain|
+            domains_names.push domain.name
+        end
+        domains_names
+    end
+
+    def domains_master_or_reverse_or_slave
+        ids = self.domains.master_or_reverse_or_slave.pluck(:id) + View.default.domains.master_or_reverse_or_slave.where.not(name: self.domains_master_or_reverse_or_slave_names).pluck(:id)
+        Domain.where(id: ids.uniq)
+    end
+
+    def domains_master_or_reverse_or_slave_default_only
+        # zones that are only at default view
+        Domain.where(id: View.default.domains.master_or_reverse_or_slave.where.not(name: self.domains_master_or_reverse_or_slave_names).pluck(:id))
+    end
+
+    def to_bind9_conf(zones_dir, indent = '', slave=false)
         match_clients = self.clients.present? ? self.clients.split(/\s*;\s*/) : Array.new
 
         if self.key.present?
@@ -105,48 +213,45 @@ class View < ActiveRecord::Base
 
             # additionally, exclude the slave's server address (to enable it to
             # transfer the zones from the view that doesn't match its IP address)
-            GloboDns::Config::Bind::Slaves.each do |slave|
-                match_clients.delete("!#{slave::IPADDR}") unless self.default?
-                match_clients.unshift("!#{slave::IPADDR}") unless self.default?
-            end
+            # unless self.default?
+                GloboDns::Config::Bind::Slaves.each do |slave|
+                    match_clients.delete("!#{slave::IPADDR}")
+                    match_clients.unshift("!#{slave::IPADDR}") 
+                end
 
-            # key_str = "key \"#{self.key_name}\""
-            # match_clients.delete(key_str)
-            # match_clients.unshift(key_str)
+                key_str = "key \"#{self.key_name}\""
+                match_clients.delete(key_str)
+                match_clients.unshift(key_str)
+            # end
         end
 
         str  = ""
-        str << "#{indent}key \"#{self.key_name}\" {\n"
-        str << "#{indent}    algorithm hmac-md5;\n"
-        str << "#{indent}    secret \"#{self.key}\";\n"
-        str << "#{indent}};\n"
-        str << "\n"
+        # unless self.default?
+            str << "#{indent}key \"#{self.key_name}\" {\n"
+            str << "#{indent}    algorithm hmac-md5;\n"
+            str << "#{indent}    secret \"#{self.key}\";\n"
+            str << "#{indent}};\n"
+            str << "\n"
+        # end
         str << "#{indent}view \"#{self.name}\" {\n"
-        str << "#{indent}    attach-cache       \"globodns-shared-cache\";\n"
-        str << "\n"
         str << "#{indent}    match-clients      { #{match_clients.uniq.join('; ')}; };\n" if match_clients.present?
         str << "#{indent}    match-destinations { #{self.destinations}; };\n"             if self.destinations.present?
         str << "\n"
 
-        unless self == View.default 
-            str << "#{indent}    include \"#{File.join(zones_dir, self.zones_file)}\";\n"
-            str << "#{indent}    include \"#{File.join(zones_dir, self.slaves_file)}\";\n"
-            str << "#{indent}    include \"#{File.join(zones_dir, self.forwards_file)}\";\n"
-            str << "#{indent}    include \"#{File.join(zones_dir, self.reverse_file)}\";\n"
-            str << "\n"
-        end 
-
-        str << "#{indent}    include \"#{File.join(zones_dir, View.default.zones_file)}\";\n"
-        str << "#{indent}    include \"#{File.join(zones_dir, View.default.slaves_file)}\";\n"
-        str << "#{indent}    include \"#{File.join(zones_dir, View.default.forwards_file)}\";\n"
-        str << "#{indent}    include \"#{File.join(zones_dir, View.default.reverse_file)}\";\n"
+        
+        str << "#{indent}    include \"#{File.join(zones_dir, self.zones_file)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, self.slaves_file)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, self.forwards_file)}\";\n"
+        str << "#{indent}    include \"#{File.join(zones_dir, self.reverse_file)}\";\n"
         str << "\n"
 
-        # common zones
-        # str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::ZONES_FILE)}\";\n"
-        # str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::SLAVES_FILE)}\";\n"
-        # str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::FORWARDS_FILE)}\";\n"
-        # str << "#{indent}    include \"#{File.join(zones_dir, GloboDns::Config::REVERSE_FILE)}\";\n"
+
+        unless self == View.default
+            str << "#{indent}    include \"#{File.join(zones_dir, self.default_zones_file)}\";\n" unless slave
+            str << "#{indent}    include \"#{File.join(zones_dir, self.default_forwards_file)}\";\n"
+            str << "#{indent}    include \"#{File.join(zones_dir, self.default_reverse_file)}\";\n" unless slave
+            str << "\n"
+        end
 
         str << "#{indent}};\n\n"
         str
