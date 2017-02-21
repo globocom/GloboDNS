@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.5.22](https://github.com/globocom/GloboDNS/releases/tag/1.5.22) (21/02/17)
+## [1.5.24](https://github.com/globocom/GloboDNS/releases/tag/1.5.24) (21/02/17)
 #### - Bug fixies
  * Record search field had the same name as domain search field
 #### - Enhancements

@@ -32,6 +32,8 @@ class Domain < ActiveRecord::Base
 
     REVERSE_DOMAIN_SUFFIXES = ['.in-addr.arpa', '.ip6.arpa']
 
+    DEFAULT_VIEW = View.default
+
     # virtual attributes that ease new zone creation. If present, they'll be
     # used to create an SOA for the domain
     # SOA_FIELDS = [ :primary_ns, :contact, :refresh, :retry, :expire, :minimum, :ttl ]
@@ -101,12 +103,12 @@ class Domain < ActiveRecord::Base
     # scopes
     default_scope                       { order("#{self.table_name}.name") }
     scope :default_view,                -> {
-                                            # default_zones = View.default.all_domains_names
-                                            default_zones = View.default.domains.pluck(:name)
+                                            # default_zones = DEFAULT_VIEW.all_domains_names
+                                            default_zones = DEFAULT_VIEW.domains.pluck(:name)
                                             where(name: default_zones)
                                         }
     scope :not_default_view,            -> {
-                                            default_zones = View.default.all_domains_names
+                                            default_zones = DEFAULT_VIEW.all_domains_names
                                             where.not(name: default_zones)
                                         }
     scope :not_in_view,                 -> (view){
@@ -183,13 +185,13 @@ class Domain < ActiveRecord::Base
     end
 
     def has_in_default_view?
-       defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true and !View.default.domains.where(name: self.name).empty? 
+       defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true and !DEFAULT_VIEW.domains.where(name: self.name).empty? 
     end
 
     def records_zone_default
         ids = []
         if self.has_in_default_view?
-            View.default.domains.where(name: self.name).first.records.each do |record|
+            DEFAULT_VIEW.domains.where(name: self.name).first.records.each do |record|
                 if self.records.where(name: record.name).where(type: record.type).empty?
                     r = Record.new(name: record.name, type: record.type, content: record.content, domain: self)
                     ids.push record.id if r.valid?
@@ -259,22 +261,15 @@ class Domain < ActiveRecord::Base
         end
     end
 
-    def to_bind9_conf(zones_dir, indent = '', options = {})
+    def to_bind9_conf(zones_dir, indent = '')
         masters_external_ip = false
 
         view = self.view || View.first
         str  = "#{indent}zone \"#{self.name}\" {\n"
         str << "#{indent}    type       #{self.authority_type_str.downcase};\n"
         str << "#{indent}    file       \"#{File.join(zones_dir, zonefile_path)}\";\n" unless self.forward?
-        if self.slave?   && self.master
-            masters_external_ip = (GloboDns::Config::Bind::Slaves[options[:index]]::MASTERS_EXTERNAL_IP == true) if defined? GloboDns::Config::Bind::Slaves[options[:index]]::MASTERS_EXTERNAL_IP
-            
-            if masters_external_ip
-                external_ip = GloboDns::Config::Bind::Master::IPADDR_EXTERNAL
-                str << "#{indent}    masters    { #{external_ip.strip.chomp(';')}; };\n"
-            else
-                str << "#{indent}    masters    { #{self.master.strip.chomp(';')}; };\n"
-            end
+        if self.slave? && self.master
+            str << "#{indent}    masters    { #{self.master.strip.chomp(';')}; };\n"
         end
         str << "#{indent}    forwarders { #{self.forwarder.strip.chomp(';')}; };\n"    if self.forward? && (self.master || self.slave?)
         str << "#{indent}};\n\n"
@@ -292,7 +287,7 @@ class Domain < ActiveRecord::Base
 
         output_records(output, self.sibling.records, output_soa: true) if sibling
         output_records(output, self.records, output_soa: !sibling) # only show this soa if the soa for the sibling hasn't been shown yet.
-        if self.has_in_default_view? and self.view != View.default 
+        if self.has_in_default_view? and self.view != DEFAULT_VIEW 
             # if the zone is common to a view and the default view, the zone conf will be written only once and merge the records from the default view zone
             output_records(output, self.records_zone_default, output_soa: !sibling) 
         end
