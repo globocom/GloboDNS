@@ -1,6 +1,27 @@
 require 'fileutils'
 require 'pathname'
 namespace :globodns do
+
+    namespace :view do
+        desc 'Migrate viewless zones to default view (named default), so globodns can use views'
+        task :migrate => :environment do
+            if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true
+                # sets default_view to the viewless zones 
+                Domain.noview.each do |domain|
+                    domain.view = View.default
+                    domain.save
+                end
+
+                #sets default_view to viewless zone_templates
+                DomainTemplate.where(view: nil).each do |domain_template|
+                    domain_template.view = View.default
+                    domain_template.save
+                end
+            end
+        end
+
+    end
+
     namespace :chroot do
         desc 'Create local chroot dir with a versioned copy of the BIND files'
         task :create => :environment do

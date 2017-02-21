@@ -51,8 +51,9 @@
     #sibling-records
       %h1= link_to t("records_for_sibling_domain"), @sibling
       .records-search-bar
+        - params[:records_query] = params[:records_query].gsub("%","*") unless params[:records_query].nil?
         = form_tag(domain_path(@sibling), :method => :get) do
-          = text_field_tag :query, '', :class => 'search-field', :data => {'help' => 'help-records-search'}
+          = text_field_tag :records_query, params[:records_query], :class => 'search-field', :data => {'help' => 'help-records-search'}
           %span.search-icon
       %div.clearer
       = render :partial => 'records/list', locals: {:records => @sibling_records}
@@ -61,8 +62,9 @@
   #domain-records
     %h1= t(:title_records)
     .records-search-bar
+      - params[:records_query] = params[:records_query].gsub("%","*") unless params[:records_query].nil?
       = form_tag(domain_path(@domain), :method => :get) do
-        = text_field_tag :query, '', :class => 'search-field', :data => {'help' => 'help-records-search'}
+        = text_field_tag :records_query, params[:records_query], :class => 'search-field', :data => {'help' => 'help-records-search'}
         %span.search-icon
     %div.clearer
     = render :partial => 'records/list', locals: {:records => @records}

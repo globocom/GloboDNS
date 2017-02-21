@@ -61,6 +61,8 @@ development: &devconf
     views_file:             'views.conf'
     subdir_depth:           3
 
+    enable_view:             false
+
     record_order:           [ SOA, NS, MX, A, AAAA, CNAME, LOC, SPF, SRV, PTR, TXT ]
     git_author:             'Globo DNS API <dnsapi@yourdomain.com>'
     export_delay:           300  # in seconds

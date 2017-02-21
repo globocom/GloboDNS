@@ -231,37 +231,95 @@ class Exporter
 
         File.open(abs_views_file, 'w') do |file|
             View.all.each do |view|
-                file.puts view.to_bind9_conf(zones_root_dir)
+                file.puts view.to_bind9_conf(zones_root_dir, '', @slave) unless view.default?
                 if @slave == true
                     #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                                  , export_all_domains
-                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                                       , true                                      , options)
-                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                                       , true                                      , options)
-                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.master_or_reverse_or_slave  , view.updated_since?(@last_commit_date)    , options)
-                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , true                                      , options)
+                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                                       , true                                      , options.merge(:view => view, :type => "zones"))
+                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                                       , true                                      , options.merge(:view => view, :type => "reverse"))
+                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains_master_or_reverse_or_slave  , view.updated_since?(@last_commit_date)    , options.merge(:view => view, :type => "slave"))
+                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , true                                      , options.merge(:view => view, :type => "forwards"))
+                    # export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.master_or_reverse_or_slave  , view.updated_since?(@last_commit_date)    , options)
+                    # export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , true                                      , options)
                 else
                     #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                                  , export_all_domains
-                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , view.domains.master                      , view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , view.domains._reverse                    , view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.slave                       , view.updated_since?(@last_commit_date))
-                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , view.updated_since?(@last_commit_date))
+                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , view.domains.master                      , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "zones"))
+                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , view.domains._reverse                    , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "reverse"))
+                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.slave                       , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "slave"))
+                    export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "forwards"))
                 end
             end
+
+            file.puts View.default.to_bind9_conf(zones_root_dir) # write default view at the end
         end
 
         #File.utime(@touch_timestamp, @touch_timestamp, abs_views_file)
     end
 
+    def write_zone_conf(zones_root_dir, export_all_domains, abs_zones_root_dir, output_file, domains, options)
+        File.open(output_file, 'w') do |file|
+            # dump zonefile of updated domains
+            updated_domains = export_all_domains ? domains : domains.updated_since(@last_commit_date)
+            updated_domains.each do |domain|
+                unless @slave or domain.forward? #Slaves and forwards don't replicate the zone-files.
+                    @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}; created_at: #{domain.created_at}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated_since-count: #{domain.records.updated_since(@last_commit_date).count})"
+                    #create subdir for this domain, if it doesn't exist yet.
+                    domain.view = options[:view] if options[:view]
+                    abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
+                    File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
+                    #Create/Update the zonefile itself
+                    abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
+                    domain.to_zonefile(abs_zonefile_path) unless domain.slave?
+                    #File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zonefile_path)) unless domain.slave? || domain.forward?
+                end
+            end
+
+            domains.each do |domain|
+                if @slave or domain.slave? and not domain.forward?
+                    domain.view = options[:view] if options[:view]
+                    domain = domain.clone
+                    domain.slave!
+                    abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
+                    File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
+                    abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
+                    File.exists?(abs_zonefile_path) or File.open(abs_zonefile_path,'w')
+                    if @slave and domain.master == nil
+                        domain.master  = "#{Bind::Master::IPADDR}"
+                        domain.master += " port #{Bind::Master::PORT}"     if defined?(Bind::Master::PORT)
+                        domain.master += " key #{domain.query_key_name}" if domain.query_key_name
+                    end
+                end
+                file.puts domain.to_bind9_conf(zones_root_dir, '', options)
+            end
+        end
+    end
+
     def export_domain_group(chroot_dir, zones_root_dir, file_name, dir_name, domains, export_all_domains = false, options = {})
         # abs stands for absolute
-        abs_zones_root_dir = File.join(chroot_dir, zones_root_dir)
-        abs_file_name      = File.join(abs_zones_root_dir, file_name)
-        abs_dir_name       = File.join(abs_zones_root_dir, dir_name)
-        array_new_zones = []
-        n_zones = []
-
+        abs_zones_root_dir          = File.join(chroot_dir, zones_root_dir)
+        abs_file_name               = File.join(abs_zones_root_dir, file_name)
+        abs_dir_name                = File.join(abs_zones_root_dir, dir_name)
+        array_new_zones             = []
+        n_zones                     = []
         # @logger.debug "Export domain group chroot_dir=#{chroot_dir} zones_root_dir=#{zones_root_dir} file_name=#{file_name} dir_name=#{dir_name} export_all_domains=#{export_all_domains}"
         File.exists?(abs_dir_name) or FileUtils.mkdir(abs_dir_name)
 
+        # write <view>_<type>_default.conf (basically the default_<type>.conf excluding the zones that exist in this view)
+        if options[:view] and !options[:view].default?
+            abs_default_file_name    = File.join(abs_dir_name+"-default.conf")
+            if options[:type] == "zones"
+                default_domains = View.default.domains.master.not_in_view(options[:view])
+            elsif options[:type] == "slave"
+                default_domains = View.default.domains.slave.not_in_view(options[:view])
+            elsif options[:type] == "forwards"
+                default_domains = View.default.domains.forward.not_in_view(options[:view])
+            elsif options[:type] == "reverse"
+                default_domains = View.default.domains.reverse.not_in_view(options[:view])
+            end
+
+            write_zone_conf(zones_root_dir, export_all_domains, abs_zones_root_dir, abs_default_file_name, default_domains, options)
+        end
+
+        # write <view>_<type>.conf (the zones that exist in this view)
         File.open(abs_file_name, 'w') do |file|
             # dump zonefile of updated domains
             updated_domains = export_all_domains ? domains : domains.updated_since(@last_commit_date)
@@ -294,6 +352,7 @@ class Exporter
             # write entries to index file (<domain_type>.conf).
             domains.each do |domain|
                 if @slave or domain.slave? and not domain.forward?
+                    domain.view = options[:view] if options[:view]
                     domain = domain.clone
                     domain.slave!
                     abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)

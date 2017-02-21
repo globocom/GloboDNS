@@ -148,11 +148,11 @@ class Record < ActiveRecord::Base
     def supports_weight?
         false
     end
-
+    
     def supports_port?
         false
     end
-
+    
     def url
         if self.name != '@'
             "#{self.name}.#{self.domain.name}"
@@ -168,7 +168,7 @@ class Record < ActiveRecord::Base
     def responding_from_dns_server ip
         conn = Resolv::DNS.new(:nameserver => ip)
         begin
-            conn.getaddress(url).to_s
+            conn.getaddress(url).to_s 
         rescue
         end
     end
@@ -176,7 +176,7 @@ class Record < ActiveRecord::Base
     def resolve
         success = []
         failed = []
-        begin
+        begin 
             servers_extra = GloboDns::Config::ADDITIONAL_DNS_SERVERS.sub(/[\[\]\,]/, "").split
         rescue
             servers_extra = []
@@ -380,7 +380,7 @@ class Record < ActiveRecord::Base
         return
     end
 
-    def check_a_content
+    def check_a_content 
         if self.type == "A"
             p = Net::Ping::External.new self.content
             self.warnings.add(:content, I18n.t('a_content_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless p.ping?

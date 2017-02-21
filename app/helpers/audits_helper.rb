@@ -26,7 +26,8 @@ module AuditsHelper
         changes.merge(record)
       rescue
         changes = audit.audited_changes
-        record = Audited::Adapters::ActiveRecord::Audit.where(auditable_id: audit.auditable_id, action: "create").first['audited_changes']
+        audit_record = Audited::Adapters::ActiveRecord::Audit.where(auditable_id: audit.auditable_id, action: "create") || Audited::Adapters::ActiveRecord::Audit.where(auditable_id: audit.auditable_id, action: "destroy")
+        record = audit_record.first['audited_changes']
         audit.audited_changes.merge(record)
       end
     else

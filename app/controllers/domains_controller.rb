@@ -33,12 +33,11 @@ class DomainsController < ApplicationController
 
     def show
         @domain = Domain.find(params[:id])
-        query    = params[:record].blank? ? nil : params[:record]
-        if params[:query]
-            params[:query] = params[:query].gsub("%","*")
-            @records = @domain.records.matching(params[:query]).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE) 
-        else
+        query    = params[:records_query].blank? ? nil : params[:records_query].gsub("%","*")
+        if query.nil?
             @records = @domain.records.without_soa.paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
+        else
+            @records = @domain.records.without_soa.matching(params[:records_query]).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE) 
         end
         @sibling = @domain.sibling if @domain.sibling
         @sibling_records = @sibling.records.without_soa.paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE) if @sibling
@@ -85,6 +84,10 @@ class DomainsController < ApplicationController
             @domain.errors.add(:domain_view, 'Domain view not found')
         end
 
+        # if 'uses_view' is set as true at 'globodns.yml', forces use default view when saving
+        if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true
+            @domain.view = View.default unless @domain.view
+        end
 
         @domain.save unless @domain.errors.any?
         # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
