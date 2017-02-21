@@ -33,10 +33,13 @@ class View < ActiveRecord::Base
     attr_accessible :name, :clients, :destinations
     
     scope :default, -> {
-                        default_view = View.where(name: 'default').first || View.new
-                        default_view.name ||= 'default'
-                        default_view.clients ||= 'any;'
-                        default_view.save
+                        default_view = View.where(name: 'default').first
+                        if default_view.nil?
+                            View.new
+                            default_view.name = 'default'
+                            default_view.clients = 'any;'
+                            default_view.save
+                        end
                         default_view
                     }
 

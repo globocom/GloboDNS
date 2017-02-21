@@ -46,6 +46,7 @@ class Exporter
       end
 
       @views=View.all.collect(&:name)
+      @default_view = View.default
 
         Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ, #{Audited::Adapters::ActiveRecord::Audit.table_name} READ") unless (lock_tables == false)
         export_master(master_named_conf_content, options)
@@ -210,7 +211,7 @@ class Exporter
             file.puts CONFIG_START_TAG
             file.puts '# this block is auto generated; do not edit'
             if View.count > 0
-                file.puts "include \"#{File.join(zones_root_dir, VIEWS_FILE)}\";"
+                file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::VIEWS_FILE)}\";"
             else
                 file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::ZONES_FILE)}\";\n"
                 file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::SLAVES_FILE)}\";\n"
@@ -249,7 +250,7 @@ class Exporter
                 end
             end
 
-            file.puts View.default.to_bind9_conf(zones_root_dir) # write default view at the end
+            file.puts @default_view.to_bind9_conf(zones_root_dir) # write default view at the end
         end
 
         #File.utime(@touch_timestamp, @touch_timestamp, abs_views_file)
@@ -312,13 +313,13 @@ class Exporter
         if options[:view] and !options[:view].default?
             abs_default_file_name    = File.join(abs_dir_name+"-default.conf")
             if options[:type] == "zones"
-                default_domains = View.default.domains.master.not_in_view(options[:view])
+                default_domains = @default_view.domains.master.not_in_view(options[:view])
             elsif options[:type] == "slave"
-                default_domains = View.default.domains.slave.not_in_view(options[:view])
+                default_domains = @default_view.domains.slave.not_in_view(options[:view])
             elsif options[:type] == "forwards"
-                default_domains = View.default.domains.forward.not_in_view(options[:view])
+                default_domains = @default_view.domains.forward.not_in_view(options[:view])
             elsif options[:type] == "reverse"
-                default_domains = View.default.domains.reverse.not_in_view(options[:view])
+                default_domains = @default_view.domains.reverse.not_in_view(options[:view])
             end
 
             write_zone_conf(zones_root_dir, export_all_domains, abs_zones_root_dir, abs_default_file_name, default_domains, options)
