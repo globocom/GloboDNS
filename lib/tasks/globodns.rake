@@ -7,19 +7,20 @@ namespace :globodns do
         task :migrate => :environment do
             if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true
                 # sets default_view to the viewless zones 
+                View.disable_auditing
+                view_default = View.default
                 Domain.noview.each do |domain|
-                    domain.view = View.default
+                    domain.view = view_default
                     domain.save
                 end
 
                 #sets default_view to viewless zone_templates
                 DomainTemplate.where(view: nil).each do |domain_template|
-                    domain_template.view = View.default
+                    domain_template.view = view_default
                     domain_template.save
                 end
             end
         end
-
     end
 
     namespace :chroot do
