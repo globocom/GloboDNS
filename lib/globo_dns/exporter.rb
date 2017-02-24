@@ -677,6 +677,16 @@ class Exporter
         return destroyed.audited_changes['authority_type']
     end
 
+    def destroyed_zone_view(name)
+        destroyed = Audited::Adapters::ActiveRecord::Audit.where(auditable_type:"Domain").where("action = 'destroy'").where("created_at > ?", @last_commit_date_destroyed).where('audited_changes LIKE ?', '%'+name+'%').order(created_at: :desc).first
+        id = destroyed.audited_changes['view_id']
+        if View.exists? id
+            return View.find id
+        else
+            return ''
+        end
+    end
+
     def remove_destroyed_domains(zonefile_dir,slave = false)
       @last_commit_date_destroyed ||= @last_commit_date
       destroyed = Audited::Adapters::ActiveRecord::Audit.where(auditable_type:"Domain",action:"destroy" ).where("created_at > ?", @last_commit_date_destroyed)
@@ -692,7 +702,8 @@ class Exporter
       @logger.info "[GloboDns::Exporter] Removing destroyed domains: #{domains}" unless domains.empty?
       domains.each do |domain|
         type = destroyed_zone_type(domain)
-        tmpdomain = Domain.new(name:domain, authority_type: type)
+        view = destroyed_zone_view(domain)
+        tmpdomain = Domain.new(name:domain, authority_type: type, view: view)
         unless tmpdomain.forward? # Forward zones are configured only in 'forward.conf' and so individual config file doesn't exist
             tmpdomain.slave! if slave 
             zonefile_path = tmpdomain.zonefile_path
