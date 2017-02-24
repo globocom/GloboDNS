@@ -25,7 +25,7 @@ class View < ActiveRecord::Base
 
     has_many :domains
 
-    validates_presence_of :name, :key
+    validates_presence_of :name, :clients, :key
     validates_associated  :domains
 
     before_validation :generate_key, :on => :create
@@ -35,7 +35,7 @@ class View < ActiveRecord::Base
     scope :default, -> {
                         default_view = View.where(name: 'default').first
                         if default_view.nil?
-                            View.new
+                            default_view = View.new
                             default_view.name = 'default'
                             default_view.clients = 'any;'
                             default_view.save
@@ -130,7 +130,6 @@ class View < ActiveRecord::Base
     end
 
     def domains_master
-        # domains_master_view + domains_master_default
         ids = self.domains.master.pluck(:id) + View.default.domains.master.where.not(name: self.domains_master_names).pluck(:id)
         Domain.where(id: ids.uniq)
         
