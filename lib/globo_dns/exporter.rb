@@ -36,6 +36,7 @@ class Exporter
     def initialize
         @logger = GloboDns::StringIOLogger.new(Rails.logger)
         @something_exported = false
+        @default_view = View.default
     end
 
     def export_all(master_named_conf_content, slaves_named_conf_contents, options = {})
@@ -46,7 +47,6 @@ class Exporter
       end
 
       @views=View.all.collect(&:name)
-      @default_view = View.default
 
         Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ, #{Audited::Adapters::ActiveRecord::Audit.table_name} READ") unless (lock_tables == false)
         export_master(master_named_conf_content, options)
@@ -135,28 +135,32 @@ class Exporter
         named_conf_content = self.class.load_named_conf(chroot_dir, named_conf_file) if named_conf_content.blank?
         export_named_conf(named_conf_content, tmp_dir, zones_root_dir, named_conf_file)
 
-        # export all views
-        export_views(tmp_dir, zones_root_dir, options)
 
         new_zones = []
-        # export each view-less domain group to a separate file
-        if @slave == true
-            export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    [], true, options)
-            export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  [], true, options)
-            export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.master_or_reverse_or_slave, false, options)
-            export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward, false, options)
-        else
-            new_zones_noreverse = export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    Domain.noview.master)
-            new_zones_reverse   = export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  Domain.noview._reverse)
-            if not new_zones_noreverse.empty? and not new_zones_reverse.empty?
-                # If there is a new zone in non-reverse or reverse, I need update everything.
-                # If both have only changes, may I reload only changed zones
-                new_zones += new_zones_noreverse + new_zones_reverse
-            end
-            export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.slave)
-            export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward)
-        end
 
+        if GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW
+            # export all views
+            export_views(tmp_dir, zones_root_dir, options)
+            # new_zones?
+        else
+            # export each view-less domain group to a separate file
+            if @slave == true
+                export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    [], true, options)
+                export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  [], true, options)
+                export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.master_or_reverse_or_slave, false, options)
+                export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward, false, options)
+            else
+                new_zones_noreverse = export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    Domain.noview.master)
+                new_zones_reverse   = export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  Domain.noview._reverse)
+                if not new_zones_noreverse.empty? and not new_zones_reverse.empty?
+                    # If there is a new zone in non-reverse or reverse, I need update everything.
+                    # If both have only changes, may I reload only changed zones
+                    new_zones += new_zones_noreverse + new_zones_reverse
+                end
+                export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.slave)
+                export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward)
+            end
+        end
         # remove files that older than the export timestamp; these are the
         # zonefiles from domains that have been removed from the database
         # (otherwise they'd have been regenerated or 'touched')
@@ -261,10 +265,9 @@ class Exporter
             # dump zonefile of updated domains
             updated_domains = export_all_domains ? domains : domains.updated_since(@last_commit_date)
             updated_domains.each do |domain|
-                unless @slave or domain.forward? #Slaves and forwards don't replicate the zone-files.
+                unless !(options[:view] == @default_view) and @slave or domain.forward? # Slaves and forwards don't replicate the zone-files. # other views use the zone conf of the default view
                     @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}; created_at: #{domain.created_at}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated_since-count: #{domain.records.updated_since(@last_commit_date).count})"
                     #create subdir for this domain, if it doesn't exist yet.
-                    domain.view = options[:view] if options[:view]
                     abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
                     File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
                     #Create/Update the zonefile itself
@@ -276,7 +279,6 @@ class Exporter
 
             domains.each do |domain|
                 if @slave or domain.slave? and not domain.forward?
-                    domain.view = options[:view] if options[:view]
                     domain = domain.clone
                     domain.slave!
                     abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
@@ -322,7 +324,7 @@ class Exporter
                 default_domains = @default_view.domains.reverse.not_in_view(options[:view])
             end
 
-            write_zone_conf(zones_root_dir, export_all_domains, abs_zones_root_dir, abs_default_file_name, default_domains, options)
+            write_zone_conf(zones_root_dir, export_all_domains, abs_zones_root_dir, abs_default_file_name, default_domains, options) unless (@slave and not options[:type] == "forwards") # if options[:zones]
         end
 
         # write <view>_<type>.conf (the zones that exist in this view)
@@ -356,6 +358,7 @@ class Exporter
             end
 
             # write entries to index file (<domain_type>.conf).
+            domains = domains.not_in_view(@default_view) if @slave and !domains.empty? and options[:view] and !options[:view].default?
             domains.each do |domain|
                 if @slave or domain.slave? and not domain.forward?
                     domain.view = options[:view] if options[:view]
@@ -689,7 +692,6 @@ class Exporter
       @logger.info "[GloboDns::Exporter] Removing destroyed domains: #{domains}" unless domains.empty?
       domains.each do |domain|
         type = destroyed_zone_type(domain)
-        @logger.debug "#{domain} is a zone of type #{type}"
         tmpdomain = Domain.new(name:domain, authority_type: type)
         unless tmpdomain.forward? # Forward zones are configured only in 'forward.conf' and so individual config file doesn't exist
             tmpdomain.slave! if slave 
