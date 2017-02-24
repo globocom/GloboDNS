@@ -46,10 +46,7 @@
             %td.hidden= help_icon('help-domain-type')
           %tr.master.slave.forward
             %td= f.label :view, t(:label_domain_view)
-            - if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true
-              %td= f.collection_select :view_id, View.all, :id, :name
-            - else
-              %td= f.collection_select :view_id, View.all, :id, :name, :include_blank => true
+            %td= domain.view.name
             %td= help_icon('help-domain-view')
           %tr.slave
             %td= f.label :master, t(:label_domain_master_server)
