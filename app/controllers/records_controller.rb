@@ -25,6 +25,7 @@ class RecordsController < ApplicationController
         @records = Record.where(:domain_id => params[:domain_id])
         @records = @records.without_soa.paginate(:page => params[:page] || 1, :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
         @records = @records.matching(params[:records_query]) if params[:records_query].present?
+        @records = @records.matching(params[:query]) if params[:query].present? # when using api
         respond_with(@records) do |format|
             format.html { 
               render :partial => 'list', :object => @records, :as => :records if request.xhr? }
