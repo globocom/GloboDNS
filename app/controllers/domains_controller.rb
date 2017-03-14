@@ -19,6 +19,7 @@ class DomainsController < ApplicationController
 
     before_filter :admin_or_operator?, :except => [:index, :show]
 
+
     DEFAULT_PAGE_SIZE = 25
 
     def index
@@ -26,6 +27,7 @@ class DomainsController < ApplicationController
         @domains = session[:show_reverse_domains] ? Domain.all : Domain.nonreverse
         @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
         @domains = @domains.matching(params[:query]) if params[:query].present?
+        @domains = @domains.where(view_id: params[:view]) if params[:view] and !params[:view].empty? and params[:view] != 'all'
         respond_with(@domains) do |format|
             format.html { render :partial => 'list', :object => @domains, :as => :domains if request.xhr? }
         end
