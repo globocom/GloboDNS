@@ -11,13 +11,13 @@ namespace :globodns do
                 view_default = View.default
                 Domain.noview.each do |domain|
                     domain.view = view_default
-                    domain.save
+                    domain.save(:validate => false)
                 end
 
                 #sets default_view to viewless zone_templates
                 DomainTemplate.where(view: nil).each do |domain_template|
                     domain_template.view = view_default
-                    domain_template.save
+                    domain_template.save(:validate => false)
                 end
             end
         end
