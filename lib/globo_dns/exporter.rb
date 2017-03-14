@@ -40,6 +40,7 @@ class Exporter
     end
 
     def export_all(master_named_conf_content, slaves_named_conf_contents, options = {})
+        @views_enabled = (defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW)
         @logger                     ||= GloboDns::StringIOLogger.new(options.delete(:logger) || Rails.logger)
         lock_tables                 = options.delete(:lock_tables)
       if (options[:use_master_named_conf_for_slave])
@@ -138,11 +139,60 @@ class Exporter
 
         new_zones = []
 
-        if GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW
+        if @views_enabled
+            conf_files_names = [ZONES_FILE, SLAVES_FILE, FORWARDS_FILE, REVERSE_FILE]
+            # make sure zones|slaves|forwards|reverse.conf are empty when BIND is using views
+            conf_files_names.each do |conf_file_name|
+                conf_file = File.join(tmp_dir, zones_root_dir, conf_file_name)
+                File.open(conf_file, 'w') do |file|
+                    file.puts ""
+                end
+            end
+
             # export all views
-            export_views(tmp_dir, zones_root_dir, options)
+            abs_zones_root_dir = File.join(tmp_dir, zones_root_dir)
+            abs_views_dir = File.join(tmp_dir, zones_root_dir, '/views')
+            abs_views_file     = File.join(abs_zones_root_dir, VIEWS_FILE)
+
+            File.exists?(abs_views_dir) or FileUtils.mkdir(abs_views_dir)
+
+
+            File.open(abs_views_file, 'w') do |file|
+                View.all.each do |view|
+                    file.puts view.to_bind9_conf(zones_root_dir, '', @slave) unless view.default?
+                    if @slave == true
+                        export_domain_group(tmp_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                                       , true                                      , options.merge(:view => view, :type => ""))
+                        export_domain_group(tmp_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                                       , true                                      , options.merge(:view => view, :type => ""))
+                        export_domain_group(tmp_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains_master_or_reverse_or_slave  , view.updated_since?(@last_commit_date)    , options.merge(:view => view, :type => "zones-slave-reverse"))
+                        export_domain_group(tmp_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , true                                      , options.merge(:view => view, :type => "forwards"))
+                    else
+                        new_zones_noreverse = export_domain_group(tmp_dir , zones_root_dir , view.zones_file   , view.zones_dir    , view.domains.master                      , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "zones"))
+                        new_zones_reverse = export_domain_group(tmp_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , view.domains._reverse                    , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "reverse"))
+                        if not new_zones_noreverse.empty? and not new_zones_reverse.empty?
+                            # If there is a new zone in non-reverse or reverse, I need update ,.everything.
+                            # If both have only changes, may I reload only changed zones
+                            new_zones += new_zones_noreverse + new_zones_reverse
+                        end
+                        export_domain_group(tmp_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.slave                       , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "slave"))
+                        export_domain_group(tmp_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "forwards"))
+                    end
+                end
+
+                file.puts @default_view.to_bind9_conf(zones_root_dir, '',@slave) # write default view at the end
+            end
             # new_zones?
         else
+            # remove views folder
+            views_dir = File.join(tmp_dir, zones_root_dir, '/views')
+            views_file = File.join(tmp_dir, zones_root_dir, VIEWS_FILE)
+            FileUtils.rm_rf(views_dir) if File.directory? views_dir
+
+            unless View.all.empty?
+                # make sure views.conf is empty when BIND is not using views
+                File.open(views_file, 'w') do |file|
+                    file.puts ""
+                end
+            end
             # export each view-less domain group to a separate file
             if @slave == true
                 export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    [], true, options)
@@ -239,9 +289,9 @@ class Exporter
                 file.puts view.to_bind9_conf(zones_root_dir, '', @slave) unless view.default?
                 if @slave == true
                     #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                                  , export_all_domains
-                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                                       , true                                      , options.merge(:view => view, :type => "zones"))
-                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                                       , true                                      , options.merge(:view => view, :type => "reverse"))
-                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains_master_or_reverse_or_slave  , view.updated_since?(@last_commit_date)    , options.merge(:view => view, :type => "slave"))
+                    export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                                       , true                                      , options.merge(:view => view, :type => ""))
+                    export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                                       , true                                      , options.merge(:view => view, :type => ""))
+                    export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains_master_or_reverse_or_slave  , view.updated_since?(@last_commit_date)    , options.merge(:view => view, :type => "zones-slave-reverse"))
                     export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , true                                      , options.merge(:view => view, :type => "forwards"))
                     # export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.master_or_reverse_or_slave  , view.updated_since?(@last_commit_date)    , options)
                     # export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , true                                      , options)
@@ -280,6 +330,7 @@ class Exporter
             domains.each do |domain|
                 if @slave or domain.slave? and not domain.forward?
                     domain = domain.clone
+                    domain.view = options[:view] if options[:view] and options[:view] != @default_view 
                     domain.slave!
                     abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
                     File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
@@ -314,17 +365,21 @@ class Exporter
         # write <view>_<type>_default.conf (basically the default_<type>.conf excluding the zones that exist in this view)
         if options[:view] and !options[:view].default?
             abs_default_file_name    = File.join(abs_dir_name+"-default.conf")
-            if options[:type] == "zones"
+            case options[:type]
+            when "zones"
                 default_domains = @default_view.domains.master.not_in_view(options[:view])
-            elsif options[:type] == "slave"
+            when "slave"
                 default_domains = @default_view.domains.slave.not_in_view(options[:view])
-            elsif options[:type] == "forwards"
+            when "forwards"
                 default_domains = @default_view.domains.forward.not_in_view(options[:view])
-            elsif options[:type] == "reverse"
+            when "reverse"
                 default_domains = @default_view.domains.reverse.not_in_view(options[:view])
+            when "zones-slave-reverse"
+                default_domains = @default_view.domains.master_or_reverse_or_slave.not_in_view(options[:view])
+
             end
 
-            write_zone_conf(zones_root_dir, export_all_domains, abs_zones_root_dir, abs_default_file_name, default_domains, options) unless (@slave and not options[:type] == "forwards") # if options[:zones]
+            write_zone_conf(zones_root_dir, export_all_domains, abs_zones_root_dir, abs_default_file_name, default_domains, options) unless (@slave and not (options[:type] == "zones-slave-reverse" or options[:type] == "forwards")) # if options[:zones]
         end
 
         # write <view>_<type>.conf (the zones that exist in this view)
@@ -513,7 +568,8 @@ class Exporter
 
         @to_reload = updated_zones
         #Better do a full reload if to many zones were changed
-        if @to_reload.size < 10 and not @to_reload.empty?
+        unless @to_reload.empty?
+        # if @to_reload.size < 10 and not @to_reload.empty?
             @to_reload.each do |zone|
                 reload_output = reload_bind_conf(chroot_dir, zone)
                 @logger.info "[GloboDns::Exporter][INFO] bind configuration reloaded:\n#{reload_output}"
@@ -549,6 +605,20 @@ class Exporter
                                 abs_repository_zones_dir,
                                 "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}")
 
+            # if using views, sync views/*conf
+            if @views_enabled
+                rsync_output = exec('remote rsync',
+                                    Binaries::RSYNC,
+                                    '--checksum',
+                                    '--archive',
+                                    '--delete',
+                                    '--verbose',
+                                    "--include=*.conf",
+                                    '--exclude=*',
+                                    "#{abs_repository_zones_dir}#{VIEWS_DIR}/",
+                                    "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}/#{VIEWS_DIR}/")
+            end
+
             rsync_output = exec('remote rsync',
                                 Binaries::RSYNC,
                                 '--checksum',
@@ -561,7 +631,6 @@ class Exporter
                                 "--include=*#{SLAVES_FILE}",
                                 "--include=*#{FORWARDS_FILE}",
                                 "--include=*#{REVERSE_FILE}",
-                                "--include=*#{VIEWS_DIR}/***",
                                 '--exclude=*',
                                 abs_repository_zones_dir,
                                 "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}")

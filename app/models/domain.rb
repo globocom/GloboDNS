@@ -228,7 +228,9 @@ class Domain < ActiveRecord::Base
 
     # ------------- 'BIND9 export' utility methods --------------
     def query_key_name
-        (self.view || View.first).try(:key_name)
+        if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW
+            (self.view || View.first).try(:key_name)
+        end
     end
 
     def query_key

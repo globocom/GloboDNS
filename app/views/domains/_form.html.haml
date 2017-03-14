@@ -46,7 +46,7 @@
             %td.hidden= help_icon('help-domain-type')
           %tr.master.slave.forward
             %td= f.label :view, t(:label_domain_view)
-            %td= domain.view.name
+            %td= #{domain.view.nil? '' : domain.view.name}
             %td= help_icon('help-domain-view')
           %tr.slave
             %td= f.label :master, t(:label_domain_master_server)
