@@ -1,4 +1,7 @@
 %div.new-record-form-container{ :class => record.errors.any? ? '' : 'hidden' }
+  - if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW
+    %i
+      = t(:new_record_warning, name: @domain.name, view_name: @domain.view.name)
 
   = form_for([@domain, record], :remote => true, :html => {:id => 'new-record-form'}) do |f|
 

@@ -171,6 +171,7 @@ en:
   label_new_domain: "New domain"
 
 # Domains _record
+  new_record_warning: "Record will be created on domain '%{name}' (%{view_name})"
   label_domain_edit_record: "Edit this record"
   label_domain_delete_record: "Delete this record"
   confirm_domain_delete_record: "Are you sure?"

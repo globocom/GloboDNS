@@ -2,7 +2,7 @@
 <h1>
 	<%= form_tag(domains_path, method: 'get') do %>
 	  <%= label_tag "View:" %>
-	  <%= select_tag(:view, options_for_select(View.all.collect{|mt| [mt.name, mt.id]}.insert(0,"all"), params[:view]), :onchange => ("this.form.submit()")) %>
+	  <%= select_tag(:view_id, options_for_select(View.all.collect{|mt| [mt.name, mt.id]}.insert(0,"all"), params[:view_id]), :onchange => ("this.form.submit()")) %>
 	<% end -%>
 	</h1>
 <% end %>
