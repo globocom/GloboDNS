@@ -27,7 +27,19 @@ class DomainsController < ApplicationController
         @domains = session[:show_reverse_domains] ? Domain.all : Domain.nonreverse
         @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
         @domains = @domains.matching(params[:query]) if params[:query].present?
-        @domains = @domains.where(view_id: params[:view]) if params[:view] and !params[:view].empty? and params[:view] != 'all'
+        if request.path_parameters[:format] == 'json'
+            if params[:view]
+                view = View.where(name: params[:view]).first
+                if view.nil? and params[:view] != "all"
+                    @domains = nil
+                else
+                    params[:view_id] = (params[:view] == "all"? "all" : view.id)
+                end
+            else
+                params[:view_id] = View.where(name: "default").first.id
+            end
+        end
+        @domains = @domains.where(view_id: params[:view_id]) if params[:view_id] and params[:view_id] != '' and params[:view_id] != 'all'
         respond_with(@domains) do |format|
             format.html { render :partial => 'list', :object => @domains, :as => :domains if request.xhr? }
         end
