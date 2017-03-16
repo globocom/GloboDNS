@@ -174,7 +174,7 @@ en:
   new_record_warning: "Record will be created on domain '%{name}' (%{view_name})"
   label_domain_edit_record: "Edit this record"
   label_domain_delete_record: "Delete this record"
-  confirm_domain_delete_record: "Are you sure?"
+  confirm_domain_delete_record: "Are you sure you want to delete this record?"
 
 # Domains _new
   help_domain_fqdn:
@@ -479,7 +479,7 @@ en:
   label_template_record_minimum: "Minimum"
 
 # Record Templates # _record_template
-  confirm_delete_record_template: "Are you sure?"
+  confirm_delete_record_template: "Are you sure you want to delete this record?"
 
 # User_mailer activation
   text_user_mailer_accout_activated: "%{user}, your account has been activated.  You may now start adding your plugins:"
@@ -550,7 +550,7 @@ en:
   label_view_clients: Clients
   label_view_destinations: Destinations
   label_add_view: Add View
-  confirm_view_delete: "Are you sure?"
+  confirm_view_delete: "Are you sure you want to delete this view?"
 
 ### Controllers
 
