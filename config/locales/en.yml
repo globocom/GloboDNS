@@ -293,7 +293,7 @@ en:
   label_domain_record_weight: "Weight"
   label_domain_record_port: "Port"
   label_domain_record_content: "Content"
-  label_dns_query: 'Test'
+  label_dns_query: 'Test record response from the DNS servers'
 
 # Domains edit
   title_update_zone: "Update zone"
