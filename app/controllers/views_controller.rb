@@ -22,6 +22,7 @@ class ViewsController < ApplicationController
     def index
         @views = View.all
         @views = @views.paginate(:page => params[:page], :per_page => 5) if request.format.html? || request.format.js?
+        @views = @views.where(name: params[:query]) if params[:query]
         respond_with(@views) do |format|
             format.html { render :partial => 'list', :object => @views, :as => :views if request.xhr? }
         end
