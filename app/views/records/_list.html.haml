@@ -1,5 +1,4 @@
 %div.record-table-container
-  - local_assigns[:enable_edit] = true if local_assigns[:enable_edit].nil?
   - if records.empty?
     %table.record-table
       <br>
@@ -20,6 +19,6 @@
 
 
       %tbody
-        = render :partial => 'records/record', :collection => records, locals: {:enable_edit => local_assigns[:enable_edit]}
+        = render :partial => 'records/record', :collection => records
   - if records.respond_to?(:current_page)
     = will_paginate records, :class => 'record-table-pagination', :previous_label => '«'.html_safe, :next_label => '»'.html_safe
