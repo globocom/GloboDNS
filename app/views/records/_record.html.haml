@@ -14,7 +14,7 @@
   %td.content{'title' => record.content}
     %span= record.content
   %td.actions
-    - if current_user.admin? || current_user.operator? and local_assigns[:enable_edit]
+    - if current_user.admin? || current_user.operator?
       = link_to '', '#', :class => 'edit-record-button ui-icon-edit', :title => t(:generic_edit)
       = link_to '', record_path(record), :remote => true, :method => :delete, :data => {:confirm => t(:confirm_domain_delete_record)}, :class => 'delete-record-button ui-icon-trash', :title => t(:generic_delete)
       = link_to '', resolve_record_path(record), :remote => true, :class => 'resolve-record-button ui-icon-cogs', :title => t(:label_dns_query)
