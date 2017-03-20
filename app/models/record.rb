@@ -289,9 +289,25 @@ class Record < ActiveRecord::Base
             if record = Record.where(name: self.name, domain_id: self.domain_id).where("id != ?", id).first
                 self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
                 return
+            elsif record = Record.where(name: self.name+"."+self.domain.name+".", domain_id: self.domain_id).where("id != ?", id).first 
+                # check if there is a FQDN matching the record name
+                self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
+                return
+            elsif self.name.ends_with?'.' and record = Record.where(name: self.name.chomp("."+self.domain.name+"."), domain_id: self.domain_id).where("id != ?", id).first 
+                # check if there is a record name matching the FQDN 
+                self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
+                return
             end
         else # check if there is a CNAME record with the new record name
             if record = Record.where('id != ?', id).where('type = ?', 'CNAME').where('name' => self.name, 'domain_id' => self.domain_id).first
+                self.errors.add(:name, I18n.t('cname_name_taken', :name => self.name, :scope => 'activerecord.errors.messages'))
+                return
+            elsif record = Record.where('id != ?', id).where('type = ?', 'CNAME').where('name' => self.name+"."+self.domain.name+".", 'domain_id' => self.domain_id).first
+                # check if there is a FQDN matching the record name
+                self.errors.add(:name, I18n.t('cname_name_taken', :name => self.name, :scope => 'activerecord.errors.messages'))
+                
+            elsif self.name.ends_with?'.' and record = Record.where('id != ?', id).where('type = ?', 'CNAME').where('name' => self.name.chomp("."+self.domain.name+"."), 'domain_id' => self.domain_id).first
+                # check if there is a record name matching the FQDN 
                 self.errors.add(:name, I18n.t('cname_name_taken', :name => self.name, :scope => 'activerecord.errors.messages'))
                 return
             end
