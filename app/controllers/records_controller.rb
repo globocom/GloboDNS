@@ -48,6 +48,10 @@ class RecordsController < ApplicationController
     end
 
     def create
+        params[:record].each do |label, value|
+            params[:record][label].delete!(' ') unless value.nil?
+        end
+        
         @record = params[:record][:type].constantize.new(params[:record])
         @record.domain_id = params[:domain_id]
         @record.save
@@ -59,6 +63,10 @@ class RecordsController < ApplicationController
     end
 
     def update
+        params[:record].each do |label, value|
+            params[:record][label].delete!(' ') unless value.nil?
+        end
+
         @record = Record.find(params[:id])
         @record.update_attributes(params[:record])
         flash[:warning] = "#{@record.warnings.full_messages * '; '}" if @record.has_warnings?

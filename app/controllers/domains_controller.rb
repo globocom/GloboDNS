@@ -71,6 +71,12 @@ class DomainsController < ApplicationController
     def create
         domain_template_in_params = false
         domain_view_in_params = false
+
+        params[:domain].each do |label, value|
+            params[:domain][label].delete!(' ') unless value.nil?
+        end
+        
+
         if params[:domain][:domain_template_id].present? || params[:domain][:domain_template_name].present?
             domain_template_in_params = true
             @domain_template   = DomainTemplate.where('id'   => params[:domain][:domain_template_id]).first   if params[:domain][:domain_template_id]
@@ -113,6 +119,10 @@ class DomainsController < ApplicationController
     end
 
     def update
+        params[:domain].each do |label, value|
+            params[:domain][label].delete!(' ') unless (value.nil? or label == 'notes')
+        end
+
         @domain = Domain.find(params[:id])
         @domain.update_attributes(params[:domain])
         # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
