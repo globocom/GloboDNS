@@ -25,8 +25,9 @@ class View < ActiveRecord::Base
 
     has_many :domains
 
-    validates_presence_of :name, :clients, :key
+    validates_presence_of :name, :key
     validates_associated  :domains
+    validate :clients_or_destinations
 
     before_validation :generate_key, :on => :create
 
@@ -208,7 +209,7 @@ class View < ActiveRecord::Base
     end
 
     def to_bind9_conf(zones_dir, indent = '', slave=false)
-        match_clients = self.clients.present? ? self.clients.split(/\s*;\s*/) : Array.new
+        match_clients = self.clients.present? ? self.clients.split(/\s*;\s*/) : ["any"] #Array.new
 
         if self.key.present?
             # use some "magic" to figure out the local address used to connect
@@ -252,8 +253,9 @@ class View < ActiveRecord::Base
 
             str << "#{indent}view \"#{self.name}\" {\n"
             str << "#{indent}    match-clients      { #{match_clients.uniq.join('; ')}; };\n" if match_clients.present?
+            str << "#{indent}    match-destinations { #{self.destinations} };\n" if self.destinations.present?
             str << "#{indent}    also-notify        { #{self.slaves_with_view_key} };\n" unless slave
-            str << "#{indent}    match-destinations { #{self.destinations}; };\n"             if self.destinations.present?
+            str << "#{indent}    allow-query        { any; };\n"
             str << "\n"
 
             
@@ -282,5 +284,11 @@ class View < ActiveRecord::Base
             GloboDns::Util::exec('rndc-confgen', GloboDns::Config::Binaries::RNDC_CONFGEN, '-a', '-r', '/dev/urandom', '-c', file.path, '-k', self.key_name)
             self.key = file.read[/algorithm\s+hmac\-md5;\s*secret\s+"(.*?)";/s, 1];
         end
+    end
+
+    def clients_or_destinations
+        if self.clients.blank? and self.destinations.blank?
+            errors.add(:base, "Please, fill clients and/or destinations")
+      end
     end
 end
