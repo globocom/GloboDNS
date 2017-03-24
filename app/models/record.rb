@@ -78,9 +78,11 @@ class Record < ActiveRecord::Base
     # known record types
     @@record_types        = %w(AAAA A CERT CNAME DLV DNSKEY DS IPSECKEY KEY KX LOC MX NSEC3PARAM NSEC3 NSEC NS PTR RRSIG SIG SOA SPF SRV TA TKEY TSIG TXT)
     @@high_priority_types = %w(A MX CNAME TXT NS)
+    @@testable_types      = %w(A AAAA MX CNAME TXT SRV)
 
     cattr_reader :record_types
     cattr_reader :high_priority_types
+    cattr_reader :testable_types
 
     def self.last_update
         select('updated_at').order('updated_at DESC').limit(1).first.updated_at
@@ -154,55 +156,95 @@ class Record < ActiveRecord::Base
     end
     
     def url
-        if self.name != '@'
+        if self.name.ends_with? '.'
+            self.name.chomp('.')
+        elsif self.name != '@'
             "#{self.name}.#{self.domain.name}"
         else
             self.domain.name
         end
     end
 
-    def responding destination
-        !Net::DNS::Resolver.start(destination).answer.nil?
+    def match_content content
+        if self.type == "AAAA"
+            self.content.split(":").collect{|i| i.to_i} == content.split(":").collect{|i| i.to_i}
+        else
+            self.content.delete("\"") == content or self.content == content or self.content == content+'.' or self.content+"."+self.domain.name == content or self.content+"."+self.domain.name+"." == content or self.content.chomp(self.domain.name+".") == content 
+        end
     end
 
-    def responding_from_dns_server ip
-        conn = Resolv::DNS.new(:nameserver => ip)
-        begin
-            conn.getaddress(url).to_s 
+
+    def responding_from_dns_server server
+        res = []
+        resolver = Resolv::DNS.new(:nameserver => server)
+        begin Timeout::timeout(1) {
+            answers = resolver.getresources(self.url, self.resolve_resource_class) 
+            
+            answers.each do |answer|
+                case self.type
+                when "A", "AAAA"
+                    res.push({name: self.name, ttl: answer.ttl, content: answer.address.to_s})
+                when "TXT"
+                    res.push({name: self.name, ttl: answer.ttl, content: answer.strings.join.remove(" ")})
+                when "PTR"
+                    # ? 
+                when "CNAME", "NS"
+                    res.push({name: self.name, ttl: answer.ttl, content: answer.name.to_s})
+                when "SRV" 
+                    res.push({name: self.name, ttl: answer.ttl, prio: answer.priority ,content: answer.target.to_s, port: answer.port, weight: answer.weight})
+                when "MX" 
+                    res.push({name: self.name, ttl: answer.ttl, content: answer.exchange.to_s, prio: answer.preference})
+                end
+            end
+        }
         rescue
+            res
         end
+        res
+    end
+
+    def get_nameservers
+        resolver = Resolv::DNS.new(:nameserver => GloboDns::Config::Bind::Master::IPADDR, :timeout => 5)
+        servers = resolver.getresources(self.domain.name, Resolv::DNS::Resource::IN::NS)
+        servers.collect {|server| server.name.to_s}
     end
 
     def resolve
         success = []
         failed = []
-        begin 
-            servers_extra = GloboDns::Config::ADDITIONAL_DNS_SERVERS.sub(/[\[\]\,]/, "").split
-        rescue
-            servers_extra = []
-        end
 
-        servers_extra.each do |server|
-            if res = responding_from_dns_server(server)
-                success.push({:ip => res, :server => server})
+        # check authority servers response (servers from 'dig globo.com')
+        servers = get_nameservers
+
+        servers.each do |server|
+            res = responding_from_dns_server(server)
+            if !res.empty?
+                res.each do |r|
+                    success.push({:content => r[:content], :prio => r[:prio], :port => r[:port], :weight => r[:weight], :server => "#{server}"})
+                end
             else
                 failed.push({:server => server})
             end
         end
 
-        zone_info = Net::DNS::Resolver.start self.domain.name
-        servers = zone_info.additional
-
-        servers.each do |server|
-            if res = responding_from_dns_server(server.address.to_s)
-                success.push({:ip => res, :server => server.address.to_s})
-            else
-                failed.push({:server => server.address.to_s})
-            end
+        begin 
+            servers_extra = GloboDns::Config::ADDITIONAL_DNS_SERVERS
+        rescue
+            servers_extra = []
         end
 
+        # check additional servers response (additional servers should at 'globodns.yml')
+        servers_extra.each do |server|
+            res = responding_from_dns_server(server)
+            if !res.empty?
+                res.each do |r|
+                    success.push({:content => r[:content], :prio => r[:prio], :port => r[:port], :weight => r[:weight], :server => "#{server}"})
+                end
+            else
+                failed.push({:server => server})
+            end
+        end
         return {:success => success, :failed => failed}
-
 
         # p = Net::Ping::External.new self.content
         # self.warnings.add(:content, I18n.t('a_content_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless p.ping?

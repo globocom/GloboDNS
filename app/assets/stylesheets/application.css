@@ -752,7 +752,7 @@ ul.start li {
 
 .dialog {
     position:   fixed;
-    width:      640px;
+    width:      800px;
     display:    none;
     padding:    2em;
     z-index:    9999;

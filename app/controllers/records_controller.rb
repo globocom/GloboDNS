@@ -86,7 +86,7 @@ class RecordsController < ApplicationController
 
     def resolve
         @record = Record.find(params[:id])
-        @response = @record.resolve
+        @response = @record.resolve if Record::testable_types.include? @record.type
         respond_to do |format|
             format.html { render :partial => 'resolve' } if request.xhr?
             # format.json { render :json => {'master' => @master_response, 'slave' => @slave_response}.to_json }
