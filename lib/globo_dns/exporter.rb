@@ -94,7 +94,7 @@ class Exporter
         export(named_conf_content, Bind::Slaves[index]::EXPORT_CHROOT_DIR, bind_server_data, slave = true, options.merge(:label => "slave#{index+1}", :index => index))
     end
 
-    def export(named_conf_content, chroot_dir, bind_server_data, slave, options = {})
+    def export(named_conf_content, chroot_dir, bind_server_data, slave, options = {}) 
         @options        = options
         @logger       ||= @options[:logger] || Rails.logger
         @slave          = slave
@@ -106,7 +106,7 @@ class Exporter
         if @options[:all] == true
             # ignore the current git content and export all records
             @last_commit_date = Time.at(0)
-            @last_commit_date_destroyed = last_export_timestamp # usar uma data diferente para os audits de 'destroy'
+            @last_commit_date_destroyed = last_export_timestamp
         else
           if slave
             @last_commit_date = Dir.chdir(File.join(chroot_dir, zones_root_dir)) do
