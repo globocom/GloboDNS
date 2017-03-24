@@ -341,7 +341,8 @@ class Record < ActiveRecord::Base
                 return
             end
         else # check if there is a CNAME record with the new record name
-            if record = Record.where('id != ?', id).where('type = ?', 'CNAME').where('name' => self.name, 'domain_id' => self.domain_id).first
+            unless self.domain.nil?
+                if record = Record.where('id != ?', id).where('type = ?', 'CNAME').where('name' => self.name, 'domain_id' => self.domain_id).first
                 self.errors.add(:name, I18n.t('cname_name_taken', :name => self.name, :scope => 'activerecord.errors.messages'))
                 return
             elsif record = Record.where('id != ?', id).where('type = ?', 'CNAME').where('name' => self.name+"."+self.domain.name+".", 'domain_id' => self.domain_id).first
@@ -352,6 +353,7 @@ class Record < ActiveRecord::Base
                 # check if there is a record name matching the FQDN 
                 self.errors.add(:name, I18n.t('cname_name_taken', :name => self.name, :scope => 'activerecord.errors.messages'))
                 return
+            end
             end
         end
     end
