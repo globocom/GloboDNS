@@ -26,7 +26,10 @@ class DomainsController < ApplicationController
         session[:show_reverse_domains] = (params[:reverse] == 'true') if params.has_key?(:reverse)
         @domains = session[:show_reverse_domains] ? Domain.all : Domain.nonreverse
         @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
-        @domains = @domains.matching(params[:query]) if params[:query].present?
+        if params[:query].present?
+            params[:query].delete!(" ")
+            @domains = @domains.matching(params[:query])
+        end
         if request.path_parameters[:format] == 'json'
             if params[:view]
                 view = View.where(name: params[:view]).first
