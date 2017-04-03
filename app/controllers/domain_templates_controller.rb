@@ -51,12 +51,6 @@ class DomainTemplatesController < ApplicationController
 
     def create
         @domain_template = DomainTemplate.new(params[:domain_template])
-
-        # if 'uses_view' is set as true at 'globodns.yml', forces use default view when saving
-        if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true
-            @domain_template.view = View.default
-        end
-
         @domain_template.save
         Rails.logger.info "[controller] after save"
 
