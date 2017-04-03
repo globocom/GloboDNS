@@ -51,6 +51,11 @@
           %td= f.label :minimum, t(:label_domain_minimum)
           %td= f.text_field :minimum
           %td= help_icon('help-minimum')
+        - if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true
+          %tr
+            %td= f.label :view, t(:view)
+            %td= f.select :view_id,  View.all.collect {|v| [ v.name, v.id ] }
+            %td= help_icon('help-minimum')
       %tfoot
         %tr.actions
           %td{:colspan => 3}
