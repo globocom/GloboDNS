@@ -1,39 +1,11 @@
 # Changelog
 
-## [1.6.6](https://github.com/globocom/GloboDNS/releases/tag/1.6.6) (07/06/17)
-#### - Bug fixies
- * Fix regex of record name validation
-
-
-## [1.6.5](https://github.com/globocom/GloboDNS/releases/tag/1.6.5) (06/06/17)
-#### - Bug fixies
- * Record template wasn't being saved after edit
- * TXT records can have blank spaces
-#### - Enhancements
- * Added support to CAA records
- * Ensure that TXT and CAA contents have quotes
-
-## [1.6.4](https://github.com/globocom/GloboDNS/releases/tag/1.6.4) (05/05/17)
-#### - Bug fixies
- * Serial of zones were being incremented base on numbers of views
- * Serial of non default zones should be ahead of same-name default zones
-
-## [1.6.3](https://github.com/globocom/GloboDNS/releases/tag/1.6.3) (03/05/17)
-#### - Bug fixies
- * Records content should be ASCII only
- * Create rake task for views migrationn rollback
- * Including zones, slaves, reverse, forwards and views config on 'named.conf'
-
-## [1.6.2](https://github.com/globocom/GloboDNS/releases/tag/1.6.2) (12/04/17)
-#### - Bug fixies
- * Domain query wasn't working when views are disable (via API only)
-
 ## [1.6.0](https://github.com/globocom/GloboDNS/releases/tag/1.6.0) (04/04/17)
 Minor release featuring views
 #### - Bug fixies
  * Fixing exporting bugs when using views
  * Views 'destinations' field wasn't working properly
- * Record name validation wasn't considering if two records were equivalent (one a FQND and other a hostname) 
+ * Record name validation wasn't considering if two records were equivalent (one a FQND and other a hostname)
  * When using views, domain template views was always setted to 'default view'
  * Record search field had the same name as domain search field
 #### - Enhancements
@@ -43,10 +15,10 @@ Minor release featuring views
  * Adding field 'schedule_date' to 'Schedule Export' JSON output
 
 ## [1.5.19](https://github.com/globocom/GloboDNS/releases/tag/1.5.19) (07/02/17)
-##### - Bug fixies 
+##### - Bug fixies
  * Validation of record TXT was being applied to all record types
  * SRV record must have 'Priority', 'Weight' and 'Port' fields
-##### - Enhancements 
+##### - Enhancements
  * Changed subject exporter/importer mailer, so that the emails received of different environments won't be agrouped
 
 ## [1.5.14](https://github.com/globocom/GloboDNS/releases/tag/1.5.14) (19/01/17)
