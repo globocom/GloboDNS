@@ -1,22 +1,18 @@
 # Changelog
 
-## [1.5.25](https://github.com/globocom/GloboDNS/releases/tag/1.5.25) (03/04/17)
+## [1.6.0](https://github.com/globocom/GloboDNS/releases/tag/1.6.0) (04/04/17)
+Minor release featuring views
 #### - Bug fixies
  * Fixing exporting bugs when using views
  * Views 'destinations' field wasn't working properly
  * Record name validation wasn't considering if two records were equivalent (one a FQND and other a hostname) 
  * When using views, domain template views was always setted to 'default view'
-#### - Enhancements
- * Records testing - checking if it is responding to its authorities servers
- * Views now are supported via API
-
-## [1.5.24](https://github.com/globocom/GloboDNS/releases/tag/1.5.24) (21/02/17)
-#### - Bug fixies
  * Record search field had the same name as domain search field
 #### - Enhancements
- * Supporting the use of views
+ * Support the use of views (web interface and API)
+ * Records testing - checking if it is responding to its authorities servers
  * Task to migrate viewless zones to a default view (when using view, all zones must be in views)
- * Adding filed 'schedule_date' to 'Schedule Export' JSON output
+ * Adding field 'schedule_date' to 'Schedule Export' JSON output
 
 ## [1.5.19](https://github.com/globocom/GloboDNS/releases/tag/1.5.19) (07/02/17)
 ##### - Bug fixies 
