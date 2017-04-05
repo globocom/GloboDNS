@@ -49,7 +49,7 @@ class RecordsController < ApplicationController
 
     def create
         params[:record].each do |label, value|
-            params[:record][label].delete!(' ') unless value.nil?
+            params[:record][label] = params[:record][label].to_s.gsub(/[ \t]/,'') unless value.nil?
         end
         
         @record = params[:record][:type].constantize.new(params[:record])
@@ -64,7 +64,7 @@ class RecordsController < ApplicationController
 
     def update
         params[:record].each do |label, value|
-            params[:record][label].delete!(' ') unless value.nil?
+            params[:record][label] = params[:record][label].to_s.gsub(/[ \t]/,'') unless value.nil?
         end
 
         @record = Record.find(params[:id])
