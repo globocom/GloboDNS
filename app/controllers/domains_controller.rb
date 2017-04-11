@@ -30,7 +30,7 @@ class DomainsController < ApplicationController
             params[:query].to_s.gsub(/[ \t]/,'')
             @domains = @domains.matching(params[:query])
         end
-        if request.path_parameters[:format] == 'json'
+        if request.path_parameters[:format] == 'json' and (defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true)
             if params[:view]
                 view = View.where(name: params[:view]).first
                 if view.nil? and params[:view] != "all"
