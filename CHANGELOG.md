@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.6.2](https://github.com/globocom/GloboDNS/releases/tag/1.6.2) (12/04/17)
+#### - Bug fixies
+ * Domain query wasn't working when views are disable (via API only)
+
 ## [1.6.0](https://github.com/globocom/GloboDNS/releases/tag/1.6.0) (04/04/17)
 Minor release featuring views
 #### - Bug fixies
