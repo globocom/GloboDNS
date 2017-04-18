@@ -357,7 +357,7 @@ class Record < ActiveRecord::Base
             end
         end
     end
- 
+
     def validate_name_format
         # default implementation: validation of 'hostnames'
         return if self.name.blank? || self.name == '@'
@@ -422,7 +422,7 @@ class Record < ActiveRecord::Base
         end
     end
 
-    def check_cname_content 
+    def check_cname_content
         if self.type == "CNAME"
             if self.content.ends_with? "."
                 dns = Resolv::DNS.new
@@ -448,7 +448,7 @@ class Record < ActiveRecord::Base
 
         return
     end
-    
+
     # Checks if this record is a replica of another
     def same_as? other_record
       self.name    == other_record.name &&
