@@ -23,6 +23,24 @@ namespace :globodns do
                 end
             end
         end
+
+        desc 'Puts all domains with default view as nil'
+        task :rollback => :environment do
+            # sets view as nil to zones 
+            View.disable_auditing
+            Domain.disable_auditing
+
+            Domain.all.each do |domain|
+                domain.view = nill
+                domain.save(:validate => false)
+            end
+
+            #sets view as nil to zone_templates
+            DomainTemplate.all.each do |domain_template|
+                domain_template.view = nill
+                domain_template.save(:validate => false)
+            end
+        end
     end
 
     namespace :chroot do
