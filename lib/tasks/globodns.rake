@@ -8,6 +8,8 @@ namespace :globodns do
             if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true
                 # sets default_view to the viewless zones 
                 View.disable_auditing
+                Domain.disable_auditing
+
                 view_default = View.default
                 Domain.noview.each do |domain|
                     domain.view = view_default
