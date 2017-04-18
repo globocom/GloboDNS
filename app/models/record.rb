@@ -158,11 +158,11 @@ class Record < ActiveRecord::Base
     def supports_weight?
         false
     end
-    
+
     def supports_port?
         false
     end
-    
+
     def url
         if self.name.ends_with? '.'
             self.name.chomp('.')
@@ -177,7 +177,7 @@ class Record < ActiveRecord::Base
         if self.type == "AAAA"
             self.content.split(":").collect{|i| i.to_i} == content.split(":").collect{|i| i.to_i}
         else
-            self.content.delete("\"") == content or self.content == content or self.content == content+'.' or self.content+"."+self.domain.name == content or self.content+"."+self.domain.name+"." == content or self.content.chomp(self.domain.name+".") == content 
+            self.content.delete("\"") == content or self.content == content or self.content == content+'.' or self.content+"."+self.domain.name == content or self.content+"."+self.domain.name+"." == content or self.content.chomp(self.domain.name+".") == content
         end
     end
 
@@ -186,8 +186,8 @@ class Record < ActiveRecord::Base
         res = []
         resolver = Resolv::DNS.new(:nameserver => server)
         begin Timeout::timeout(1) {
-            answers = resolver.getresources(self.url, self.resolve_resource_class) 
-            
+            answers = resolver.getresources(self.url, self.resolve_resource_class)
+
             answers.each do |answer|
                 case self.type
                 when "A", "AAAA"
@@ -195,12 +195,12 @@ class Record < ActiveRecord::Base
                 when "TXT"
                     res.push({name: self.name, ttl: answer.ttl, content: answer.strings.join.remove(" ")})
                 when "PTR"
-                    # ? 
+                    # ?
                 when "CNAME", "NS"
                     res.push({name: self.name, ttl: answer.ttl, content: answer.name.to_s})
-                when "SRV" 
+                when "SRV"
                     res.push({name: self.name, ttl: answer.ttl, prio: answer.priority ,content: answer.target.to_s, port: answer.port, weight: answer.weight})
-                when "MX" 
+                when "MX"
                     res.push({name: self.name, ttl: answer.ttl, content: answer.exchange.to_s, prio: answer.preference})
                 end
             end
@@ -235,7 +235,7 @@ class Record < ActiveRecord::Base
             end
         end
 
-        begin 
+        begin
             servers_extra = GloboDns::Config::ADDITIONAL_DNS_SERVERS
         rescue
             servers_extra = []
@@ -316,7 +316,7 @@ class Record < ActiveRecord::Base
             quoted_content = self.content
             quoted_content.insert(0,"\"") unless content.starts_with? "\""
             quoted_content.insert(-1,"\"") unless content.ends_with? "\""
-            
+
             self.content = quoted_content
         end
     end
@@ -351,12 +351,12 @@ class Record < ActiveRecord::Base
             if record = Record.where(name: self.name, domain_id: self.domain_id).where("id != ?", id).first
                 self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
                 return
-            elsif record = Record.where(name: self.name+"."+self.domain.name+".", domain_id: self.domain_id).where("id != ?", id).first 
+            elsif record = Record.where(name: self.name+"."+self.domain.name+".", domain_id: self.domain_id).where("id != ?", id).first
                 # check if there is a FQDN matching the record name
                 self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
                 return
-            elsif self.name.ends_with?'.' and record = Record.where(name: self.name.chomp("."+self.domain.name+"."), domain_id: self.domain_id).where("id != ?", id).first 
-                # check if there is a record name matching the FQDN 
+            elsif self.name.ends_with?'.' and record = Record.where(name: self.name.chomp("."+self.domain.name+"."), domain_id: self.domain_id).where("id != ?", id).first
+                # check if there is a record name matching the FQDN
                 self.errors.add(:name, I18n.t('cname_name', :name => self.name, :type => record.type, :scope => 'activerecord.errors.messages'))
                 return
             end
@@ -368,9 +368,9 @@ class Record < ActiveRecord::Base
             elsif record = Record.where('id != ?', id).where('type = ?', 'CNAME').where('name' => self.name+"."+self.domain.name+".", 'domain_id' => self.domain_id).first
                 # check if there is a FQDN matching the record name
                 self.errors.add(:name, I18n.t('cname_name_taken', :name => self.name, :scope => 'activerecord.errors.messages'))
-                
+
             elsif self.name.ends_with?'.' and record = Record.where('id != ?', id).where('type = ?', 'CNAME').where('name' => self.name.chomp("."+self.domain.name+"."), 'domain_id' => self.domain_id).first
-                # check if there is a record name matching the FQDN 
+                # check if there is a record name matching the FQDN
                 self.errors.add(:name, I18n.t('cname_name_taken', :name => self.name, :scope => 'activerecord.errors.messages'))
                 return
             end
@@ -443,7 +443,7 @@ class Record < ActiveRecord::Base
     end
 
     def check_cname_content
-        if self.type == "CNAME" and self.content.ascii_only?
+        if self.type == "CNAME"
             if self.content.ends_with? "."
                 dns = Resolv::DNS.new
                 url = self.content[0...-1]
@@ -460,21 +460,13 @@ class Record < ActiveRecord::Base
         return
     end
 
-    def check_a_content 
+    def check_a_content
         if self.type == "A"
             p = Net::Ping::External.new self.content
             self.warnings.add(:content, I18n.t('a_content_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless p.ping?
         end
 
         return
-    end
-
-    # checks if content has only ascii characters
-    def validate_content_characters
-        if !self.content.ascii_only?
-            # ascii_only
-            self.errors.add(:content, I18n.t('ascii_only', :scope => 'activerecord.errors.messages'))
-        end
     end
 
     # Checks if this record is a replica of another
