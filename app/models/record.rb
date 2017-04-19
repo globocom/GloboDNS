@@ -35,6 +35,7 @@ class Record < ActiveRecord::Base
     validates_presence_of      :name
     validates_presence_of      :content
     validates_bind_time_format :ttl
+    validate                   :validate_content_characters
     validate                   :validate_name_cname,                        :unless => :importing?
     validate                   :validate_name_format,                       :unless => :importing?
     validate                   :validate_recursive_subdomains,              :unless => :importing?
@@ -423,7 +424,7 @@ class Record < ActiveRecord::Base
     end
 
     def check_cname_content
-        if self.type == "CNAME"
+        if self.type == "CNAME" and self.content.ascii_only?
             if self.content.ends_with? "."
                 dns = Resolv::DNS.new
                 url = self.content[0...-1]
@@ -447,6 +448,14 @@ class Record < ActiveRecord::Base
         end
 
         return
+    end
+
+    # checks if content has only ascii characters
+    def validate_content_characters
+        if !self.content.ascii_only?
+            # ascii_only
+            self.errors.add(:content, I18n.t('ascii_only', :scope => 'activerecord.errors.messages'))
+        end
     end
 
     # Checks if this record is a replica of another
