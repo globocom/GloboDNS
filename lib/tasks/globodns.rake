@@ -30,14 +30,18 @@ namespace :globodns do
             View.disable_auditing
             Domain.disable_auditing
 
-            Domain.all.each do |domain|
-                domain.view = nill
+            view_default = View.default
+            domains = Domain.where(view: view_default) || Domain.all
+            domain_templates = DomainTemplate.where(view: view_default) || DomainTemplate.all
+
+            domains.each do |domain|
+                domain.view = nil
                 domain.save(:validate => false)
             end
 
             #sets view as nil to zone_templates
-            DomainTemplate.all.each do |domain_template|
-                domain_template.view = nill
+            domain_templates.each do |domain_template|
+                domain_template.view = nil
                 domain_template.save(:validate => false)
             end
         end
