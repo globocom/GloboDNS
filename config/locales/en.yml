@@ -73,6 +73,7 @@ en:
   activerecord:
     errors:
       messages:
+        ascii_only: "can have only ASCII characters"
         inclusion: "is not included in the list"
         exclusion: "is reserved"
         invalid: "is invalid"
