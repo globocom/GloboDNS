@@ -1,5 +1,5 @@
 <% if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW %>
-	<% if @domain.view.name == 'default' %>
+	<% if @domain.view and @domain.view.name == 'default' %>
 		<% View.all.where.not(name: 'default').each do |view| %>
 			<% unless view.domains.where(name: @domain.name).empty? %>
 				<% domain = view.domains.where(name: @domain.name).first %>
