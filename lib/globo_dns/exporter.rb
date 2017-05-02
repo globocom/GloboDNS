@@ -264,14 +264,11 @@ class Exporter
             file.puts
             file.puts CONFIG_START_TAG
             file.puts '# this block is auto generated; do not edit'
-            if View.count > 0
-                file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::VIEWS_FILE)}\";"
-            else
-                file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::ZONES_FILE)}\";\n"
-                file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::SLAVES_FILE)}\";\n"
-                file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::FORWARDS_FILE)}\";\n"
-                file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::REVERSE_FILE)}\";\n"
-            end
+            file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::VIEWS_FILE)}\";"
+            file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::ZONES_FILE)}\";\n"
+            file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::SLAVES_FILE)}\";\n"
+            file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::FORWARDS_FILE)}\";\n"
+            file.puts "include \"#{File.join(zones_root_dir, GloboDns::Config::REVERSE_FILE)}\";\n"
             file.puts CONFIG_END_TAG
         end
         #File.utime(@touch_timestamp, @touch_timestamp, abs_named_conf_file)
