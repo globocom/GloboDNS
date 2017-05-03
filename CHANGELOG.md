@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.3](https://github.com/globocom/GloboDNS/releases/tag/1.6.3) (03/05/17)
+#### - Bug fixies
+ * Records content should be ASCII only
+ * Create rake task for views migrationn rollback
+ * Including zones, slaves, reverse, forwards and views config on 'named.conf'
+
 ## [1.6.2](https://github.com/globocom/GloboDNS/releases/tag/1.6.2) (12/04/17)
 #### - Bug fixies
  * Domain query wasn't working when views are disable (via API only)
