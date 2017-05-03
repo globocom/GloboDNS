@@ -253,7 +253,7 @@ class View < ActiveRecord::Base
 
             str << "#{indent}view \"#{self.name}\" {\n"
             str << "#{indent}    match-clients      { #{match_clients.uniq.join('; ')}; };\n" if match_clients.present?
-            str << "#{indent}    match-destinations { #{self.destinations} };\n" if self.destinations.present?
+            str << "#{indent}    match-destinations { key \"#{self.key_name}\"; #{self.destinations} };\n" if self.destinations.present?
             str << "#{indent}    also-notify        { #{self.slaves_with_view_key} };\n" unless slave
             str << "#{indent}    allow-query        { any; };\n"
             str << "\n"
