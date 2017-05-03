@@ -307,10 +307,24 @@ class Exporter
         #File.utime(@touch_timestamp, @touch_timestamp, abs_views_file)
     end
 
+    def other_views_zones(domains)
+        # if a default zone is changed, force update of same name zones from other views
+        if @views_enabled
+            ids = domains.pluck(:id)
+            domains.where(view: @default_view).each do |d| 
+                ids.push(Domain.where(name:d.name).pluck(:id))
+            end
+            ids.uniq
+            Domain.where(id:ids)
+        else
+            domains
+        end
+    end
+
     def write_zone_conf(zones_root_dir, export_all_domains, abs_zones_root_dir, output_file, domains, options)
         File.open(output_file, 'w') do |file|
             # dump zonefile of updated domains
-            updated_domains = export_all_domains ? domains : domains.updated_since(@last_commit_date)
+            updated_domains = export_all_domains ? domains : other_views_zones(domains.updated_since(@last_commit_date))
             updated_domains.each do |domain|
                 unless !(options[:view] == @default_view) and @slave or domain.forward? # Slaves and forwards don't replicate the zone-files. # other views use the zone conf of the default view
                     @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}; created_at: #{domain.created_at}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated_since-count: #{domain.records.updated_since(@last_commit_date).count})"
