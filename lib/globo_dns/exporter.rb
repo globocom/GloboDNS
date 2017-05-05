@@ -389,7 +389,6 @@ class Exporter
                 default_domains = @default_view.domains.master_or_reverse_or_slave.not_in_view(options[:view])
 
             end
-
             write_zone_conf(zones_root_dir, export_all_domains, abs_zones_root_dir, abs_default_file_name, default_domains, options) unless (@slave and not (options[:type] == "zones-slave-reverse" or options[:type] == "forwards")) # if options[:zones]
         end
 

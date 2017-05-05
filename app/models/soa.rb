@@ -76,6 +76,16 @@ class SOA < Record
     # updates the serial number to the next logical one. Format of the generated
     # serial is YYYYMMDDNN, where NN is the number of the change for the day
     def update_serial(save = false)
+        if (defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW)
+            domains = Domain.where(name: self.domain.name)
+            domains.each do |d|
+                serial = d.records.where(type: "SOA").first.serial
+                if self.serial < serial
+                    self.serial = serial
+                end
+            end
+        end
+
         current_date = Time.now.strftime('%Y%m%d')
         if self.serial/100 >= current_date.to_i 
             self.serial += 1
