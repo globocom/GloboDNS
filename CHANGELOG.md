@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.6.4](https://github.com/globocom/GloboDNS/releases/tag/1.6.4) (05/05/17)
+#### - Bug fixies
+ * Serial of zones were being incremented base on numbers of views
+ * Serial of non default zones should be ahead of same-name default zones
+
 ## [1.6.3](https://github.com/globocom/GloboDNS/releases/tag/1.6.3) (03/05/17)
 #### - Bug fixies
  * Records content should be ASCII only
