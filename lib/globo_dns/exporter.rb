@@ -327,13 +327,14 @@ class Exporter
             updated_domains = export_all_domains ? domains : other_views_zones(domains.updated_since(@last_commit_date))
             updated_domains.each do |domain|
                 unless !(options[:view] == @default_view) and @slave or domain.forward? # Slaves and forwards don't replicate the zone-files. # other views use the zone conf of the default view
+                    update_serial = (options[:view] == domain.view)
                     @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}; created_at: #{domain.created_at}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated_since-count: #{domain.records.updated_since(@last_commit_date).count})"
                     #create subdir for this domain, if it doesn't exist yet.
                     abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
                     File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
                     #Create/Update the zonefile itself
                     abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
-                    domain.to_zonefile(abs_zonefile_path) unless domain.slave?
+                    domain.to_zonefile(abs_zonefile_path, update_serial) unless domain.slave?
                     #File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zonefile_path)) unless domain.slave? || domain.forward?
                 end
             end
