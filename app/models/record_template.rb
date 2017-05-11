@@ -88,8 +88,8 @@ class RecordTemplate < ActiveRecord::Base
                 field_value = field_value.try(:to_i) unless field_name == 'primary_ns' || field_name == 'contact'
                 instance_variable_set("@#{field_name}", field_value)
             end
-        self.update_attributes(params)
         end
+        self.update_attributes(params)
     end
 
     # Here we perform some magic to inherit the validations from the "destination"
