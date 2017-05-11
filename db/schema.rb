@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170207122634) do
+ActiveRecord::Schema.define(version: 20170509195431) do
 
   create_table "audits", force: :cascade do |t|
     t.integer  "auditable_id",    limit: 4
@@ -36,6 +36,11 @@ ActiveRecord::Schema.define(version: 20170207122634) do
   add_index "audits", ["request_uuid"], name: "index_audits_on_request_uuid", using: :btree
   add_index "audits", ["user_id", "user_type"], name: "user_index", using: :btree
   add_index "audits", ["user_id"], name: "fk_audits_users1", using: :btree
+
+  create_table "caas", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "domain_templates", force: :cascade do |t|
     t.string   "name",       limit: 255
@@ -79,6 +84,7 @@ ActiveRecord::Schema.define(version: 20170207122634) do
     t.datetime "updated_at"
     t.integer  "weight",             limit: 4
     t.integer  "port",               limit: 4
+    t.string   "tag",                limit: 255
   end
 
   add_index "record_templates", ["domain_template_id"], name: "fk_record_templates_domain_templates2", using: :btree
@@ -94,6 +100,7 @@ ActiveRecord::Schema.define(version: 20170207122634) do
     t.datetime "updated_at"
     t.integer  "weight",     limit: 4
     t.integer  "port",       limit: 4
+    t.string   "tag",        limit: 255
   end
 
   add_index "records", ["domain_id"], name: "fk_records_domains2", using: :btree

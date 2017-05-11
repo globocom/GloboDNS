@@ -8,6 +8,7 @@
   %td.name=    record.name
   %td.ttl=     record.ttl
   %td.type=    record.type
+  %td.tag=     record.supports_tag? ? record.tag : '&nbsp;'.html_safe
   %td.prio=    record.supports_prio? ? record.prio : '&nbsp;'.html_safe
   %td.weight=  record.supports_weight? ? record.weight : '&nbsp;'.html_safe
   %td.port=    record.supports_port? ? record.port : '&nbsp;'.html_safe
@@ -25,6 +26,7 @@
       %td.name=    f.text_field :name
       %td.ttl=     f.text_field :ttl
       %td.type=    record.type
+      %td.tag=     record.tag #record.supports_tag? ? f.select(:tag) : '&nbsp;'.html_safe
       %td.prio=    record.supports_prio? ? f.text_field(:prio) : '&nbsp;'.html_safe
       %td.weight=  record.supports_weight? ? f.text_field(:weight) : '&nbsp;'.html_safe
       %td.port=    record.supports_port? ? f.text_field(:port) : '&nbsp;'.html_safe
