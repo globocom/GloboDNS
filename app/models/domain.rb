@@ -356,8 +356,8 @@ class Domain < ActiveRecord::Base
     end
 
     def records_format records
-        sizes = records.select('MAX(LENGTH(name)) AS name, LENGTH(MAX(ttl)) AS ttl, MAX(LENGTH(type)) AS mtype, LENGTH(MAX(prio)) AS prio, LENGTH(MAX(weight)) AS weight, LENGTH(MAX(port)) AS port').first
-        "%-#{sizes.name}s %-#{sizes.ttl}s IN %-#{sizes.mtype}s %-#{sizes.prio}s %-#{sizes.weight}s %-#{sizes.port}s %s\n"
+        sizes = records.select('MAX(LENGTH(name)) AS name, LENGTH(MAX(ttl)) AS ttl, MAX(LENGTH(type)) AS mtype, LENGTH(MAX(prio)) AS prio, LENGTH(MAX(tag)) AS tag, LENGTH(MAX(weight)) AS weight, LENGTH(MAX(port)) AS port').first
+        "%-#{sizes.name}s %-#{sizes.ttl}s IN %-#{sizes.mtype}s %-#{sizes.prio}s  %-#{sizes.tag}s %-#{sizes.weight}s %-#{sizes.port}s %s\n"
     end
 
     def self.truncate(str, limit = 80)

@@ -356,9 +356,12 @@ $(document).ready(function() {
 
 	$('#new-record-form select#record_type').live('change', function () {
 		var val = $(this).val();
-		$('#new-record-form input#record_prio').closest('tr').toggle((val == 'MX' || val == 'SRV'));
+		$('#new-record-form input#record_prio').closest('tr').toggle((val == 'MX' || val == 'SRV' || val == 'CAA'));
 		$('#new-record-form input#record_weight').closest('tr').toggle(val == 'SRV');
 		$('#new-record-form input#record_port').closest('tr').toggle(val == 'SRV');
+		if (val == 'CAA') {
+			$('#new-record-form select#record_tag').closest('tr').toggle();
+		}
 		$(this).blur();
 	});
 	$('#new-record-form select#record_type').change();

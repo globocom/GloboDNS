@@ -16,6 +16,9 @@
         %tr
           %td= f.label :type, t(:label_domain_record_type)
           %td= f.select :type, Record::high_priority_types + (Record::record_types - ['SOA'] - Record::high_priority_types)
+        %tr{ style: "display: none;" }
+          %td= f.label :tag, t(:label_domain_record_tag)
+          %td= f.select :tag, Record::caa_tags
         %tr
           %td= f.label :host, t(:label_domain_record_host)
           %td= f.text_field :name

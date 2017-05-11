@@ -26,7 +26,7 @@ class Record < ActiveRecord::Base
     belongs_to :domain, :inverse_of => :records
 
     attr_accessor :importing
-    attr_accessible :domain_id, :name, :type, :content, :ttl, :prio, :weight, :port
+    attr_accessible :domain_id, :name, :type, :content, :ttl, :prio, :weight, :port, :tag
 
     audited :associated_with => :domain
     self.non_audited_columns.delete(self.inheritance_column) # audit the 'type' column
@@ -77,13 +77,15 @@ class Record < ActiveRecord::Base
                             }
 
     # known record types
-    @@record_types        = %w(AAAA A CERT CNAME DLV DNSKEY DS IPSECKEY KEY KX LOC MX NSEC3PARAM NSEC3 NSEC NS PTR RRSIG SIG SOA SPF SRV TA TKEY TSIG TXT)
+    @@record_types        = %w(AAAA A CERT CNAME DLV DNSKEY DS IPSECKEY KEY KX LOC MX NSEC3PARAM NSEC3 NSEC NS PTR RRSIG SIG SOA SPF SRV TA TKEY TSIG TXT CAA)
     @@high_priority_types = %w(A MX CNAME TXT NS)
     @@testable_types      = %w(A AAAA MX CNAME TXT SRV)
+    @@caa_tags            = %w(issue issuewild ideof)
 
     cattr_reader :record_types
     cattr_reader :high_priority_types
     cattr_reader :testable_types
+    cattr_reader :caa_tags
 
     def self.last_update
         select('updated_at').order('updated_at DESC').limit(1).first.updated_at
@@ -144,6 +146,10 @@ class Record < ActiveRecord::Base
 
     # by default records don't support priorities, weight and port. Those who do can overwrite
     # this in their own classes.
+    def supports_tag?
+        false
+    end
+
     def supports_prio?
         false
     end
@@ -306,8 +312,8 @@ class Record < ActiveRecord::Base
 
     def to_zonefile(output, format)
         # FIXME: fix ending '.' of content on the importer
-        content  = self.content
-        content += '.' if self.content =~ /\.(?:com|net|org|br|in-addr\.arpa)$/
+        content  = (['CAA', 'TXT'].include? self.type)? quoted_content : self.content 
+        content += '.' if self.content =~ /\.(?:com|net|org|br|in-addr\.arpa)$/ and self.type != "CAA"
             # content += '.' unless self.content[-1] == '.'                                 ||
             #                       self.type        == 'A'                                 ||
             #                       self.type        == 'AAAA'                              ||
@@ -315,11 +321,13 @@ class Record < ActiveRecord::Base
             #                       self.content     =~ /\s[a-fA-F0-9:]+$/                     # ipv6
 
             # FIXME: zone2sql sets prio = 0 for all records
-            prio = ((self.type == 'MX' or self.type == 'SRV') || (self.prio && (self.prio > 0)) ? self.prio : '')
+            # host ttl IN CAA prio tag content
+            tag = (self.type == 'CAA')? self.tag : ''
+            prio = ((self.type == 'CAA' or self.type == 'MX' or self.type == 'SRV') || (self.prio && (self.prio > 0)) ? self.prio : '')
             weight = (self.type == 'SRV' || self.weight)? self.weight : ''
             port = (self.type == 'SRV' || self.port)? self.port : ''
 
-        output.printf(format, self.name, self.ttl.to_s || '', self.type, prio || '', weight || '', port || '', content)
+        output.printf(format, self.name, self.ttl.to_s || '', self.type, prio || '', tag || '', weight || '', port || '', content)
     end
 
     def importing?
