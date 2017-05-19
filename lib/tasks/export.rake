@@ -23,7 +23,7 @@ namespace :globodns do
       end
       unless schedule_run.nil?
         @logger.info "Starting Export"
-        @logger.info run_export
+        @logger run_export
         @logger.info "Export finished"
       end
     else
