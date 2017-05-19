@@ -13,7 +13,19 @@ namespace :globodns do
     if scheduled.nil?
         @logger = I18n.t('no_export_scheduled')
     elsif scheduled <= DateTime.now
+      schedule_run = Schedule.run_exclusive :export do |s|
+        if not s.date.nil?
+          @logger.warn "There is another process running. To run export again, remove row #{s.id} in schedules table"
+          next
+        end
+        # register last execution in schedule
+        s.date = DateTime.now
+      end
+      unless schedule_run.nil?
+        @logger.info "Starting Export"
         @logger = run_export
+        @logger.info "Export finished"
+      end
     else
         @logger = I18n.t('export_scheduled', :timestamp => scheduled)
     end
@@ -26,15 +38,6 @@ namespace :globodns do
     # clear schedule, because will run now
     Schedule.run_exclusive :schedule do |s|
         s.date = nil
-    end
-
-    Schedule.run_exclusive :export do |s|
-      if not s.date.nil?
-        @logger.warn "There is another process running. To run export again, remove row #{s.id} in schedules table"
-        next
-      end
-      # register last execution in schedule
-      s.date = DateTime.now
     end
 
     begin
