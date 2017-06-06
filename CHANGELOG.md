@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.5](https://github.com/globocom/GloboDNS/releases/tag/1.6.5) (06/06/17)
+#### - Bug fixies
+ * Record template wasn't being saved after edit
+#### - Enhancements
+ * Added support to CAA records
+
 ## [1.6.4](https://github.com/globocom/GloboDNS/releases/tag/1.6.4) (05/05/17)
 #### - Bug fixies
  * Serial of zones were being incremented base on numbers of views
