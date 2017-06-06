@@ -27,7 +27,7 @@ class DomainsController < ApplicationController
         @domains = session[:show_reverse_domains] ? Domain.all : Domain.nonreverse
         @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
         if params[:query].present?
-            params[:query].to_s.gsub(/[ \t]/,'')
+            params[:query].to_s.gsub(/^[ \t]/,'')
             @domains = @domains.matching(params[:query])
         end
         if request.path_parameters[:format] == 'json' and (defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true)
@@ -76,7 +76,7 @@ class DomainsController < ApplicationController
         domain_view_in_params = false
 
         params[:domain].each do |label, value|
-            params[:domain][label] = params[:domain][label].to_s.gsub(/[ \t]/,'')  unless value.nil?
+            params[:domain][label] = params[:domain][label].to_s.gsub(/^[ \t]/,'')  unless value.nil?
         end
         
 
@@ -123,7 +123,7 @@ class DomainsController < ApplicationController
 
     def update
         params[:domain].each do |label, value|
-            params[:domain][label] = params[:domain][label].to_s.gsub(/[ \t]/,'') unless (value.nil? or label == 'notes')
+            params[:domain][label] = params[:domain][label].to_s.gsub(/^[ \t]/,'') unless (value.nil? or label == 'notes')
         end
 
         @domain = Domain.find(params[:id])
