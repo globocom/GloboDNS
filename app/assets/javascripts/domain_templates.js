@@ -283,6 +283,9 @@ $(document).ready(function() {
 		if (val == 'CAA') {
 			$('#new-record-template-form select#record_tag').closest('tr').toggle();
 		}
+		else{
+			$('#new-record-template-form select#record_tag').closest('tr').hide();
+		}
 		$(this).blur();
 	});
 	$('#new-record-template-form select#record_template_type').change();
