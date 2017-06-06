@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170509195431) do
+ActiveRecord::Schema.define(version: 20170519182716) do
 
   create_table "audits", force: :cascade do |t|
     t.integer  "auditable_id",    limit: 4
@@ -63,10 +63,11 @@ ActiveRecord::Schema.define(version: 20170509195431) do
     t.text     "notes",           limit: 65535
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string   "authority_type",  limit: 1,     null: false
-    t.string   "addressing_type", limit: 1,     null: false
+    t.string   "authority_type",  limit: 1,                     null: false
+    t.string   "addressing_type", limit: 1,                     null: false
     t.integer  "view_id",         limit: 4
     t.integer  "sibling_id",      limit: 4
+    t.boolean  "disabled",                      default: false
   end
 
   add_index "domains", ["name"], name: "index_domains_on_name", using: :btree
@@ -145,7 +146,6 @@ ActiveRecord::Schema.define(version: 20170509195431) do
     t.string   "key",          limit: 64
   end
 
-  add_foreign_key "audits", "users", name: "fk_audits_users1"
   add_foreign_key "domain_templates", "views", name: "fk_domain_templates_views1"
   add_foreign_key "domains", "users", name: "fk_domains_users"
   add_foreign_key "domains", "views", name: "fk_domains_views1"
