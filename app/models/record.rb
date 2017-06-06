@@ -310,6 +310,14 @@ class Record < ActiveRecord::Base
         !self.content.nil? && self.content[-1] == '.'
     end
 
+    def quoted_content
+        content = self.content
+        content.insert(0,"\"") unless content.starts_with? "\""
+        content.insert(-1,"\"") unless content.ends_with? "\""
+        
+        content
+    end
+
     def to_zonefile(output, format)
         # FIXME: fix ending '.' of content on the importer
         content  = (['CAA', 'TXT'].include? self.type)? quoted_content : self.content 
