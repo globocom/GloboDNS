@@ -41,6 +41,7 @@ class Record < ActiveRecord::Base
     validate                   :validate_recursive_subdomains,              :unless => :importing?
     validate                   :validate_same_record,                       :unless => :importing?
     validate                   :validate_txt,                               :unless => :importing?
+    validate                   :ensure_quoted_content
 
     # validations that generate 'warnings' (i.e., doesn't prevent 'saving' the record)
     validation_scope :warnings do |scope|
@@ -310,17 +311,19 @@ class Record < ActiveRecord::Base
         !self.content.nil? && self.content[-1] == '.'
     end
 
-    def quoted_content
-        content = self.content
-        content.insert(0,"\"") unless content.starts_with? "\""
-        content.insert(-1,"\"") unless content.ends_with? "\""
-        
-        content
+    def ensure_quoted_content
+        if ['CAA', 'TXT'].include? self.type
+            quoted_content = self.content
+            quoted_content.insert(0,"\"") unless content.starts_with? "\""
+            quoted_content.insert(-1,"\"") unless content.ends_with? "\""
+            
+            self.content = quoted_content
+        end
     end
 
     def to_zonefile(output, format)
         # FIXME: fix ending '.' of content on the importer
-        content  = (['CAA', 'TXT'].include? self.type)? quoted_content : self.content 
+        content  = self.content
         content += '.' if self.content =~ /\.(?:com|net|org|br|in-addr\.arpa)$/ and self.type != "CAA"
             # content += '.' unless self.content[-1] == '.'                                 ||
             #                       self.type        == 'A'                                 ||
