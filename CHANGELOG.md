@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.6.6](https://github.com/globocom/GloboDNS/releases/tag/1.6.6) (07/06/17)
+#### - Bug fixies
+ * Fix regex of record name validation
+
+
 ## [1.6.5](https://github.com/globocom/GloboDNS/releases/tag/1.6.5) (06/06/17)
 #### - Bug fixies
  * Record template wasn't being saved after edit

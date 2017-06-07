@@ -384,12 +384,12 @@ class Record < ActiveRecord::Base
 
         self.name.split('.').each_with_index do |part, index|
             if self.type == "SRV" or self.type == "TXT"
-                unless (index == 0 && part == '*') || part =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9\-_]{,63}(?<!-)$/
+                unless (index == 0 && part == '*') || part =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9-_.]{,63}(?<!-)$/
                     self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
                     return
                 end
             else
-                unless (index == 0 && part == '*') || part =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9-]{,63}(?<!-)$/
+                unless (index == 0 && part == '*') || part =~ /^(?![0-9]+$)(?!-)[a-zA-Z0-9-.]{,63}(?<!-)$/
                     self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
                     return
                 end
