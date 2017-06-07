@@ -3,8 +3,10 @@
 ## [1.6.5](https://github.com/globocom/GloboDNS/releases/tag/1.6.5) (06/06/17)
 #### - Bug fixies
  * Record template wasn't being saved after edit
+ * TXT records can have blank spaces
 #### - Enhancements
  * Added support to CAA records
+ * Ensure that TXT and CAA contents have quotes
 
 ## [1.6.4](https://github.com/globocom/GloboDNS/releases/tag/1.6.4) (05/05/17)
 #### - Bug fixies
