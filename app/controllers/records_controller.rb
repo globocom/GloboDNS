@@ -14,82 +14,82 @@
 # limitations under the License.
 
 class RecordsController < ApplicationController
-    respond_to :html, :json
-    responders :flash
+  respond_to :html, :json
+  responders :flash
 
-    before_filter :admin_or_operator?, :except => [:index, :show]
-    
-    DEFAULT_PAGE_SIZE = 25
+  before_filter :admin_or_operator?, :except => [:index, :show]
 
-    def index
-        @records = Record.where(:domain_id => params[:domain_id])
-        @records = @records.without_soa.paginate(:page => params[:page] || 1, :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
-        @records = @records.matching(params[:records_query]) if params[:records_query].present?
-        @records = @records.matching(params[:query]) if params[:query].present? # when using api
-        respond_with(@records) do |format|
-            format.html { 
-              render :partial => 'list', :object => @records, :as => :records if request.xhr? }
-        end
+  DEFAULT_PAGE_SIZE = 25
+
+  def index
+    @records = Record.where(:domain_id => params[:domain_id])
+    @records = @records.without_soa.paginate(:page => params[:page] || 1, :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
+    @records = @records.matching(params[:records_query]) if params[:records_query].present?
+    @records = @records.matching(params[:query]) if params[:query].present? # when using api
+    respond_with(@records) do |format|
+      format.html {
+      render :partial => 'list', :object => @records, :as => :records if request.xhr? }
+    end
+  end
+
+  def show
+    @record = Record.find(params[:id])
+    respond_with(@record)
+  end
+
+  def new
+    @record = Record.new(:domain_id => params[:domain_id])
+    respond_with(@record)
+  end
+
+  def edit
+    @record = Record.find(params[:id])
+    respond_with(@record)
+  end
+
+  def create
+    params[:record].each do |label, value|
+      params[:record][label] = params[:record][label].to_s.gsub(/^[ \t]/,'') unless value.nil?
     end
 
-    def show
-        @record = Record.find(params[:id])
-        respond_with(@record)
+    @record = params[:record][:type].constantize.new(params[:record])
+    @record.domain_id = params[:domain_id]
+    @record.save
+    flash[:warning] = "#{@record.warnings.full_messages * '; '}" if @record.has_warnings?
+    respond_with(@record.becomes(Record)) do |format|
+      format.html { render :status  => @record.valid? ? :ok     : :unprocessable_entity,
+                    :partial => @record.valid? ? @record : 'errors' } if request.xhr?
+    end
+  end
+
+  def update
+    params[:record].each do |label, value|
+      params[:record][label] = params[:record][label].to_s.gsub(/^[ \t]/,'') unless value.nil?
     end
 
-    def new
-        @record = Record.new(:domain_id => params[:domain_id])
-        respond_with(@record)
+    @record = Record.find(params[:id])
+    @record.update_attributes(params[:record])
+    flash[:warning] = "#{@record.warnings.full_messages * '; '}" if @record.has_warnings?
+    respond_with(@record.becomes(Record)) do |format|
+      format.html { render :status  => @record.valid? ? :ok     : :unprocessable_entity,
+                    :partial => @record.valid? ? @record : 'errors' } if request.xhr?
     end
+  end
 
-    def edit
-        @record = Record.find(params[:id])
-        respond_with(@record)
+  def destroy
+    @record = Record.find(params[:id])
+    @record.destroy
+    respond_with(@record) do |format|
+      format.html { head :no_content if request.xhr? }
     end
+  end
 
-    def create
-        params[:record].each do |label, value|
-            params[:record][label] = params[:record][label].to_s.gsub(/^[ \t]/,'') unless value.nil?
-        end
-        
-        @record = params[:record][:type].constantize.new(params[:record])
-        @record.domain_id = params[:domain_id]
-        @record.save
-        flash[:warning] = "#{@record.warnings.full_messages * '; '}" if @record.has_warnings?
-        respond_with(@record.becomes(Record)) do |format|
-            format.html { render :status  => @record.valid? ? :ok     : :unprocessable_entity,
-                                 :partial => @record.valid? ? @record : 'errors' } if request.xhr?
-        end
+  def resolve
+    @record = Record.find(params[:id])
+    @response = @record.resolve if Record::testable_types.include? @record.type
+    respond_to do |format|
+      format.html { render :partial => 'resolve' } if request.xhr?
+      # format.json { render :json => {'master' => @master_response, 'slave' => @slave_response}.to_json }
     end
-
-    def update
-        params[:record].each do |label, value|
-            params[:record][label] = params[:record][label].to_s.gsub(/^[ \t]/,'') unless value.nil?
-        end
-
-        @record = Record.find(params[:id])
-        @record.update_attributes(params[:record])
-        flash[:warning] = "#{@record.warnings.full_messages * '; '}" if @record.has_warnings?
-        respond_with(@record.becomes(Record)) do |format|
-            format.html { render :status  => @record.valid? ? :ok     : :unprocessable_entity,
-                                 :partial => @record.valid? ? @record : 'errors' } if request.xhr?
-        end
-    end
-
-    def destroy
-        @record = Record.find(params[:id])
-        @record.destroy
-        respond_with(@record) do |format|
-            format.html { head :no_content if request.xhr? }
-        end
-    end
-
-    def resolve
-        @record = Record.find(params[:id])
-        @response = @record.resolve if Record::testable_types.include? @record.type
-        respond_to do |format|
-            format.html { render :partial => 'resolve' } if request.xhr?
-            # format.json { render :json => {'master' => @master_response, 'slave' => @slave_response}.to_json }
-        end
-    end
+  end
 end

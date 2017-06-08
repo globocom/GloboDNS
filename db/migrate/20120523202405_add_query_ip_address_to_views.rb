@@ -14,7 +14,7 @@
 # limitations under the License.
 
 class AddQueryIpAddressToViews < ActiveRecord::Migration
-    def change
-        add_column 'views', 'query_ip_address', :string, :limit => 256
-    end
+  def change
+    add_column 'views', 'query_ip_address', :string, :limit => 256
+  end
 end

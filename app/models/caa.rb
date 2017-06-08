@@ -21,21 +21,21 @@
 # Obtained from https://tools.ietf.org/html/rfc6844
 
 class CAA < Record
-	validates_presence_of      :tag
-	validates_presence_of      :prio
+  validates_presence_of      :tag
+  validates_presence_of      :prio
 
-	def supports_tag?
-        true
-    end
+  def supports_tag?
+    true
+  end
 
-	def supports_prio?
-        true
-    end
+  def supports_prio?
+    true
+  end
 
-    def resolv_resource_class
-        Resolv::DNS::Resource::IN::CAA
-    end
+  def resolv_resource_class
+    Resolv::DNS::Resource::IN::CAA
+  end
 
-    def match_resolv_resource(resource)
-    end
+  def match_resolv_resource(resource)
+  end
 end

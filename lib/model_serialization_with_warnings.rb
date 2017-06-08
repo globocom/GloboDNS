@@ -23,21 +23,21 @@
 # and 'as_xml' methods, adding a 'warnings' property when appropriate.
 
 module ModelSerializationWithWarnings
-    extend ActiveSupport::Concern
+  extend ActiveSupport::Concern
 
-    included do
-        def as_json(options = nil)
-            self.warnings.any? ? super.merge!('warnings' => self.warnings.as_json) : super
-        end
-
-        def to_xml(options = {})
-            self.warnings.any? ? super(:methods => [:warnings]) : super
-        end
-
-        def becomes(klass)
-            became = super(klass)
-            became.instance_variable_set("@warnings", @warnings)
-            became
-        end
+  included do
+    def as_json(options = nil)
+      self.warnings.any? ? super.merge!('warnings' => self.warnings.as_json) : super
     end
+
+    def to_xml(options = {})
+      self.warnings.any? ? super(:methods => [:warnings]) : super
+    end
+
+    def becomes(klass)
+      became = super(klass)
+      became.instance_variable_set("@warnings", @warnings)
+      became
+    end
+  end
 end

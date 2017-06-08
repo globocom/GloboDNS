@@ -24,11 +24,11 @@
 # Obtained from http://www.zytrax.com/books/dns/ch8/dskey.html
 
 class DNSKEY < Record
-    def resolv_resource_class
-        Resolv::DNS::Resource::IN::DNSKEY
-    end
+  def resolv_resource_class
+    Resolv::DNS::Resource::IN::DNSKEY
+  end
 
-    def match_resolv_resource(resource)
-        resource.strings.join(' ') == self.content.chomp('.')
-    end
+  def match_resolv_resource(resource)
+    resource.strings.join(' ') == self.content.chomp('.')
+  end
 end
