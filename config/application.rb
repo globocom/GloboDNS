@@ -71,7 +71,7 @@ module GloboDns
 
     # Enable the asset pipeline
     config.assets.enabled = true
-    config.assets.paths << Rails.root.join('vendor', 'assets', 'fonts')  
+    config.assets.paths << Rails.root.join('vendor', 'assets', 'fonts')
     config.assets.precompile << /\.(?:svg|eot|woff|ttf)$/
 
     # application version

@@ -25,11 +25,11 @@
 # Obtained from http://www.zytrax.com/books/dns/ch8/ds.html
 
 class DS < Record
-    def resolv_resource_class
-        Resolv::DNS::Resource::IN::DS
-    end
+  def resolv_resource_class
+    Resolv::DNS::Resource::IN::DS
+  end
 
-    def match_resolv_resource(resource)
-        resource.strings.join(' ') == self.content.chomp('.')
-    end
+  def match_resolv_resource(resource)
+    resource.strings.join(' ') == self.content.chomp('.')
+  end
 end

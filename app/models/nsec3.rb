@@ -19,11 +19,11 @@
 # permitting zonewalking
 
 class NSEC3 < Record
-    def resolv_resource_class
-        Resolv::DNS::Resource::IN::NSEC3
-    end
+  def resolv_resource_class
+    Resolv::DNS::Resource::IN::NSEC3
+  end
 
-    def match_resolv_resource(resource)
-        resource.strings.join(' ') == self.content.chomp('.')
-    end
+  def match_resolv_resource(resource)
+    resource.strings.join(' ') == self.content.chomp('.')
+  end
 end

@@ -14,32 +14,32 @@
 # limitations under the License.
 
 module GloboDns
-class Resolver
+  class Resolver
     include GloboDns::Config
     include GloboDns::Util
 
     DEFAULT_PORT = 53
 
     def initialize(host, port)
-        @host = host
-        @port = port
+      @host = host
+      @port = port
     end
 
     MASTER = GloboDns::Resolver.new(Bind::Master::IPADDR, (Bind::Master::PORT rescue DEFAULT_PORT).to_i)
     SLAVES = Bind::Slaves.map do |slave|
-        GloboDns::Resolver.new(slave::IPADDR, (slave::PORT  rescue DEFAULT_PORT).to_i)
+      GloboDns::Resolver.new(slave::IPADDR, (slave::PORT  rescue DEFAULT_PORT).to_i)
     end
 
     def resolve(record)
-        name      = Record::fqdn(record.name, record.domain.name)
-        key_name  = record.domain.try(:query_key_name)
-        key_value = record.domain.try(:query_key)
+      name      = Record::fqdn(record.name, record.domain.name)
+      key_name  = record.domain.try(:query_key_name)
+      key_value = record.domain.try(:query_key)
 
-        args  = [Binaries::DIG, '@'+@host, '-p', @port.to_s, '-t', record.type]
-        args += ['-y', "#{key_name}:#{key_value}"] if key_name && key_value
-        args += [name, '+norecurse', '+noauthority', '+time=1'] # , '+short']
+      args  = [Binaries::DIG, '@'+@host, '-p', @port.to_s, '-t', record.type]
+      args += ['-y', "#{key_name}:#{key_value}"] if key_name && key_value
+      args += [name, '+norecurse', '+noauthority', '+time=1'] # , '+short']
 
-        exec!('dig', *args)
+      exec!('dig', *args)
     end
-end
+  end
 end

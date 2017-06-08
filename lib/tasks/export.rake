@@ -7,11 +7,11 @@ namespace :globodns do
     @logger = GloboDns::StringIOLogger.new(Rails.logger)
 
     scheduled = Schedule.run_exclusive :schedule do |s|
-        s.date
+      s.date
     end
 
     if scheduled.nil?
-        @logger = I18n.t('no_export_scheduled')
+      @logger = I18n.t('no_export_scheduled')
     elsif scheduled <= DateTime.now
       schedule_run = Schedule.run_exclusive :export do |s|
         if not s.date.nil?
@@ -27,7 +27,7 @@ namespace :globodns do
         @logger.info "Export finished"
       end
     else
-        @logger = I18n.t('export_scheduled', :timestamp => scheduled)
+      @logger = I18n.t('export_scheduled', :timestamp => scheduled)
     end
   end
 
@@ -37,7 +37,7 @@ namespace :globodns do
 
     # clear schedule, because will run now
     Schedule.run_exclusive :schedule do |s|
-        s.date = nil
+      s.date = nil
     end
 
     begin

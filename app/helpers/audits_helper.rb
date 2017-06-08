@@ -19,7 +19,7 @@ module AuditsHelper
     if audit.action == "update"
       begin
         changes = audit.audited_changes
-        record = Record.find(audit.auditable_id).attributes.except('created_at', 'updated_at') 
+        record = Record.find(audit.auditable_id).attributes.except('created_at', 'updated_at')
         changes.keys.each do |key|
           record.delete(key)
         end
@@ -27,7 +27,7 @@ module AuditsHelper
       rescue
         changes = audit.audited_changes
         audit_record = Audited::Adapters::ActiveRecord::Audit.where(auditable_id: audit.auditable_id, action: "create") || Audited::Adapters::ActiveRecord::Audit.where(auditable_id: audit.auditable_id, action: "destroy")
-        unless audit_record.empty? 
+        unless audit_record.empty?
           record = audit_record.first['audited_changes']
           audit.audited_changes.merge(record)
         end

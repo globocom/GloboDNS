@@ -24,13 +24,13 @@
 # Obtained from http://www.zytrax.com/books/dns/ch8/a.html
 
 class A < Record
-    validates_with IpAddressValidator, :attributes => :content
+  validates_with IpAddressValidator, :attributes => :content
 
-    def resolv_resource_class
-        Resolv::DNS::Resource::IN::A
-    end
+  def resolv_resource_class
+    Resolv::DNS::Resource::IN::A
+  end
 
-    def match_resolv_resource(resource)
-        resource.address.to_s == self.content
-    end
+  def match_resolv_resource(resource)
+    resource.address.to_s == self.content
+  end
 end

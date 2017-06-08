@@ -51,10 +51,10 @@ module ApplicationHelper
   def link_to_cancel(object, options = {})
     path = object.class.name.tableize
     path = if object.new_record?
-             send( path.pluralize + '_path' )
-           else
-             send( path.singularize + '_path', object )
-           end
+      send( path.pluralize + '_path' )
+    else
+      send( path.singularize + '_path', object )
+    end
     link_to "Cancel", path, options
   end
 
@@ -79,7 +79,7 @@ module ApplicationHelper
   def info_icon( image, dom_id )
     image_tag( image , :id => "help-icn-#{dom_id}", :class => 'help-icn', "data-help" => dom_id )
   end
-  
+
   def form_errors object
     html = ""
     if object.errors.any?
@@ -87,7 +87,7 @@ module ApplicationHelper
       html << '<h4 class="alert-heading">' + pluralize(object.errors.count, "error(s)") + '</h4>'
       html << '<ul>'
       object.errors.full_messages.each do |msg|
-      html << '<li>'+ msg +'</li>'
+        html << '<li>'+ msg +'</li>'
       end
       html << '</ul>'
       html << '</div>'

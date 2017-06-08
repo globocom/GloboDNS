@@ -197,13 +197,13 @@ class AuthToken < ActiveRecord::Base
 
   def get_name_and_type_from_param( record, type = nil )
     name, type =
-      case record
-      when Record
-        [ record.name, record.class.to_s ]
-      else
-        type = type.nil? ? '*' : type
-        [ record, type ]
-      end
+    case record
+    when Record
+      [ record.name, record.class.to_s ]
+    else
+      type = type.nil? ? '*' : type
+      [ record, type ]
+    end
 
     name += '.' + self.domain.name unless self.domain.nil? || name =~ /#{self.domain.name}$/
     name.gsub!(/^\./,'') # Strip leading dots off
