@@ -17,7 +17,7 @@ require File.expand_path('../../../config/environment', __FILE__)
 
 module GloboDns
 
-  class RevertableError < ::Exception; end
+  class RevertableError < ::RuntimeError; end
 
   class Exporter
     include GloboDns::Config
@@ -79,7 +79,7 @@ module GloboDns
         :zones_dir       => Bind::Master::ZONES_DIR,
         :named_conf_file => Bind::Master::NAMED_CONF_FILE
       }
-      export(named_conf_content, Bind::Master::EXPORT_CHROOT_DIR, bind_server_data, slave = false, options.merge(:label => 'master'))
+      export(named_conf_content, Bind::Master::EXPORT_CHROOT_DIR, bind_server_data, _slave = false, options.merge(:label => 'master'))
     end
 
     def export_slave(named_conf_content, options = {})
@@ -91,7 +91,7 @@ module GloboDns
         :zones_dir       => Bind::Slaves[index]::ZONES_DIR,
         :named_conf_file => Bind::Slaves[index]::NAMED_CONF_FILE
       }
-      export(named_conf_content, Bind::Slaves[index]::EXPORT_CHROOT_DIR, bind_server_data, slave = true, options.merge(:label => "slave#{index+1}", :index => index))
+      export(named_conf_content, Bind::Slaves[index]::EXPORT_CHROOT_DIR, bind_server_data, _slave = true, options.merge(:label => "slave#{index+1}", :index => index))
     end
 
     def export(named_conf_content, chroot_dir, bind_server_data, slave, options = {})
@@ -100,7 +100,9 @@ module GloboDns
       @slave          = slave
       zones_root_dir  = bind_server_data[:zones_dir]       or raise ArgumentError.new('missing "bind_server_data.zones_dir" attr')
       named_conf_file = bind_server_data[:named_conf_file] or raise ArgumentError.new('missing "bind_server_data.named_conf_file" attr')
-
+      if @options[:use_tmp_dir].nil? || @options[:use_tmp_dir]
+        @options[:use_tmp_dir] = true
+      end
       # get last commit timestamp and the export/current timestamp
       Dir.chdir(File.join(chroot_dir, zones_root_dir))
       if @options[:all] == true
@@ -123,19 +125,22 @@ module GloboDns
       #Remove destroyed domains
       removed_zones = remove_destroyed_domains(File.join(chroot_dir, zones_root_dir), slave)
 
-      tmp_dir = Dir.mktmpdir
-      @logger.info "[GloboDns::Exporter] tmp dir: #{tmp_dir}" if @options[:keep_tmp_dir] == true
-      File.chmod(02770, tmp_dir)
-      FileUtils.chown(nil, BIND_GROUP, tmp_dir, :verbose => true)
-      File.umask(0007)
+      if @options[:use_tmp_dir]
+        tmp_dir = Dir.mktmpdir
+        @logger.info "[GloboDns::Exporter] tmp dir: #{tmp_dir}"
+        File.chmod(02770, tmp_dir)
+        FileUtils.chown(nil, BIND_GROUP, tmp_dir, verbose: true)
+        File.umask(0007)
 
-      # recursivelly copy the current configuration to the tmp dir
-      exec('rsync chroot', 'rsync', '-v', '-a', '--exclude', 'session.key', '--exclude', '.git/', File.join(chroot_dir, '.'), tmp_dir)
+        # recursivelly copy the current configuration to the tmp dir
+        exec('rsync chroot', 'rsync', '-v', '-a', '--exclude', 'session.key', '--exclude', '.git/', File.join(chroot_dir, '.'), tmp_dir)
+      else
+        tmp_dir = chroot_dir
+      end
 
       # export main configuration file
       named_conf_content = self.class.load_named_conf(chroot_dir, named_conf_file) if named_conf_content.blank?
       export_named_conf(named_conf_content, tmp_dir, zones_root_dir, named_conf_file)
-
 
       new_zones = []
 
@@ -145,26 +150,25 @@ module GloboDns
         conf_files_names.each do |conf_file_name|
           conf_file = File.join(tmp_dir, zones_root_dir, conf_file_name)
           File.open(conf_file, 'w') do |file|
-            file.puts ""
+            file.puts ''
           end
         end
 
         # export all views
         abs_zones_root_dir = File.join(tmp_dir, zones_root_dir)
         abs_views_dir = File.join(tmp_dir, zones_root_dir, '/views')
-        abs_views_file     = File.join(abs_zones_root_dir, VIEWS_FILE)
+        abs_views_file = File.join(abs_zones_root_dir, VIEWS_FILE)
 
-        File.exists?(abs_views_dir) or FileUtils.mkdir(abs_views_dir)
-
+        File.exist?(abs_views_dir) || FileUtils.mkdir(abs_views_dir)
 
         File.open(abs_views_file, 'w') do |file|
           View.all.each do |view|
             file.puts view.to_bind9_conf(zones_root_dir, '', @slave) unless view.default?
             if @slave == true
-              export_domain_group(tmp_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                                       , true                                      , options.merge(:view => view, :type => ""))
-              export_domain_group(tmp_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                                       , true                                      , options.merge(:view => view, :type => ""))
-              export_domain_group(tmp_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains_master_or_reverse_or_slave  , view.updated_since?(@last_commit_date)    , options.merge(:view => view, :type => "zones-slave-reverse"))
-              export_domain_group(tmp_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward                     , true                                      , options.merge(:view => view, :type => "forwards"))
+              export_domain_group(tmp_dir, zones_root_dir,    view.zones_file,    view.zones_dir, []                                     , true                                  , options.merge(view: view, type: ""))
+              export_domain_group(tmp_dir, zones_root_dir,  view.reverse_file,  view.reverse_dir, []                                     , true                                  , options.merge(view: view, type: ""))
+              export_domain_group(tmp_dir, zones_root_dir,   view.slaves_file,   view.slaves_dir, view.domains_master_or_reverse_or_slave, view.updated_since?(@last_commit_date), options.merge(view: view, type: "zones-slave-reverse"))
+              export_domain_group(tmp_dir, zones_root_dir, view.forwards_file, view.forwards_dir, view.domains.forward                   , true                                  , options.merge(view: view, type: "forwards"))
             else
               new_zones_noreverse = export_domain_group(tmp_dir , zones_root_dir , view.zones_file   , view.zones_dir    , view.domains.master                      , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "zones"))
               new_zones_reverse = export_domain_group(tmp_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , view.domains._reverse                    , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "reverse"))
@@ -178,7 +182,7 @@ module GloboDns
             end
           end
 
-          file.puts @default_view.to_bind9_conf(zones_root_dir, '',@slave) # write default view at the end
+          file.puts @default_view.to_bind9_conf(zones_root_dir, '', @slave) # write default view at the end
         end
         # new_zones?
       else
@@ -190,7 +194,7 @@ module GloboDns
         unless View.all.empty?
           # make sure views.conf is empty when BIND is not using views
           File.open(views_file, 'w') do |file|
-            file.puts ""
+            file.puts ''
           end
         end
         # export each view-less domain group to a separate file
@@ -222,7 +226,11 @@ module GloboDns
       run_checkconf(tmp_dir, named_conf_file)
 
       # sync generated files on the tmp dir to the local chroot repository
-      sync_repository_and_commit(tmp_dir, chroot_dir, zones_root_dir, named_conf_file, bind_server_data)
+      if @options[:use_tmp_dir]
+        sync_repository_and_commit(tmp_dir, chroot_dir, zones_root_dir, named_conf_file, bind_server_data)
+      else
+        commit_repository(tmp_dir, chroot_dir, zones_root_dir, named_conf_file, bind_server_data)
+      end
 
       updated_zones = removed_zones.empty? ? new_zones : []
       # sync files in chroot repository to remote dir on the actual BIND server
@@ -241,8 +249,10 @@ module GloboDns
       end
       raise e
     ensure
-      FileUtils.remove_entry_secure tmp_dir unless !defined?(tmp_dir) && tmp_dir.nil? || @options[:keep_tmp_dir] == true
-      Domain.connection.execute('UNLOCK TABLES') unless (@options[:lock_tables] == false)
+      if !tmp_dir.nil? && @options[:use_tmp_dir] && !@options[:keep_tmp_dir]
+        FileUtils.remove_entry_secure tmp_dir
+      end
+      Domain.connection.execute('UNLOCK TABLES') if @options[:lock_tables]
     end
 
     def self.load_named_conf(chroot_dir, named_conf_file)
@@ -279,7 +289,7 @@ module GloboDns
       abs_views_dir = File.join(chroot_dir, zones_root_dir, '/views')
       abs_views_file     = File.join(abs_zones_root_dir, VIEWS_FILE)
 
-      File.exists?(abs_views_dir) or FileUtils.mkdir(abs_views_dir)
+      File.exist?(abs_views_dir) or FileUtils.mkdir(abs_views_dir)
 
       File.open(abs_views_file, 'w') do |file|
         View.all.each do |view|
@@ -329,10 +339,10 @@ module GloboDns
           unless !(options[:view] == @default_view) and @slave or domain.forward? # Slaves and forwards don't replicate the zone-files. # other views use the zone conf of the default view
             update_serial = (options[:view] == domain.view)
             @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}; created_at: #{domain.created_at}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated_since-count: #{domain.records.updated_since(@last_commit_date).count})"
-            #create subdir for this domain, if it doesn't exist yet.
-            abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
-            File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
-            #Create/Update the zonefile itself
+            # create subdir for this domain, if it doesn't exist yet.
+            abs_zonefile_dir = File.join(abs_zones_root_dir, domain.zonefile_dir)
+            File.exist?(abs_zonefile_dir) || FileUtils.mkdir_p(abs_zonefile_dir)
+            # Create/Update the zonefile itself
             abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
             domain.to_zonefile(abs_zonefile_path, update_serial) unless domain.slave?
             #File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zonefile_path)) unless domain.slave? || domain.forward?
@@ -340,22 +350,22 @@ module GloboDns
         end
 
         domains.each do |domain|
-          if @slave or domain.slave? and not domain.forward?
+          if @slave || domain.slave? && !domain.forward?
             domain = domain.clone
-            domain.view = options[:view] if options[:view] and options[:view] != @default_view
+            domain.view = options[:view] if options[:view] && options[:view] != @default_view
             domain.slave!
             abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
-            File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
+            File.exist?(abs_zonefile_dir) || FileUtils.mkdir_p(abs_zonefile_dir)
             abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
-            File.exists?(abs_zonefile_path) or File.open(abs_zonefile_path,'w')
-            if @slave and domain.master == nil
+            File.exist?(abs_zonefile_path) || File.open(abs_zonefile_path,'w')
+            if @slave && domain.master.nil?
               masters_external_ip = (GloboDns::Config::Bind::Slaves[options[:index]]::MASTERS_EXTERNAL_IP == true) if defined? GloboDns::Config::Bind::Slaves[options[:index]]::MASTERS_EXTERNAL_IP
               if masters_external_ip
-                domain.master = "#{GloboDns::Config::Bind::Master::IPADDR_EXTERNAL}"
+                domain.master = GloboDns::Config::Bind::Master::IPADDR_EXTERNAL
               else
-                domain.master  = "#{Bind::Master::IPADDR}"
+                domain.master = Bind::Master::IPADDR
               end
-              domain.master += " port #{Bind::Master::PORT}"     if defined?(Bind::Master::PORT)
+              domain.master += " port #{Bind::Master::PORT}" if defined?(Bind::Master::PORT)
               domain.master += " key #{domain.query_key_name}" if domain.query_key_name
             end
           end
@@ -372,11 +382,11 @@ module GloboDns
       array_new_zones             = []
       n_zones                     = []
       # @logger.debug "Export domain group chroot_dir=#{chroot_dir} zones_root_dir=#{zones_root_dir} file_name=#{file_name} dir_name=#{dir_name} export_all_domains=#{export_all_domains}"
-      File.exists?(abs_dir_name) or FileUtils.mkdir(abs_dir_name)
+      File.exist?(abs_dir_name) or FileUtils.mkdir(abs_dir_name)
 
       # write <view>_<type>_default.conf (basically the default_<type>.conf excluding the zones that exist in this view)
-      if options[:view] and !options[:view].default?
-        abs_default_file_name    = File.join(abs_dir_name+"-default.conf")
+      if options[:view] && !options[:view].default?
+        abs_default_file_name = File.join(abs_dir_name+"-default.conf")
         case options[:type]
         when "zones"
           default_domains = @default_view.domains.master.not_in_view(options[:view])
@@ -388,7 +398,6 @@ module GloboDns
           default_domains = @default_view.domains.reverse.not_in_view(options[:view])
         when "zones-slave-reverse"
           default_domains = @default_view.domains.master_or_reverse_or_slave.not_in_view(options[:view])
-
         end
         write_zone_conf(zones_root_dir, export_all_domains, abs_zones_root_dir, abs_default_file_name, default_domains, options) unless (@slave and not (options[:type] == "zones-slave-reverse" or options[:type] == "forwards")) # if options[:zones]
       end
@@ -398,15 +407,13 @@ module GloboDns
         # dump zonefile of updated domains
         updated_domains = export_all_domains ? domains : domains.updated_since(@last_commit_date)
         updated_domains.each do |domain|
-          if not export_all_domains and not @slave
-            n_zones << domain
-          end
-          unless @slave or domain.forward? #Slaves and forwards don't replicate the zone-files.
+          n_zones << domain unless export_all_domains && @slave
+          unless @slave || domain.forward? # Slaves and forwards don't replicate the zone-files.
             @logger.debug "[DEBUG] writing zonefile for domain #{domain.name} (last updated: #{domain.updated_at}; repo: #{@last_commit_date}; created_at: #{domain.created_at}) (domain.updated?: #{domain.updated_since?(@last_commit_date)}; domain.records.updated_since-count: #{domain.records.updated_since(@last_commit_date).count})"
-            #create subdir for this domain, if it doesn't exist yet.
+            # create subdir for this domain, if it doesn't exist yet.
             abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
-            File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
-            #Create/Update the zonefile itself
+            File.exist?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
+            # Create/Update the zonefile itself
             abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
             domain.to_zonefile(abs_zonefile_path) unless domain.slave?
             #File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zonefile_path)) unless domain.slave? || domain.forward?
@@ -430,16 +437,16 @@ module GloboDns
             domain.view = options[:view] if options[:view]
             domain = domain.clone
             domain.slave!
-            abs_zonefile_dir = File::join(abs_zones_root_dir, domain.zonefile_dir)
-            File.exists?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
+            abs_zonefile_dir = File.join(abs_zones_root_dir, domain.zonefile_dir)
+            File.exist?(abs_zonefile_dir) || FileUtils.mkdir_p(abs_zonefile_dir)
             abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
-            File.exists?(abs_zonefile_path) or File.open(abs_zonefile_path,'w')
-            if @slave and domain.master == nil
+            File.exist?(abs_zonefile_path) || File.open(abs_zonefile_path, 'w')
+            if @slave && domain.master.nil?
               masters_external_ip = (GloboDns::Config::Bind::Slaves[options[:index]]::MASTERS_EXTERNAL_IP == true) if defined? GloboDns::Config::Bind::Slaves[options[:index]]::MASTERS_EXTERNAL_IP
               if masters_external_ip
-                domain.master = "#{GloboDns::Config::Bind::Master::IPADDR_EXTERNAL}"
+                domain.master = GloboDns::Config::Bind::Master::IPADDR_EXTERNAL
               else
-                domain.master  = "#{Bind::Master::IPADDR}"
+                domain.master = Bind::Master::IPADDR
               end
               domain.master += " port #{Bind::Master::PORT}"     if defined?(Bind::Master::PORT)
               domain.master += " key #{domain.query_key_name}" if domain.query_key_name
@@ -487,18 +494,16 @@ module GloboDns
       Dir.chdir(abs_repository_zones_dir)
 
       #--- save data required to revert the respository to the current version
-      orig_head = (exec('git rev-parse', Binaries::GIT, 'rev-parse', 'HEAD')).chomp
-      @logger.info "[GloboDns::Exporter][INFO] git repository ORIG_HEAD: #{orig_head}"
+      orig_head=get_head_commit('original')
       label = @options[:label]
       @revert_operation_data ||= {}
       @revert_operation_data[label] = {
-        :bind_server_data => bind_server_data,
-        :chroot_dir       => chroot_dir,
-        :revert_server    => false, #Only true after sync_remote
-        :revision         => orig_head,
-        :zones_root_dir   => zones_root_dir
+        bind_server_data: bind_server_data,
+        chroot_dir:       chroot_dir,
+        revert_server:    false, # Only true after sync_remote
+        revision:         orig_head,
+        zones_root_dir:   zones_root_dir
       }
-
       #--- sync to Bind9's data dir
       if @slave
         rsync_output = exec('local rsync',
@@ -569,13 +574,54 @@ module GloboDns
       @logger.info "[GloboDns::Exporter][INFO] changes committed:\n#{commit_output}"
 
       #--- get the new HEAD and dump it to the log
-      new_head = (exec('git rev-parse', Binaries::GIT, 'rev-parse', 'HEAD')).chomp
-      @logger.info "[GloboDns::Exporter][INFO] git repository new HEAD: #{new_head}"
+      get_head_commit('new')
+    end
+
+    def commit_repository(tmp_dir, chroot_dir, zones_root_dir, _named_conf_file, bind_server_data)
+      abs_tmp_zones_root_dir   = File.join(tmp_dir, zones_root_dir, '')
+      abs_repository_zones_dir = File.join(chroot_dir, zones_root_dir, '')
+
+      # set 'bind' as group of the tmp_dir, add rwx permission to group
+      FileUtils.chown_R(nil, BIND_GROUP, abs_tmp_zones_root_dir)
+      exec('chmod_R', 'chmod', '-R', 'g+u', abs_tmp_zones_root_dir) # ruby doesn't accept symbolic mode on chmod
+
+      #--- change to the directory with the local copy of the zone files
+      Dir.chdir(abs_repository_zones_dir)
+      orig_head=get_head_commit('original')
+      label = @options[:label]
+      @revert_operation_data ||= {}
+      @revert_operation_data[label] = {
+        bind_server_data: bind_server_data,
+        chroot_dir:       chroot_dir,
+        revert_server:    false, # Only true after sync_remote
+        revision:         orig_head,
+        zones_root_dir:   zones_root_dir
+      }
+      #--- check status output; if there are no changes, just return
+      git_status_output = exec('git status', Binaries::GIT, 'status')
+      if git_status_output =~ /nothing to commit \(working directory clean\)/ or git_status_output =~ /On branch master\nnothing to commit, working directory clean/
+        raise ExitStatusError, "Nothing to be exported!"
+      end
+      #--- add all changed files to git's index
+      # exec_as_bind('git add', Binaries::GIT, 'add', '-A')
+      exec('git add', Binaries::GIT, 'add', '-A')
+      #--- commit the changes
+      # commit_output = exec_as_bind('git commit', Binaries::GIT, 'commit', "--author=#{GIT_AUTHOR}", "--date=#{@export_timestamp}", '-m', '"[GloboDns::exporter]"')
+      commit_output = exec('git commit', Binaries::GIT, 'commit', "--author=#{GIT_AUTHOR}", "--date=#{@export_timestamp}", '-m', '"[GloboDns::exporter]"')
+      @logger.info "[GloboDns::Exporter][INFO] changes committed:\n#{commit_output}"
+      #--- get the new HEAD and dump it to the log
+      get_head_commit('new')
+    end
+
+    def get_head_commit(fase)
+      head_commit = exec('git rev-parse', Binaries::GIT, 'rev-parse', 'HEAD').chomp
+      @logger.info "[GloboDns::Exporter][INFO] git repository #{fase} HEAD: #{head_commit}"
+      head_commit
     end
 
     def sync_remote_bind_and_reload(chroot_dir, zones_root_dir, named_conf_file, bind_server_data, updated_zones)
       abs_repository_zones_dir = File.join(chroot_dir, zones_root_dir, '')
-      sync_remote(abs_repository_zones_dir , named_conf_file, bind_server_data)
+      sync_remote(abs_repository_zones_dir, named_conf_file, bind_server_data)
 
       @to_reload = updated_zones
       #Better do a full reload if to many zones were changed
@@ -596,9 +642,9 @@ module GloboDns
       label = @options[:label]
       # If anything fails from now on, the server data has to be reverted as well
       @revert_operation_data[label][:revert_server] = true if @revert_operation_data[label]
-
+      rsync_output = ''
       if @slave
-        rsync_output = exec('remote rsync',
+        rsync_output += exec('remote rsync',
                             Binaries::RSYNC,
                             '--checksum',
                             '--archive',
@@ -618,7 +664,7 @@ module GloboDns
 
         # if using views, sync views/*conf
         if @views_enabled
-          rsync_output = exec('remote rsync',
+          rsync_output += exec('remote rsync',
                               Binaries::RSYNC,
                               '--checksum',
                               '--archive',
@@ -630,7 +676,7 @@ module GloboDns
                               "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}/#{VIEWS_DIR}/")
         end
 
-        rsync_output = exec('remote rsync',
+        rsync_output += exec('remote rsync',
                             Binaries::RSYNC,
                             '--checksum',
                             '--archive',
@@ -646,7 +692,7 @@ module GloboDns
                             abs_repository_zones_dir,
                             "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}")
 
-        rsync_output = exec('remote rsync',
+        rsync_output += exec('remote rsync',
                             Binaries::RSYNC,
                             '--inplace',
                             '--owner',
@@ -656,7 +702,7 @@ module GloboDns
                             File.join(abs_repository_zones_dir, File.basename(named_conf_file)),
                             "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:named_conf_file])}")
       else
-        rsync_output = exec('remote rsync',
+        rsync_output += exec('remote rsync',
                             Binaries::RSYNC,
                             '--checksum',
                             '--archive',
@@ -681,7 +727,7 @@ module GloboDns
                             abs_repository_zones_dir,
                             "#{bind_server_data[:user]}@#{bind_server_data[:host]}:#{File.join(bind_server_data[:chroot_dir], bind_server_data[:zones_dir])}")
 
-        rsync_output = exec('remote rsync',
+        rsync_output += exec('remote rsync',
                             Binaries::RSYNC,
                             '--inplace',
                             '--owner',
@@ -754,7 +800,7 @@ module GloboDns
 
     def destroyed_zone_type(name)
       destroyed = Audited::Adapters::ActiveRecord::Audit.where(auditable_type:"Domain").where("action = 'destroy'").where("created_at > ?", @last_commit_date_destroyed).where('audited_changes LIKE ?', '%'+name+'%').order(created_at: :desc).first
-      return destroyed.audited_changes['authority_type']
+      destroyed.audited_changes['authority_type']
     end
 
     def destroyed_zone_view(name)

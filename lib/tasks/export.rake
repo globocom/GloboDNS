@@ -44,7 +44,10 @@ namespace :globodns do
     begin
       exporter.export_all(
         @master_named_conf, @slaves_named_confs,
-        all: 'false', keep_tmp_dir: false, reset_repository_on_failure: true
+        all: 'false',
+        keep_tmp_dir: false,
+        reset_repository_on_failure: true,
+        use_tmp_dir: false
       )
     rescue Exception => e
       @logger.error "[ERROR] export failed:
