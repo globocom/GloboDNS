@@ -1,6 +1,6 @@
 namespace :globodns do
   desc 'Export updates to bind servers'
-  task :export => :environment do
+  task export: :environment do
 
     include GloboDns::Config
 
@@ -14,20 +14,21 @@ namespace :globodns do
       @logger = I18n.t('no_export_scheduled')
     elsif scheduled <= DateTime.now
       schedule_run = Schedule.run_exclusive :export do |s|
-        if not s.date.nil?
-          @logger.warn "There is another process running. To run export again, remove row #{s.id} in schedules table"
+        unless s.date.nil?
+          @logger.warn "There is another process running. To run export again,
+          remove row #{s.id} in schedules table"
           next
         end
         # register last execution in schedule
         s.date = DateTime.now
       end
       unless schedule_run.nil?
-        @logger.info "Starting Export"
-        @logger = run_export
-        @logger.info "Export finished"
+        @logger.info 'Export Started'
+        run_export
+        @logger.info 'Export Finished'
       end
     else
-      @logger = I18n.t('export_scheduled', :timestamp => scheduled)
+      @logger = I18n.t('export_scheduled', timestamp: scheduled)
     end
   end
 
@@ -41,9 +42,13 @@ namespace :globodns do
     end
 
     begin
-      exporter.export_all(@master_named_conf, @slaves_named_confs, :all => 'false', :keep_tmp_dir => false, :reset_repository_on_failure => true)
+      exporter.export_all(
+        @master_named_conf, @slaves_named_confs,
+        all: 'false', keep_tmp_dir: false, reset_repository_on_failure: true
+      )
     rescue Exception => e
-      @logger.error "[ERROR] export failed: #{e}\n#{exporter.logger}\nbacktrace:\n#{e.backtrace.join("\n")}"
+      @logger.error "[ERROR] export failed:
+        #{e}\n#{exporter.logger}\nbacktrace:\n#{e.backtrace.join('\n')}"
     ensure
       Schedule.run_exclusive :export do |s|
         s.date = nil
