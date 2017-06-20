@@ -276,6 +276,11 @@ $(document).ready(function() {
 	});
 
 	$('#new-record-template-form select#record_template_type').live('change', function () {
+		$('input#record_template_prio').val(null);
+		$('input#record_template_weight').val(null);
+		$('input#record_template_port').val(null);
+		$('input#record_tag').val(null);
+
 		var val = $(this).val();
 		$('#new-record-template-form input#record_template_prio').closest('tr').toggle((val == 'MX' || val == 'SRV' || val == 'CAA'));
 		$('#new-record-template-form input#record_template_weight').closest('tr').toggle(val == 'SRV');

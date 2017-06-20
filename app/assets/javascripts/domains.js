@@ -18,7 +18,7 @@ $(document).ready(function() {
 
 
 	// ----------------- domains#index -----------------
-	
+
 	$('.new-domain-button').click(function () {
 		$(this).hide();
 		$('.new-domain-form-container').show();
@@ -355,6 +355,11 @@ $(document).ready(function() {
 	});
 
 	$('#new-record-form select#record_type').live('change', function () {
+		$('input#record_prio').val(null);
+		$('input#record_weight').val(null);
+		$('input#record_port').val(null);
+		$('input#record_tag').val(null);
+
 		var val = $(this).val();
 		$('#new-record-form input#record_prio').closest('tr').toggle((val == 'MX' || val == 'SRV' || val == 'CAA'));
 		$('#new-record-form input#record_weight').closest('tr').toggle(val == 'SRV');
