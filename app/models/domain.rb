@@ -43,7 +43,7 @@ class Domain < ActiveRecord::Base
 
   attr_accessor :importing
   attr_accessible :user_id, :name, :master, :last_check, :notified_serial, :account, :ttl, :notes, :authority_type, :addressing_type, :view_id, \
-    :primary_ns, :contact, :refresh, :retry, :expire, :minimum, :disabled
+    :primary_ns, :contact, :refresh, :retry, :expire, :minimum
 
   audited :protect => false
   has_associated_audits
@@ -82,7 +82,7 @@ class Domain < ActiveRecord::Base
 
   # validations
   validates_presence_of      :name
-  validates_uniqueness_of    :name,               :scope => [:view_id, :disabled]
+  validates_uniqueness_of    :name,               :scope => :view_id
   validates_inclusion_of     :authority_type,     :in => AUTHORITY_TYPES.keys,  :message => "must be one of #{AUTHORITY_TYPES.keys.join(', ')}"
   validates_inclusion_of     :addressing_type,    :in => ADDRESSING_TYPES.keys, :message => "must be one of #{ADDRESSING_TYPES.keys.join(', ')}"
   validates_presence_of      :ttl,                :if => :master?
@@ -115,21 +115,20 @@ class Domain < ActiveRecord::Base
     view_zones = view.domains.pluck(:name)
     where.not(name: view_zones)
   }
-  scope :active,                      -> {where(disabled: false)}
-  scope :master,                      -> {active.where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", NORMAL)}
-  scope :slave,                       -> {active.where("#{self.table_name}.authority_type   = ?", SLAVE)}
-  scope :forward,                     -> {active.where("#{self.table_name}.authority_type   = ?", FORWARD)}
-  scope :master_or_reverse_or_slave,  -> {active.where("#{self.table_name}.authority_type   = ? or #{self.table_name}.authority_type   = ?", MASTER, SLAVE)}
-  scope :reverse,                     -> {active.where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", REVERSE)}
-  scope :nonreverse,                  -> {active.where("#{self.table_name}.addressing_type  = ?", NORMAL)}
-  scope :noview,                      -> {active.where("#{self.table_name}.view_id IS NULL")}
+  scope :master,                      -> {where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", NORMAL)}
+  scope :slave,                       -> {where("#{self.table_name}.authority_type   = ?", SLAVE)}
+  scope :forward,                     -> {where("#{self.table_name}.authority_type   = ?", FORWARD)}
+  scope :master_or_reverse_or_slave,  -> {where("#{self.table_name}.authority_type   = ? or #{self.table_name}.authority_type   = ?", MASTER, SLAVE)}
+  scope :reverse,                     -> {where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", REVERSE)}
+  scope :nonreverse,                  -> {where("#{self.table_name}.addressing_type  = ?", NORMAL)}
+  scope :noview,                      -> {where("#{self.table_name}.view_id IS NULL")}
   scope :_reverse,                    -> {reverse} # 'reverse' is an Array method; having an alias is useful when using the scope on associations
-  scope :updated_since,               -> (timestamp) {Domain.active.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }
+  scope :updated_since,               -> (timestamp) {Domain.where("#{self.table_name}.updated_at > ? OR #{self.table_name}.id IN (?)", timestamp, Record.updated_since(timestamp).select(:domain_id).pluck(:domain_id).uniq) }
   scope :matching,                    -> (query){
     if query.index('*')
-      active.where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))
+      where("#{self.table_name}.name LIKE ?", query.gsub(/\*/, '%'))
     else
-      active.where("#{self.table_name}.name" => query)
+      where("#{self.table_name}.name" => query)
     end
   }
 

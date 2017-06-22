@@ -25,7 +25,6 @@ class DomainsController < ApplicationController
   def index
     session[:show_reverse_domains] = (params[:reverse] == 'true') if params.has_key?(:reverse)
     @domains = session[:show_reverse_domains] ? Domain.all : Domain.nonreverse
-    @domains = @domains.where(disabled: false)
     @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
     if params[:query].present?
       params[:query].to_s.gsub(/^[ \t]/,'')
@@ -113,11 +112,6 @@ class DomainsController < ApplicationController
       @domain.view = View.default unless @domain.view
     end
 
-    if domain = Domain.where(name: @domain.name, view: @domain.view, disabled: true).first
-      @domain.serial = domain.serial
-      domain.destroy
-    end
-
     @domain.save unless @domain.errors.any?
     # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
 
@@ -145,8 +139,7 @@ class DomainsController < ApplicationController
 
   def destroy
     @domain = Domain.find(params[:id])
-    # @domain.destroy
-    @domain.update_attributes({disabled: true})
+    @domain.destroy
     respond_with(@domain)
   end
 end

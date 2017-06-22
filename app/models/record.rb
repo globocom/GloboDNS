@@ -462,38 +462,6 @@ class Record < ActiveRecord::Base
     return
   end
 
-<<<<<<< HEAD
-    def check_cname_content
-        if self.type == "CNAME"
-            if self.content.ends_with? "."
-                dns = Resolv::DNS.new
-                url = self.content[0...-1]
-                begin
-                    dns.getaddress(url)
-                rescue
-                    self.warnings.add(:content, I18n.t('cname_content_fqdn_invalid', content: self.content, :scope => 'activerecord.errors.messages'))
-                end
-            else
-                records = self.domain.records.map{|r| r.name}
-                self.warnings.add(:content, I18n.t('cname_content_record_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless records.include? self.content
-            end
-        end
-        return
-    end
-
-    def check_a_content
-        if self.type == "A"
-            p = Net::Ping::External.new self.content
-            self.warnings.add(:content, I18n.t('a_content_invalid', content: self.content, :scope => 'activerecord.errors.messages')) unless p.ping?
-        end
-
-        return
-    end
-
-    # Checks if this record is a replica of another
-    def same_as? other_record
-      self.name    == other_record.name &&
-=======
   def check_a_content
     if self.type == "A"
       p = Net::Ping::External.new self.content
