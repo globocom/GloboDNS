@@ -582,8 +582,12 @@ module GloboDns
       abs_repository_zones_dir = File.join(chroot_dir, zones_root_dir, '')
 
       # set 'bind' as group of the tmp_dir, add rwx permission to group
-      FileUtils.chown_R(nil, BIND_GROUP, abs_tmp_zones_root_dir)
-      exec('chmod_R', 'chmod', '-R', 'g+u', abs_tmp_zones_root_dir) # ruby doesn't accept symbolic mode on chmod
+      Dir.foreach(abs_tmp_zones_root_dir) do |dir|
+        unless dir ==".git"
+          FileUtils.chown_R(nil, BIND_GROUP, "#{abs_tmp_zones_root_dir}#{dir}")
+          exec('chmod_R', 'chmod', '-R', 'g+u', "#{abs_tmp_zones_root_dir}#{dir}") # ruby doesn't accept symbolic mode on chmod
+        end
+      end
 
       #--- change to the directory with the local copy of the zone files
       Dir.chdir(abs_repository_zones_dir)
