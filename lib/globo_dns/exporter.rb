@@ -583,7 +583,7 @@ module GloboDns
 
       # set 'bind' as group of the tmp_dir, add rwx permission to group
       Dir.foreach(abs_tmp_zones_root_dir) do |dir|
-        unless dir ==".git"
+        unless dir == ".git" or dir == '.' or dir == ".."
           FileUtils.chown_R(nil, BIND_GROUP, "#{abs_tmp_zones_root_dir}#{dir}")
           exec('chmod_R', 'chmod', '-R', 'g+u', "#{abs_tmp_zones_root_dir}#{dir}") # ruby doesn't accept symbolic mode on chmod
         end
