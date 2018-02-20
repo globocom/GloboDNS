@@ -8,7 +8,7 @@ end
 
 gem 'iconv'
 gem 'json', 			    '~>1.8.0'
-gem 'rails',                '~> 4.2.1'
+gem 'rails',                '~> 4.2.7'
 gem 'mysql2',               '~> 0.3.15'
 gem 'haml',					'~>4.0.7'
 gem 'jquery-rails',			'~>4.1.1'
