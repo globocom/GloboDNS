@@ -36,6 +36,7 @@ class Record < ActiveRecord::Base
   validates_presence_of      :content
   validates_bind_time_format :ttl
   validate                   :validate_content_characters
+  validate                   :validate_generate
   validate                   :validate_name_cname,                        :unless => :importing?
   validate                   :validate_name_format,                       :unless => :importing?
   validate                   :validate_recursive_subdomains,              :unless => :importing?
@@ -345,7 +346,22 @@ class Record < ActiveRecord::Base
     !!importing
   end
 
+  def validate_generate
+    if self.generate?
+      self.errors.add(:base, I18n.t('record_generate_bad_range', :scope => 'activerecord.errors.messages')) unless valid_range?
+      self.errors.add(:base, I18n.t('record_generate_missing_dollar', :scope => 'activerecord.errors.messages')) unless self.name.include? '$' or self.content.include? '$'
+    end
+  end
+
+  def valid_range?
+    format = self.range.match(/^(\d+)\-(\d+)[\/\d]*$/)
+    return format[2] > format[1] unless format.nil?
+
+    false
+  end
+
   def validate_name_cname
+    return if self.generate?
     id = self.id || 0
     if self.type == 'CNAME' # check if the new cname record matches a old record name
       if record = Record.where(name: self.name, domain_id: self.domain_id).where("id != ?", id).first
@@ -380,6 +396,7 @@ class Record < ActiveRecord::Base
 
 
   def validate_name_format
+    return if self.generate?
     # default implementation: validation of 'hostnames'
     return if self.name.blank? || self.name == '@'
 

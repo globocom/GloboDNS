@@ -35,7 +35,7 @@ class CNAME < Record
   end
 
   def validate_name_format
-    unless self.name.blank? || self.name == '@' || hostname?(self.name.gsub(/(^[*]\.)/,"")) || reverse_ipv4_fragment?(self.name) || reverse_ipv6_fragment?(self.name)
+    unless self.generate? || self.name.blank? || self.name == '@' || hostname?(self.name.gsub(/(^[*]\.)/,"")) || reverse_ipv4_fragment?(self.name) || reverse_ipv6_fragment?(self.name)
       self.errors.add(:name, I18n.t('invalid', :scope => 'activerecord.errors.messages'))
     end
   end

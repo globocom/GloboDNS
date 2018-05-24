@@ -17,6 +17,7 @@ class IpAddressValidator < ActiveModel::EachValidator
   include RecordPatterns
 
   def validate_each( record, attribute, value )
+    return if record.generate?
     record.errors[ attribute ] << I18n.t(:message_attribute_must_be_ip) unless valid?( value )
   end
 
