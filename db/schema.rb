@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170509195431) do
+ActiveRecord::Schema.define(version: 20180522210929) do
 
   create_table "audits", force: :cascade do |t|
     t.integer  "auditable_id",    limit: 4
@@ -101,6 +101,8 @@ ActiveRecord::Schema.define(version: 20170509195431) do
     t.integer  "weight",     limit: 4
     t.integer  "port",       limit: 4
     t.string   "tag",        limit: 255
+    t.boolean  "generate"
+    t.string   "range",      limit: 255
   end
 
   add_index "records", ["domain_id"], name: "fk_records_domains2", using: :btree
@@ -145,7 +147,6 @@ ActiveRecord::Schema.define(version: 20170509195431) do
     t.string   "key",          limit: 64
   end
 
-  add_foreign_key "audits", "users", name: "fk_audits_users1"
   add_foreign_key "domain_templates", "views", name: "fk_domain_templates_views1"
   add_foreign_key "domains", "users", name: "fk_domains_users"
   add_foreign_key "domains", "views", name: "fk_domains_views1"
