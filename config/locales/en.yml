@@ -290,9 +290,11 @@ en:
 
   title_records: 'Records'
   label_add_record: "Add Record"
+  label_domain_record_generate: "Generate"
   label_domain_record_host: "Host"
   label_domain_record_ttl: "TTL"
   label_domain_record_type: "Type"
+  label_domain_record_range: "Range"
   label_domain_record_tag: "Tag"
   label_domain_record_priority: "Priority"
   label_domain_record_weight: "Weight"
@@ -382,6 +384,7 @@ en:
 # Records create
   message_record_created: "Record created"
   message_record_cannon_create: "Could not create record"
+  help_generate: "Generate act as a template record that interates over the given range to create sequential entries."
 
 # Records update
   message_record_updated: "Record updated"

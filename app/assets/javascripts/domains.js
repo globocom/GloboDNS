@@ -385,4 +385,21 @@ $(document).ready(function() {
 	}).live('ajax:error', function () {
 		alert("[ERROR] unable to retrieve domains");
 	});
+
+	$('#generate_checkbox').live('change', function () {
+		console.log("teste");
+	    if(this.checked) {
+			$('#new-record-form input#record_ttl').closest('tr').hide();
+			$('input#record_ttl').val(null);
+			$('#new-record-form input#record_range').closest('tr').show();
+			if (showAlert){
+				alert("Atention! By checking this, the record will be create as a generate directive.");
+			}
+	    }
+	    else{
+			$('#new-record-form input#record_ttl').closest('tr').show();
+			$('#new-record-form input#record_range').closest('tr').hide();
+			$('input#record_range').val(null);
+	    }
+	});
 });

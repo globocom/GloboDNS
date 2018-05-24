@@ -7,6 +7,7 @@
 %tr[ record, :show ]{:class => "#{even_odd} show-record"}
   %td.name=    record.name
   %td.ttl=     record.ttl
+  %td.range=     record.range
   %td.type=    record.type
   %td.tag=     record.supports_tag? ? record.tag : '&nbsp;'.html_safe
   %td.prio=    record.supports_prio? ? record.prio : '&nbsp;'.html_safe
@@ -25,6 +26,7 @@
     = form_for(record, :as => 'record', :url => record_path(record)) do |f|
       %td.name=    f.text_field :name
       %td.ttl=     f.text_field :ttl
+      %td.range=     f.text_field :range
       %td.type=    record.type
       %td.tag=     record.tag #record.supports_tag? ? f.select(:tag) : '&nbsp;'.html_safe
       %td.prio=    record.supports_prio? ? f.text_field(:prio) : '&nbsp;'.html_safe

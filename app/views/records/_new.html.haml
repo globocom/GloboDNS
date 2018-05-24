@@ -1,4 +1,7 @@
 %div.new-record-form-container{ :class => record.errors.any? ? '' : 'hidden' }
+  %div{ :style => 'display: none' }
+    #help-generate=t :help_generate
+
   - if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW
     %i
       - unless @domain.view.nil?
@@ -7,7 +10,7 @@
   = form_for([@domain, record], :remote => true, :html => {:id => 'new-record-form'}) do |f|
 
     - if record && record.errors.any?
-      %ul.errors 
+      %ul.errors
       - record.errors.full_messages.each do |msg|
         %li= msg
 
@@ -16,9 +19,15 @@
         %tr
           %td= f.label :type, t(:label_domain_record_type)
           %td= f.select :type, Record::high_priority_types + (Record::record_types - ['SOA'] - Record::high_priority_types)
+          %td= f.check_box :generate, {:id => 'generate_checkbox'}, true, false
+          %td= help_icon('help-generate')
+          %td= f.label :generate, t(:label_domain_record_generate)
         %tr{ style: "display: none;" }
           %td= f.label :tag, t(:label_domain_record_tag)
           %td= f.select :tag, Record::caa_tags
+        %tr{ style: "display: none;" }
+          %td= f.label :range, t(:label_domain_record_range)
+          %td= f.text_field :range
         %tr
           %td= f.label :host, t(:label_domain_record_host)
           %td= f.text_field :name
@@ -41,3 +50,9 @@
           %td{:colspan => 2}
             = button_tag(t(:generic_cancel), :class => 'cancel-new-record-button ui-icon-ban-circle')
             = f.button(t(:generic_create),   :class => 'create-record-button ui-icon-download-alt')
+
+:javascript
+  - if current_user.admin?
+    let showAlert = false;
+  - else
+    let showAlert = true;

@@ -3,6 +3,7 @@
 %tr[ @record, :show ]{:class => even_odd}
   %td.name=    @record.shortname
   %td.ttl=     @record.ttl
+  %td.range=   @record.range
   %td.type=    @record.type
   %td.prio=    @record.prio
   %td.weight=  @record.weight
@@ -18,6 +19,7 @@
     = form_for(@record, :as => :record, :url => record_path(@record), :remote => true) do |f|
       %td.name=    f.text_field :shortname
       %td.ttl=     f.text_field :ttl
+      %td.range=     f.text_field :range
       %td.type=    @record.type
       %td.prio=    @record.supports_prio? ? f.text_field(:prio) : '&nbsp;'.html_safe
       %td.weight=  @record.supports_weight? ? f.text_field(:weight) : '&nbsp;'.html_safe
