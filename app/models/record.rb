@@ -338,8 +338,11 @@ class Record < ActiveRecord::Base
     prio = ((self.type == 'CAA' or self.type == 'MX' or self.type == 'SRV') || (self.prio && (self.prio > 0)) ? self.prio : '')
     weight = (self.type == 'SRV' || self.weight)? self.weight : ''
     port = (self.type == 'SRV' || self.port)? self.port : ''
+    ttl = (self.generate?)? '' : self.ttl.to_s || ''
+    name = (self.generate?)? "\$GENERATE #{self.range} #{self.name}" : self.name
+    type = (self.generate?)? self.type : "IN #{self.type}"
 
-    output.printf(format, self.name, self.ttl.to_s || '', self.type, prio || '', tag || '', weight || '', port || '', content)
+    output.printf(format, name, ttl, type, prio || '', tag || '', weight || '', port || '', content)
   end
 
   def importing?
