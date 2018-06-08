@@ -459,7 +459,7 @@ class Record < ActiveRecord::Base
     if self.type == "TXT"
       strings = self.content.split("\"\"")
       strings.each do |s|
-        self.errors.add(:content, I18n.t('string_txt_exceeds', :scope => 'activerecord.errors.messages')) if s.sub("\"","").size > 255
+        self.errors.add(:content, I18n.t('string_txt_exceeds', :scope => 'activerecord.errors.messages')) if s.sub("\"","").size > 257
       end
     end
   end
