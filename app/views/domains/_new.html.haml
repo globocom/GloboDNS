@@ -29,7 +29,7 @@
           %td= f.label :domain_template_id, t(:label_domain_domain_template)
           %td
             - if DomainTemplate.with_soa.count > 0
-              = collection_select(:domain, :domain_template_id, DomainTemplate.with_soa.all, :id, :name, :include_blank => true)
+              = collection_select(:domain, :domain_template_id, (DomainTemplate.with_soa.all.append DomainTemplate.new(id: 0, name: t(:label_blank_domain_template))), :id, :name)
             - else
               %em
                 = link_to(t(:label_create_domain_templates), domain_templates_path)

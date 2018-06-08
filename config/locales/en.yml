@@ -217,6 +217,8 @@ en:
   help_domain_master:
     The IP address of the authorative (or master) DNS server for this domain.
 
+
+  label_blank_domain_template: "Manual (do not use)"
   label_create_new_domain_note:
     Create a new domain by entering the Start of Authority (SOA) information below.
 
