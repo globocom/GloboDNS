@@ -98,6 +98,7 @@ class Domain < ActiveRecord::Base
 
   # callbacks
   before_save :name_unique?
+  before_save :remove_spaces_from_name
   after_save :save_soa_record
 
   # scopes
@@ -295,6 +296,10 @@ class Domain < ActiveRecord::Base
     end
   ensure
     output.close if output.is_a?(File)
+  end
+
+  def remove_spaces_from_name
+    self.name.delete!(' ')
   end
 
   def validate_recursive_subdomains
