@@ -14,20 +14,20 @@
 
 %h1
   = DomainTemplate.model_name.human.titleize
-  = link_to('', '#', :class => 'edit-domain-template-button ui-icon-edit', :title => t(:generic_edit))
-  = link_to('', domain_template_path(@domain_template), :class => 'delete-domain-template-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :data => {:confirm => t(:confirm_delete_domain_template, :name => @domain_template.name)})
+  = link_to_if(current_user.admin?, '', '#', :class => 'edit-domain-template-button ui-icon-edit', :title => t(:generic_edit))
+  = link_to_if(current_user.admin?,'', domain_template_path(@domain_template), :class => 'delete-domain-template-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :data => {:confirm => t(:confirm_delete_domain_template, :name => @domain_template.name)})
 = render :partial => 'form', :object => @domain_template, :as => :domain_template
 
 #domain-template-view
   %h1
     = t(:title_domain_template_view)
-    = link_to('', '#', :class => 'edit-domain-template-view-button ui-icon-edit', :title => t(:generic_edit))
+    = link_to_if(current_user.admin?,'', '#', :class => 'edit-domain-template-view-button ui-icon-edit', :title => t(:generic_edit))
   = render partial: 'view_select', locals: {domain_template: @domain_template, views: View::all}
 
 #domain-template-soa
   %h1
     = t(:title_soa_record_template)
-    = link_to('', '#', :class => 'edit-soa-record-template-button ui-icon-edit', :title => t(:generic_edit))
+    = link_to_if(current_user.admin?,'', '#', :class => 'edit-soa-record-template-button ui-icon-edit', :title => t(:generic_edit))
   = render :partial => @soa_record_template
 
 #record-templates
