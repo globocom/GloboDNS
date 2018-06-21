@@ -61,6 +61,17 @@ $(document).ready(function() {
 		$('table#domains-table tr:nth-child(odd)').addClass("odd").removeClass("even");
 	}
 
+	$('#export_all').live('change', function (evt) {
+		if(document.getElementById('export_all').checked){
+			$('.export-to').addClass('export-to-hide');
+			$("#domain_export_to").val('').trigger("change");
+		}
+		else{
+			$('.export-to').removeClass('export-to-hide');
+
+		}
+	});
+
 	$('select#domain_domain_template_id').live('change', function (evt) {
 		if ($(this).val() == '') {
 			$(this).closest('tbody').find('tr.template').addClass('hidden-by-domain-template');

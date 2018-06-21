@@ -40,6 +40,12 @@ module GloboDns
       !slave::HOST.nil? and slave::HOST != '' rescue false
     end
 
+    def get_nameservers
+      ns = Bind::Slaves.collect{|slave| slave::HOST}
+      ns.unshift(Bind::Master::HOST)
+      Hash[(0...ns.size).zip ns]
+    end
+
     protected
 
     def self.set_constants(hash, module_ = self)

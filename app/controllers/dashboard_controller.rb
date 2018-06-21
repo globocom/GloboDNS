@@ -14,7 +14,10 @@
 # limitations under the License.
 
 class DashboardController < ApplicationController
+  include GloboDns::Config
+
   def index
+    @ns = get_nameservers
     @latest_domains = Domain.nonreverse.reorder('created_at DESC').limit(5)
   end
 end

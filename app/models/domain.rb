@@ -25,6 +25,7 @@
 class Domain < ActiveRecord::Base
   include SyslogHelper
   include BindTimeFormatHelper
+  include GloboDns::Config
 
   # define helper constants and methods to handle domain types
   AUTHORITY_TYPES  = define_enum(:authority_type,  [:MASTER, :SLAVE, :FORWARD, :STUB, :HINT], ['M', 'S', 'F', 'U', 'H'])
@@ -41,9 +42,11 @@ class Domain < ActiveRecord::Base
     delegate field.to_sym, (field.to_s + '=').to_sym, :to => :soa_record
   end
 
+  serialize :export_to
+
   attr_accessor :importing
   attr_accessible :user_id, :name, :master, :last_check, :notified_serial, :account, :ttl, :notes, :authority_type, :addressing_type, :view_id, \
-    :primary_ns, :contact, :refresh, :retry, :expire, :minimum
+    :primary_ns, :contact, :refresh, :retry, :expire, :minimum, :export_to
 
   audited :protect => false
   has_associated_audits
@@ -115,6 +118,11 @@ class Domain < ActiveRecord::Base
   scope :not_in_view,                 -> (view){
     view_zones = view.domains.pluck(:name)
     where.not(name: view_zones)
+  }
+  scope :forward_export_to_ns,                 -> (ns_id){
+    ids = forward.where.not(export_to: nil).select { |d| d.export_to.include? ns_id.to_s }.collect{ |d| d.id }
+    ids += forward.where(export_to: nil).pluck(:id)
+    where(id: ids)
   }
   scope :master,                      -> {where("#{self.table_name}.authority_type   = ?", MASTER).where("#{self.table_name}.addressing_type = ?", NORMAL)}
   scope :slave,                       -> {where("#{self.table_name}.authority_type   = ?", SLAVE)}
@@ -241,6 +249,14 @@ class Domain < ActiveRecord::Base
   def subdir_path
     #caches and returns
     @subdir_path ||= generate_subdir_path
+  end
+
+  def get_export_to_ns_names
+    servers = self.export_to
+    return "all nameservers" if servers.nil?
+    servers = servers.each.collect{|ns| get_nameservers[ns.to_i]}.join(', ')
+    puts servers
+    servers
   end
 
   def zonefile_dir

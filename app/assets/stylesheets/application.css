@@ -786,7 +786,12 @@ ul.start li {
     padding: 0 1em;
     text-align: right;
 }
-
+.export-to-hide{
+    display: none;
+}
+.export-to select{
+    height: 100px;
+}
 #ajaxBusy {
   display: none;
   margin: 0;

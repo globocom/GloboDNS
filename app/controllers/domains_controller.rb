@@ -14,6 +14,8 @@
 # limitations under the License.
 
 class DomainsController < ApplicationController
+  include GloboDns::Config
+
   respond_to :html, :json
   responders :flash
 
@@ -23,6 +25,7 @@ class DomainsController < ApplicationController
   DEFAULT_PAGE_SIZE = 25
 
   def index
+    @ns = get_nameservers
     session[:show_reverse_domains] = (params[:reverse] == 'true') if params.has_key?(:reverse)
     @domains = session[:show_reverse_domains] ? Domain.all : Domain.nonreverse
     @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
@@ -111,6 +114,9 @@ class DomainsController < ApplicationController
     if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW == true
       @domain.view = View.default unless @domain.view
     end
+
+    @domain.export_to = JSON.parse(params[:domain][:export_to]) - [""]
+    @domain.export_to = nil if @domain.export_to.empty?
 
     @domain.save unless @domain.errors.any?
     # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?

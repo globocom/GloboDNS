@@ -17,6 +17,9 @@
       %tr
         %td= label_tag :forwarder, t(:label_domain_forwarder)
         %td= domain.forwarder
+      %tr
+        %td= label_tag :export_to, t(:label_domain_export_to)
+        %td= domain.get_export_to_ns_names
     - else
       %tr
         %td= label_tag :ttl, t(:label_domain_ttl)

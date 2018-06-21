@@ -226,6 +226,7 @@ en:
   label_domain_authority_type: "Type"
   label_domain_master_address: "Master Address"
   label_domain_forwarder: "Forwarder Address"
+  label_domain_export_to: "Export to"
   label_domain_ttl: "Default TTL"
   label_domain_view: "View"
   label_domain_zone_template: "Domain Template"

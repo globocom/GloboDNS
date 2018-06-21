@@ -51,6 +51,17 @@
           %td= f.label :view, t(:label_domain_view)
           %td= f.collection_select :view_id, View.all, :id, :name, :include_blank => true
           %td= help_icon('help-domain-view')
+        - if current_user.admin?
+          %tr.notemplate.forward
+            %td= label_tag :export_all, "Export to all ns servers"
+            %td= check_box_tag :export_all, {}, true
+            %td= help_icon('help-domain-view')
+          %tr.notemplate.forward.export-to.export-to-hide
+            %td= f.label :export_to, "Export to"
+            %td= "Use ctrl/cmd to multiple select"
+          %tr.notemplate.forward.export-to.export-to-hide
+            %td
+            %td.export-to= f.select :export_to, options_from_collection_for_select(@ns, :first, :last), {height: "80px"}, multiple: true, allow_blank: true
         %tr.notemplate.master
           %td= f.label :ttl, t(:label_domain_ttl)
           %td= f.text_field :ttl

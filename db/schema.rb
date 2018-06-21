@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180522210929) do
+ActiveRecord::Schema.define(version: 20180619122648) do
 
   create_table "audits", force: :cascade do |t|
     t.integer  "auditable_id",    limit: 4
@@ -67,6 +67,7 @@ ActiveRecord::Schema.define(version: 20180522210929) do
     t.string   "addressing_type", limit: 1,     null: false
     t.integer  "view_id",         limit: 4
     t.integer  "sibling_id",      limit: 4
+    t.string   "export_to",       limit: 255
   end
 
   add_index "domains", ["name"], name: "index_domains_on_name", using: :btree
