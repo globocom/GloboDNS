@@ -168,7 +168,7 @@ module GloboDns
               export_domain_group(tmp_dir, zones_root_dir,    view.zones_file,    view.zones_dir, []                                     , true                                  , options.merge(view: view, type: ""))
               export_domain_group(tmp_dir, zones_root_dir,  view.reverse_file,  view.reverse_dir, []                                     , true                                  , options.merge(view: view, type: ""))
               export_domain_group(tmp_dir, zones_root_dir,   view.slaves_file,   view.slaves_dir, view.domains_master_or_reverse_or_slave, view.updated_since?(@last_commit_date), options.merge(view: view, type: "zones-slave-reverse"))
-              export_domain_group(tmp_dir, zones_root_dir, view.forwards_file, view.forwards_dir, view.domains.forward_export_to_ns(options[:index])                   , true                                  , options.merge(view: view, type: "forwards"))
+              export_domain_group(tmp_dir, zones_root_dir, view.forwards_file, view.forwards_dir, view.domains.forward_export_to_ns(( options[:index].nil? ? 0 : options[:index] + 1 ))                   , true                                  , options.merge(view: view, type: "forwards"))
             else
               new_zones_noreverse = export_domain_group(tmp_dir , zones_root_dir , view.zones_file   , view.zones_dir    , view.domains.master                      , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "zones"))
               new_zones_reverse = export_domain_group(tmp_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , view.domains._reverse                    , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "reverse"))
@@ -178,7 +178,7 @@ module GloboDns
                 new_zones += new_zones_noreverse + new_zones_reverse
               end
               export_domain_group(tmp_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.slave                       , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "slave"))
-              export_domain_group(tmp_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward_export_to_ns(options[:index])                     , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "forwards"))
+              export_domain_group(tmp_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward_export_to_ns(( options[:index].nil? ? 0 : options[:index] + 1 ))                     , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "forwards"))
             end
           end
 
@@ -202,7 +202,7 @@ module GloboDns
           export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    [], true, options)
           export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  [], true, options)
           export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.master_or_reverse_or_slave, false, options)
-          export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward_export_to_ns(options[:index]), false, options)
+          export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward_export_to_ns(( options[:index].nil? ? 0 : options[:index] + 1 )), false, options)
         else
           new_zones_noreverse = export_domain_group(tmp_dir, zones_root_dir, ZONES_FILE,    ZONES_DIR,    Domain.noview.master)
           new_zones_reverse   = export_domain_group(tmp_dir, zones_root_dir, REVERSE_FILE,  REVERSE_DIR,  Domain.noview._reverse)
@@ -212,7 +212,7 @@ module GloboDns
             new_zones += new_zones_noreverse + new_zones_reverse
           end
           export_domain_group(tmp_dir, zones_root_dir, SLAVES_FILE,   SLAVES_DIR,   Domain.noview.slave)
-          export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward_export_to_ns(options[:index]))
+          export_domain_group(tmp_dir, zones_root_dir, FORWARDS_FILE, FORWARDS_DIR, Domain.noview.forward_export_to_ns(( options[:index].nil? ? 0 : options[:index] + 1 )))
         end
       end
       # remove files that older than the export timestamp; these are the
@@ -299,15 +299,15 @@ module GloboDns
             export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , []                                       , true                                      , options.merge(:view => view, :type => ""))
             export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , []                                       , true                                      , options.merge(:view => view, :type => ""))
             export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains_master_or_reverse_or_slave  , view.updated_since?(@last_commit_date)    , options.merge(:view => view, :type => "zones-slave-reverse"))
-            export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward_export_to_ns(options[:index])                     , true                                      , options.merge(:view => view, :type => "forwards"))
+            export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward_export_to_ns(( options[:index].nil? ? 0 : options[:index] + 1 ))                     , true                                      , options.merge(:view => view, :type => "forwards"))
             # export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.master_or_reverse_or_slave  , view.updated_since?(@last_commit_date)    , options)
-            # export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward_export_to_ns(options[:index])                     , true                                      , options)
+            # export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward_export_to_ns(( options[:index].nil? ? 0 : options[:index] + 1 ))                     , true                                      , options)
           else
             #                   chroot_dir , zones_root_dir , file_name          , dir_name          , domains                                  , export_all_domains
             export_domain_group(chroot_dir , zones_root_dir , view.zones_file    , view.zones_dir    , view.domains.master                      , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "zones"))
             export_domain_group(chroot_dir , zones_root_dir , view.reverse_file  , view.reverse_dir  , view.domains._reverse                    , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "reverse"))
             export_domain_group(chroot_dir , zones_root_dir , view.slaves_file   , view.slaves_dir   , view.domains.slave                       , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "slave"))
-            export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward_export_to_ns(options[:index])                     , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "forwards"))
+            export_domain_group(chroot_dir , zones_root_dir , view.forwards_file , view.forwards_dir , view.domains.forward_export_to_ns(( options[:index].nil? ? 0 : options[:index] + 1 ))                     , view.updated_since?(@last_commit_date), options.merge(:view => view, :type => "forwards"))
           end
         end
 
