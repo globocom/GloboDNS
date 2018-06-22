@@ -115,8 +115,10 @@ class DomainsController < ApplicationController
       @domain.view = View.default unless @domain.view
     end
 
-    @domain.export_to = JSON.parse(params[:domain][:export_to]) - [""]
-    @domain.export_to = nil if @domain.export_to.empty?
+    if @domain.export_to
+      @domain.export_to = JSON.parse(params[:domain][:export_to]) - [""]
+      @domain.export_to = nil if @domain.export_to.empty?
+    end
 
     @domain.save unless @domain.errors.any?
     # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
