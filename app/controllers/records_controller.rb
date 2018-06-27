@@ -48,6 +48,8 @@ class RecordsController < ApplicationController
   end
 
   def create
+    params[:record][:ttl] = 60 if params[:record][:ttl].empty?
+
     params[:record].each do |label, value|
       params[:record][label] = params[:record][label].to_s.gsub(/^[ \t]/,'') unless value.nil?
     end
@@ -63,6 +65,8 @@ class RecordsController < ApplicationController
   end
 
   def update
+    params[:record][:ttl] = 60 if params[:record][:ttl].empty?
+
     params[:record].each do |label, value|
       params[:record][label] = params[:record][label].to_s.gsub(/^[ \t]/,'') unless value.nil?
     end
