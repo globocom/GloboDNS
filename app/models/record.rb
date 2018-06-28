@@ -183,6 +183,18 @@ class Record < ActiveRecord::Base
     end
   end
 
+  def increase_ttl
+    new_ttl = self.ttl.to_i * 2
+
+    if new_ttl >= self.domain.ttl.to_i or self.ttl.nil?
+      Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) had ttl #{self.ttl} and now is zone's default tll"
+      self.update(ttl: nil)
+    else
+      Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) had ttl #{self.ttl} and now is #{new_ttl}"
+      self.update(ttl: new_ttl)
+    end
+  end
+
 
   def responding_from_dns_server server
     res = []
