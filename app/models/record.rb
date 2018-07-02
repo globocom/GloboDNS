@@ -72,6 +72,7 @@ class Record < ActiveRecord::Base
   scope :without_soa,   -> {where('type != ?', 'SOA')}
   scope :updated_since, -> (timestamp) { where('updated_at > ?', timestamp) }
   scope :matching,      -> (query){
+    query.gsub!(/:0{,4}/,":").gsub!(/:{3,}/,"::")
     if query.index('*')
       query.gsub!(/\*/, '%')
       where('name LIKE ? OR content LIKE ?', query, query)
