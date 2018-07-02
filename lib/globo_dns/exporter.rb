@@ -224,6 +224,7 @@ module GloboDns
 
       # validate configuration with 'named-checkconf'
       run_checkconf(tmp_dir, named_conf_file)
+      check_zones_being_exported(tmp_dir, named_conf_file) unless @slave
 
       # sync generated files on the tmp dir to the local chroot repository
       if @options[:use_tmp_dir]
@@ -847,6 +848,42 @@ module GloboDns
         end
       end
       domains
+    end
+
+    def check_exporting_diff(export_zones_count, db_zones_count)
+      diff_limit = 50
+      difference = (export_zones_count - db_zones_count).abs
+      difference <= diff_limit
+    end
+
+    def check_exporting_percentage(export_zones_count, db_zones_count)
+      return false if (export_zones_count.zero? or db_zones_count.zero?)
+      minimum_percentage = 0.95
+      percentage = export_zones_count.to_f/db_zones_count.to_f
+      percentage >= minimum_percentage
+    end
+
+    def count_zones_being_exported(chroot_dir, named_conf_file)
+      output = exec_as_root('named-checkconf', Binaries::CHECKCONF, '-z', '-t', chroot_dir, named_conf_file)
+      filtered_zones = []
+      output.split("\n").each do |line|
+        matched = line.match(/^zone (.*)\/IN?: loaded serial\s+\d+/)
+        filtered_zones.push matched[1] if matched
+      end
+
+      filtered_zones.count
+    end
+
+    def check_zones_being_exported(chroot_dir, named_conf_file)
+      export_zones_count = count_zones_being_exported(chroot_dir, named_conf_file)
+      db_zones_count = Domain.master.count
+
+      exporting_diff = check_exporting_diff(export_zones_count, db_zones_count)
+      exporting_percentage = check_exporting_percentage(export_zones_count, db_zones_count)
+
+      unless (exporting_diff and exporting_percentage)
+        raise ExitStatusError.new("Exporting #{export_zones_count} zones, but the database have #{db_zones_count} zones")
+      end
     end
 
   end # Exporter
