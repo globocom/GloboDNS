@@ -22,6 +22,15 @@ class IpAddressValidator < ActiveModel::EachValidator
   end
 
   def valid?( ip )
-    ( options[:ipv6] && ipv6?( ip ) ) || ipv4?( ip )
+    begin
+      ip = IPAddr.new ip
+      if options[:ipv6]
+        return ip.ipv6?
+      else
+        return ip.ipv4?
+      end
+    rescue Exception => e
+      false
+    end
   end
 end
