@@ -65,6 +65,7 @@ class Record < ActiveRecord::Base
   # after_save      :update_soa_serial
   after_destroy :update_domain_timestamp
   before_save   :reset_prio
+  before_save   :ipv6_remove_leading_zeros, :if => :ipv6?
 
   scope :sorted,        -> {order('name ASC')}
   scope :to_update_ttl, -> {without_soa.where('updated_at < ?',DateTime.now - 3.days).where('ttl > ?', 60)}
@@ -165,6 +166,10 @@ class Record < ActiveRecord::Base
     false
   end
 
+  def ipv6?
+    self.type == 'AAAA'
+  end
+
   def url
     if self.name.ends_with? '.'
       self.name.chomp('.')
@@ -195,6 +200,13 @@ class Record < ActiveRecord::Base
     end
   end
 
+  def ipv6_remove_leading_zeros
+    self.content = ipv6_without_leading_zeros(self.content)
+  end
+
+  def ipv6_without_leading_zeros ip
+    IPAddr.new(ip).to_s
+  end
 
   def responding_from_dns_server server
     res = []
