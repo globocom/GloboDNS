@@ -45,7 +45,7 @@ class Domain < ActiveRecord::Base
   serialize :export_to
 
   attr_accessor :importing
-  attr_accessible :user_id, :name, :master, :last_check, :notified_serial, :account, :ttl, :notes, :authority_type, :addressing_type, :view_id, \
+  attr_accessible :user_id, :name, :master, :last_check, :notified_serial, :account, :ttl, :notes, :authority_type, :addressing_type, :view_id, :view, \
     :primary_ns, :contact, :refresh, :retry, :expire, :minimum, :export_to
 
   audited :protect => false
