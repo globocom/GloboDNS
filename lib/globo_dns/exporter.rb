@@ -851,14 +851,14 @@ module GloboDns
     end
 
     def check_exporting_diff(export_zones_count, db_zones_count)
-      diff_limit = 50
+      diff_limit = GloboDns::Config::Export::ZONES_DIFF_LIMIT
       difference = (export_zones_count - db_zones_count).abs
       difference <= diff_limit
     end
 
     def check_exporting_percentage(export_zones_count, db_zones_count)
       return false if (export_zones_count.zero? or db_zones_count.zero?)
-      minimum_percentage = 0.95
+      minimum_percentage = GloboDns::Config::Export::ZONES_MINIMUM_PERCENTAGE
       percentage = export_zones_count.to_f/db_zones_count.to_f
       percentage >= minimum_percentage
     end

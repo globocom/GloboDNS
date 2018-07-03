@@ -68,6 +68,11 @@ development: &devconf
     export_delay:           300  # in seconds
     mail_recipients:        [ 'Root <root@hostname.com>' ]
     dns_group: 'Internal'
+
+    export:
+        zones_diff_limit: 50
+        zones_minimum_percentage: 0.95
+
     binaries:
         bind:          '/usr/sbin/named'
         named:         '/usr/sbin/named'
@@ -125,6 +130,10 @@ test:
     export_delay:           300  # in seconds
     mail_recipients:        [ 'Root <root@hostname.com>' ]
     dns_group:              'Internal'
+
+    export:
+        zones_diff_limit: 50
+        zones_minimum_percentage: 0.95
 
     binaries:
         bind:          '/usr/sbin/named'
