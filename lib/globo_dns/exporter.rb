@@ -814,7 +814,7 @@ module GloboDns
       if View.exists? id
         return View.find id
       else
-        return ''
+        return nil
       end
     end
 
