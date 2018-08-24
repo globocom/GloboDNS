@@ -193,11 +193,17 @@ class Record < ActiveRecord::Base
     new_ttl = self.ttl.to_i * 2
 
     if new_ttl >= self.domain.ttl.to_i or self.ttl.nil?
-      Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) had ttl #{self.ttl} and now is zone's default tll"
-      self.update(ttl: nil)
+      if self.update(ttl: nil)
+        Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) had ttl #{self.ttl} and now is zone's default tll"
+      else
+        Rails.logger.info "[Record] 'ERROR: Could not set ttl #{new_ttl} to #{self.name}' (#{self.domain.name})"
+      end
     else
-      Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) had ttl #{self.ttl} and now is #{new_ttl}"
-      self.update(ttl: new_ttl)
+      if self.update(ttl: new_ttl)
+        Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) had ttl #{self.ttl} and now is #{new_ttl}"
+      else
+        Rails.logger.info "[Record] 'ERROR: Could not set ttl #{new_ttl} to #{self.name}' (#{self.domain.name})"
+      end
     end
   end
 
