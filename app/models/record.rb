@@ -68,7 +68,7 @@ class Record < ActiveRecord::Base
   before_save   :ipv6_remove_leading_zeros, :if => :is_ipv6?
 
   scope :sorted,        -> {order('name ASC')}
-  scope :to_update_ttl, -> {without_soa.where('updated_at < ?',DateTime.now - 3.days).where('ttl > ?', 60)}
+  scope :to_update_ttl, -> {without_soa.where('updated_at < ?',DateTime.now - 3.days).where('ttl >= ?', 60)}
   scope :without_soa,   -> {where('type != ?', 'SOA')}
   scope :updated_since, -> (timestamp) { where('updated_at > ?', timestamp) }
   scope :matching,      -> (query){
