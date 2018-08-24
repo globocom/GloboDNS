@@ -876,7 +876,7 @@ module GloboDns
 
     def check_zones_being_exported(chroot_dir, named_conf_file)
       export_zones_count = count_zones_being_exported(chroot_dir, named_conf_file)
-      db_zones_count = Domain.count
+      db_zones_count = Domain.master_or_reverse_or_slave.count
 
       exporting_diff = check_exporting_diff(export_zones_count, db_zones_count)
       exporting_percentage = check_exporting_percentage(export_zones_count, db_zones_count)
