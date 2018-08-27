@@ -189,20 +189,30 @@ class Record < ActiveRecord::Base
     end
   end
 
+  def domain_ttl
+    if self.domain.ttl.ends_with? "H"
+      return self.domain.ttl.to_i * 3600
+    else
+      return self.domain.ttl.to_i
+    end
+  end
+
   def increase_ttl
     new_ttl = self.ttl.to_i * 2
 
-    if new_ttl >= self.domain.ttl.to_i or self.ttl.nil?
+    if self.ttl.nil?
+        Rails.logger.info "[Record] TTL of '#{self.name}' has the zone's default TTL (#{self.domain.name})"
+    elsif new_ttl >= domain_ttl
       if self.update(ttl: nil)
-        Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) had ttl #{self.ttl} and now is zone's default tll"
+        Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) now have zone's default TTL"
       else
-        Rails.logger.info "[Record] 'ERROR: Could not set ttl #{new_ttl} to #{self.name}' (#{self.domain.name})"
+        Rails.logger.info "[Record] 'ERROR: Could not set TTL #{new_ttl} to #{self.name}' (#{self.domain.name})"
       end
     else
       if self.update(ttl: new_ttl)
-        Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) had ttl #{self.ttl} and now is #{new_ttl}"
+        Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) now have TTL of #{self.ttl}"
       else
-        Rails.logger.info "[Record] 'ERROR: Could not set ttl #{new_ttl} to #{self.name}' (#{self.domain.name})"
+        Rails.logger.info "[Record] 'ERROR: Could not set TTL #{new_ttl} to #{self.name}' (#{self.domain.name})"
       end
     end
   end
