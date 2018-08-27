@@ -198,7 +198,7 @@ class Record < ActiveRecord::Base
   end
 
   def increase_ttl
-    new_ttl = self.ttl.to_i * 2
+    new_ttl = self.ttl.to_i * 3
 
     if self.ttl.nil?
         Rails.logger.info "[Record] TTL of '#{self.name}' has the zone's default TTL (#{self.domain.name})"
