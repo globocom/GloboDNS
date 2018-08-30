@@ -190,8 +190,12 @@ class Record < ActiveRecord::Base
   end
 
   def domain_ttl
-    if self.domain.ttl.ends_with? "H"
+    if self.domain.ttl.ends_with? "D"
+      return self.domain.ttl.to_i * 3600 * 24
+    elsif self.domain.ttl.ends_with? "H"
       return self.domain.ttl.to_i * 3600
+    elsif self.domain.ttl.ends_with? "M"
+      return self.domain.ttl.to_i * 60
     else
       return self.domain.ttl.to_i
     end
