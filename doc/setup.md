@@ -241,3 +241,25 @@ TIP: Problems ? SELinux and/or iptables are running ?
 
 
 **NOTE**: You probably will need to add the OAuth provider gem at Gemfile.
+
+
+**13. Enabling TTL actions**
+
+At GloboDNS tags 1.7.9 or higher, there will be the feature of increasing TTL. There are two actions made:
+
+1. Increase TTL if the record updated date is 7 days ago. The TTL value will be multiplied by 3. This will occurs until it reaches the zone's default TTL.
+2. After *create* or *edit* a record, its TTL is set to 60 seeking to help rollback cases. (*Note*: if you need your TTL short and do not wont it to be increased after one week, you should set the TTL to 59 or less).
+
+***Enabling/disabling* TTL actions**
+**1)** To enable the actions, you should set the variable *'increase_ttl'* to **'true'**, at file *'config/globodns.yml'* .
+
+    increase_ttl: true
+
+*Note:* *increase_ttl* variable value is *'false'* by default.
+
+**2)** To enable cron to run *'increase_ttl'* task, at the file *config/schedule.rb*, you should add the following snippet:
+
+    every 1.day do
+      rake "record:increase_ttl"
+    end
+
