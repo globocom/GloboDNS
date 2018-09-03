@@ -19,6 +19,7 @@
 # that can easily be applied to any DNS RR's
 
 class Record < ActiveRecord::Base
+  include RecordsHelper
   include SyslogHelper
   include BindTimeFormatHelper
   include ModelSerializationWithWarnings
@@ -202,22 +203,26 @@ class Record < ActiveRecord::Base
   end
 
   def increase_ttl
-    new_ttl = self.ttl.to_i * 3
+    if GloboDns::Config::INCREASE_TTL
+      new_ttl = self.ttl.to_i * 3
 
-    if self.ttl.nil?
-        Rails.logger.info "[Record] TTL of '#{self.name}' has the zone's default TTL (#{self.domain.name})"
-    elsif new_ttl >= domain_ttl
-      if self.update(ttl: nil)
-        Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) now have zone's default TTL"
+      if self.ttl.nil?
+          Rails.logger.info "[Record] TTL of '#{self.name}' has the zone's default TTL (#{self.domain.name})"
+      elsif new_ttl >= domain_ttl
+        if self.update(ttl: nil)
+          Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) now have zone's default TTL"
+        else
+          Rails.logger.info "[Record] 'ERROR: Could not set TTL #{new_ttl} to #{self.name}' (#{self.domain.name})"
+        end
       else
-        Rails.logger.info "[Record] 'ERROR: Could not set TTL #{new_ttl} to #{self.name}' (#{self.domain.name})"
+        if self.update(ttl: new_ttl)
+          Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) now have TTL of #{self.ttl}"
+        else
+          Rails.logger.info "[Record] 'ERROR: Could not set TTL #{new_ttl} to #{self.name}' (#{self.domain.name})"
+        end
       end
     else
-      if self.update(ttl: new_ttl)
-        Rails.logger.info "[Record] '#{self.name}' (#{self.domain.name}) now have TTL of #{self.ttl}"
-      else
-        Rails.logger.info "[Record] 'ERROR: Could not set TTL #{new_ttl} to #{self.name}' (#{self.domain.name})"
-      end
+      Rails.logger.info "[Record] Increasing TTL is disabled"
     end
   end
 
