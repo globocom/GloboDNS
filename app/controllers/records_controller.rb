@@ -14,6 +14,8 @@
 # limitations under the License.
 
 class RecordsController < ApplicationController
+  include RecordsHelper
+
   respond_to :html, :json
   responders :flash
 
@@ -48,7 +50,9 @@ class RecordsController < ApplicationController
   end
 
   def create
-    params[:record][:ttl] = 60 unless (params[:record][:ttl] and params[:record][:ttl].to_i < 60)
+    if should_increase_ttl?
+      params[:record][:ttl] = 60 unless (params[:record][:ttl] and params[:record][:ttl].to_i < 60)
+    end
 
     params[:record].each do |label, value|
       params[:record][label] = params[:record][label].to_s.gsub(/^[ \t]/,'') unless value.nil?
@@ -65,7 +69,9 @@ class RecordsController < ApplicationController
   end
 
   def update
-    params[:record][:ttl] = 60 unless (params[:record][:ttl] and params[:record][:ttl].to_i < 60)
+    if should_increase_ttl?
+      params[:record][:ttl] = 60 unless (params[:record][:ttl] and params[:record][:ttl].to_i < 60)
+    end
 
     params[:record].each do |label, value|
       params[:record][label] = params[:record][label].to_s.gsub(/^[ \t]/,'') unless value.nil?
