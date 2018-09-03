@@ -62,6 +62,7 @@ development: &devconf
     subdir_depth:           3
 
     enable_view:             false
+    increase_ttl:            false
 
     record_order:           [ SOA, NS, MX, A, AAAA, CNAME, LOC, SPF, SRV, PTR, TXT ]
     git_author:             'Globo DNS API <dnsapi@yourdomain.com>'
