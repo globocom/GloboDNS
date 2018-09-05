@@ -85,7 +85,7 @@ class DomainsController < ApplicationController
 
     if params[:domain][:domain_template_id].present? || params[:domain][:domain_template_name].present?
       domain_template_in_params = true
-      @domain_template   = DomainTemplate.where('id'   => params[:domain][:domain_template_id]).first   if params[:domain][:domain_template_id]
+      @domain_template   = DomainTemplate.find(params[:domain][:domain_template_id])   if params[:domain][:domain_template_id]
       @domain_template ||= DomainTemplate.where('name' => params[:domain][:domain_template_name]).first if params[:domain][:domain_template_name]
     end
     if params[:domain][:domain_view_id].present? || params[:domain][:domain_view_name].present?
