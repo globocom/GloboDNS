@@ -24,10 +24,11 @@ class View < ActiveRecord::Base
   audited :protect => false
 
   has_many :domains
+  has_many :view_acls
 
-  validates_presence_of :name, :key
+  validates :name, presence: true, uniqueness: true
+  validates_presence_of :key
   validates_associated  :domains
-  validate :clients_or_destinations
 
   before_validation :generate_key, :on => :create
 
@@ -43,6 +44,24 @@ class View < ActiveRecord::Base
     end
     default_view
   }
+
+  def can_be_deleted?
+    Domain.where(view: self).empty? and DomainTemplate.where(view: self).empty?
+  end
+
+  def acls
+    ViewAcl.where(view_id: self.id)
+  end
+
+  def clients
+    acls = self.acls
+    return "any;" if acls.empty?
+    acls.collect{ |acl| acl.name}.join("; ").concat(";")
+  end
+
+  def available_acls
+    Acl.where.not(id: ViewAcl.where(view_id: self.id).collect{|view_acl| view_acl.acl_id})
+  end
 
   def updated_since?(timestamp)
     self.updated_at > timestamp
@@ -283,12 +302,6 @@ class View < ActiveRecord::Base
     Tempfile.open('globodns-key') do |file|
       GloboDns::Util::exec('rndc-confgen', GloboDns::Config::Binaries::RNDC_CONFGEN, '-a', '-r', '/dev/urandom', '-c', file.path, '-k', self.key_name)
       self.key = file.read[/algorithm\s+hmac\-md5;\s*secret\s+"(.*?)";/s, 1];
-    end
-  end
-
-  def clients_or_destinations
-    if self.clients.blank? and self.destinations.blank?
-      errors.add(:base, "Please, fill clients and/or destinations")
     end
   end
 end

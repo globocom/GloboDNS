@@ -530,6 +530,50 @@ table#edit-domain textarea#domain_notes {
     height: 5em;
 }
 
+table#new-view-acl  {
+    margin-top: 2em;
+}
+
+table#show-clients td {
+    padding-right: 1em;
+}
+
+table#show-view td, table#edit-view td, table#new-view td {
+    height: 2em;
+}
+table#show-view td label, table#edit-view td label, table#new-view td label {
+    display: block;
+    min-width: 10em;
+    padding-right: 2em;
+}
+.clients-label {
+    display: -webkit-box;
+    margin-top: 0.4em;
+}
+table#edit-view td.notes {
+    vertical-align: top;
+    padding-top: 0.45em;
+}
+table#edit-view textarea#domain_notes {
+    height: 5em;
+}
+
+table#show-acls td, table#edit-acls td, table#new-acl td {
+    height: 2em;
+}
+table#show-acls td label, table#edit-acls td label, table#new-acl td label {
+    display: block;
+    min-width: 10em;
+    padding-right: 2em;
+}
+table#edit-acls td.notes {
+    vertical-align: top;
+    padding-top: 0.45em;
+}
+table#edit-acls textarea#domain_notes {
+    height: 5em;
+}
+
 table#show-soa-record td, table#edit-soa-record td {
     height: 2em;
 }

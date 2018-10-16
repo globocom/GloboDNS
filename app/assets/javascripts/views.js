@@ -41,76 +41,54 @@ $(document).ready(function() {
     });
 
     $('.new-view-form').live('ajax:success', function (evt, data, statusStr, xhr) {
-        $('table#views-table tbody').append(data);
-        $('.new-view-form-container ul.errors').remove();
-        fixViewsTableZebraStriping();
+        eval(data);
 	}).live('ajax:error', function (evt, xhr, statusStr, error) {
 		if (xhr.status == 422) { // :unprocessable_entity
 			$('.new-view-form-container ul.errors').remove();
 			$('.new-view-form-container').prepend(xhr.responseText);
 		} else
-			alert("[ERROR] unable to create Domain");
+			alert("[ERROR] unable to create View");
     });
 
-    $('.edit-view-button').live('click', function () {
-        var height = $(this).closest('tr').height();
-        $(this).closest('tr').hide();
-        $(this).closest('tr').next().height(height);
-        $(this).closest('tr').next().show();
+    // ----------------- views#show -----------------
+    // ------------------- Domain -------------------
+    $('.edit-view-button').click(function () {
+        $('.show-view-container').hide();
+        $('.edit-view-container').show();
+        $(this).hide();
+        return false;
+    });
+
+    $('.cancel-update-view-button').live('click', function () {
+        $('.edit-view-container').hide();
+        $('.show-view-container').show();
+        $('.edit-view-button').show();
         return false;
     });
 
     $('.update-view-button').live('click', function () {
-        // copy inputs from phony form to real form
-        var form = $(this).closest('tr').prev().prev().find('form.update-view-form');
-        $(this).closest('tr').find('input').each(function (idx, input) {
-            form.append($(input).clone());
-        });
-        $(this).closest('tr').find('select').each(function (idx, input) {
-            var clonedSelect = $(input).clone();
-            clonedSelect.val($(input).val());
-            form.append(clonedSelect);
-        });
-
-        form.submit();
+        $('.update-view-form').submit();
         return false;
     });
 
-    $('tr.edit-view input').live('keypress', function (evt) {
-        if (evt.which === 13)
-            $(this).closest('tr').find('.update-view-button').click();
-    });
-
-    $('.cancel-edit-view-button').live('click', function () {
-        $(this).closest('tr').hide();
-        $(this).closest('tr').prev().show();
-        return false;
+    $('.update-view-form input').live('keypress', function (evt) {
+        if (evt.which === 13) {
+            $('.update-view-button').click();
+            return false;
+        }
     });
 
     $('.update-view-form').live('ajax:success', function (evt, data, statusStr, xhr) {
-        $('.views-table-container ul').remove();
-        var markerRow = $(this).closest('tr');
-        markerRow.before(data);
-        markerRow.next().next().remove();
-        markerRow.next().remove();
-        markerRow.remove();
-        fixViewsTableZebraStriping();
+        $('.edit-view-container').remove();
+        $('.show-view-container').replaceWith(data);
+        $('.edit-view-button').show();
+        $('table#edit-view').change();
     }).live('ajax:error', function (evt, xhr, statusStr, error) {
         if (xhr.status == 422) { // :unprocessable_entity
-            $('.views-table-container ul').remove();
-            $('.views-table-container').prepend(xhr.responseText);
+            $('.edit-view-container ul.errors').remove();
+            $('.edit-view-container').prepend(xhr.responseText);
         } else
-            alert("[ERROR] unable to update view");
-    });
-
-    $('.delete-view-button').live('ajax:success', function () {
-        var row  = $(this).closest('tr');
-        var prev = row.prev();
-        var next = row.next();
-        next.remove(); row.remove(); prev.remove();
-        fixViewsTableZebraStriping();
-    }).live('ajax:error', function () {
-        alert("[ERROR] unable to delete view");
+            alert("[ERROR] unable to create View");
     });
 
 

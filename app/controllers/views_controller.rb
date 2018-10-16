@@ -30,6 +30,7 @@ class ViewsController < ApplicationController
 
   def show
     @view = View.find(params[:id])
+    @acls = @view.available_acls.collect{|acl| [acl.name, acl.id]}
     respond_with(@view)
   end
 
@@ -48,8 +49,13 @@ class ViewsController < ApplicationController
     @view.save
 
     respond_with(@view) do |format|
-      format.html { render :status  => @view.valid? ? :ok     : :unprocessable_entity,
-                    :partial => @view.valid? ? @view : 'errors' } if request.xhr?
+      format.html {
+        if @view.valid? and request.xhr?
+          render js: "window.location = '#{view_path(@view)}';"
+        else
+          render :status => :unprocessable_entity, :partial => 'errors'
+        end
+      }
     end
   end
 
@@ -60,18 +66,23 @@ class ViewsController < ApplicationController
     end
     @view = View.find(params[:id])
     @view.update_attributes(params[:view])
+    @acls = @view.available_acls.collect{|acl| [acl.name, acl.id]}
 
     respond_with(@view) do |format|
       format.html { render :status  => @view.valid? ? :ok     : :unprocessable_entity,
-                    :partial => @view.valid? ? @view : 'errors' } if request.xhr?
+                    :partial => @view.valid? ? 'form' : 'errors' } if request.xhr?
     end
   end
 
   def destroy
     @view = View.find(params[:id])
-    @view.destroy
-    respond_with(@view) do |format|
-      format.html { head :no_content if request.xhr? }
+    if @view.can_be_deleted?
+      @view.destroy
+      respond_with(@view)
+    else
+      @view.errors.add(:id, "View is associated to a domain/domain template")
+      respond_with(@view)
     end
+
   end
 end

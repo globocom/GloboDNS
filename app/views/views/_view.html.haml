@@ -5,18 +5,7 @@
       %span
 
 %tr[ view, :show ]{ :class => "#{even_odd} show-view" }
-  %td.name= view.name
+  %td.name
+    = link_to view.name, view_path(view.id)
   %td.clients= view.clients
   %td.destinations= view.destinations
-  %td.actions
-    = link_to '', '#', :class => 'edit-view-button ui-icon-edit', :title => t(:generic_edit)
-    = link_to '', view_path(view), :remote => true, :method => :delete, :data => {:confirm => t(:confirm_view_delete)}, :class => 'delete-view-button ui-icon-trash', :title => t(:generic_delete)
-
-%tr[ view, :edit ]{ :class => "#{even_odd} hidden edit-view"}
-  = form_for(view, :as => 'view', :url => view_path(view)) do |f|
-    %td.name= f.text_field :name
-    %td.clients= f.text_field :clients
-    %td.destinations= f.text_field :destinations
-    %td.actions
-      = link_to('', '#', :class => 'update-view-button ui-icon-download-alt',    :title => t(:generic_update))
-      = link_to('', '#', :class => 'cancel-edit-view-button ui-icon-ban-circle', :title => t(:generic_cancel))
