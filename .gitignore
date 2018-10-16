@@ -10,3 +10,4 @@ test/mock/named_chroot/etc/named/**
 vendor/bundle
 vendor/cache/*
 REVISION
+public/assets/
