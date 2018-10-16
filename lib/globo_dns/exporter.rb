@@ -162,6 +162,10 @@ module GloboDns
         File.exist?(abs_views_dir) || FileUtils.mkdir(abs_views_dir)
 
         File.open(abs_views_file, 'w') do |file|
+           Acl.all.each do |acl|
+            file.puts acl.to_bind9_conf
+          end
+
           View.all.each do |view|
             file.puts view.to_bind9_conf(zones_root_dir, '', @slave) unless view.default?
             if @slave == true
@@ -293,6 +297,10 @@ module GloboDns
       File.exist?(abs_views_dir) or FileUtils.mkdir(abs_views_dir)
 
       File.open(abs_views_file, 'w') do |file|
+        Acl.all.each do |acl|
+          file.puts acl.to_bind9_conf
+        end
+
         View.all.each do |view|
           file.puts view.to_bind9_conf(zones_root_dir, '', @slave) unless view.default?
           if @slave == true
