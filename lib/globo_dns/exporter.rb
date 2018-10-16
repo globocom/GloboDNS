@@ -49,7 +49,7 @@ module GloboDns
 
       @views=View.all.collect(&:name)
 
-      Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ, #{Audited::Adapters::ActiveRecord::Audit.table_name} READ") unless (lock_tables == false)
+      Domain.connection.execute("LOCK TABLE #{AclRelationship.table_name} READ, #{ViewAcl.table_name} READ, #{Acl.table_name} READ, #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ, #{Audited::Adapters::ActiveRecord::Audit.table_name} READ") unless (lock_tables == false)
       export_master(master_named_conf_content, options)
       if SLAVE_ENABLED?
         Bind::Slaves.each_with_index do |slave, index|
