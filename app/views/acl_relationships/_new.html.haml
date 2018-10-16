@@ -1,0 +1,16 @@
+%div.new-acl-relationship-form-container
+  %div
+    = form_for(acl_relationship, :html => {:id => 'new-acl-relationship-form'}) do |f|
+      - unless @acl.children.empty?
+        %table#new-acl-relationship
+          %thead
+            %th= "Add ACL"
+          %tbody
+            %tr
+              %td= f.select :child_id, options_for_select(@acls)
+            %tr
+              %td.hidden= f.radio_button :acl_id, @acl.id, :checked => true
+            %tr
+              %td= f.button "Add client"
+      - else
+        %h4= "No more ACL available to add as new client"
