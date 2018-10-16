@@ -40,6 +40,16 @@ GloboDns::Application.routes.draw do
     end
   end
 
+  resources :acls
+  resources :view_acls
+  resources :acl_relationships
+
+  scope 'geoip', :as => 'geoip', :controller => 'acls' do
+    get  'countries',       :action => 'countries'
+    get  'regions',       :action => 'regions'
+    get  'cities',       :action => 'cities'
+  end
+
   resources :domains do
     resources :records, :shallow => true do
       get 'resolve', :on => :member
