@@ -378,6 +378,88 @@ table#resolv-table td {
 table#resolv-table tr.even {
     background-color: #f7f7f7;
 }
+table#acls-table {
+    width: 100%;
+    margin-bottom: 2em;
+    border-bottom: 1px solid #efefef;
+    border-collapse: collapse;
+}
+table#acls-table td {
+    padding: .5em 0;
+}
+table#acls-table tr.even {
+    background-color: #f7f7f7;
+}
+
+table#acls-table {
+    width: 100%;
+    margin-bottom: 2em;
+    border-bottom: 1px solid #efefef;
+    border-collapse: collapse;
+}
+table#acls-table th {
+    text-align: left;
+}
+table#acls-table th, table#acls-table td {
+    padding: .5em 0;
+}
+table#acls-table tr.even {
+    background-color: #f7f7f7;
+}
+table#acls-table td.actions {
+    text-align: right;
+}
+table#acls-table td.actions a {
+    color: #444;
+    font-size: 120%;
+}
+table#acls-table td.name {
+    width: 20%;
+}
+table#acls-table td.name input {
+    width: 7em;
+}
+
+.acls-selector-buttons {
+    float: right;
+}
+.acls-selector-buttons input[type="checkbox"] {
+    visibility: hidden;
+}
+.acls-selector-buttons label {
+    cursor: pointer;
+    display: inline-block;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+    padding: .3em .55em .2em .65em;
+    font-weight: bold;
+    font-size: 10pt;
+    border-top:    1px solid #ccc;
+    border-left:   1px solid #ccc;
+    border-bottom: 1px solid #aaa;
+    border-right:  1px solid #aaa;
+    background: -moz-linear-gradient(top, #f7f7f7, #e7e7e7);
+    background: -webkit-linear-gradient(top, #f7f7f7, #e7e7e7);
+    color: #444;
+    text-shadow: 1px 1px 1px white;
+}
+.acls-selector-buttons label[class^="ui-icon-"]:before {
+    padding-right: 0;
+}
+.acls-selector-buttons input[type="checkbox"]:checked ~ label {
+    border-top:    1px solid #888;
+    border-left:   1px solid #888;
+    border-bottom: 1px solid #ccc;
+    border-right:  1px solid #ccc;
+    background: -moz-linear-gradient(top, #d7d7d7, #e7e7e7);
+    background: -webkit-linear-gradient(top, #d7d7d7, #e7e7e7);
+}
 table#domains-table {
     width: 100%;
     margin-bottom: 2em;
@@ -390,6 +472,7 @@ table#domains-table td {
 table#domains-table tr.even {
     background-color: #f7f7f7;
 }
+
 .domains-selector-buttons {
     float: right;
 }

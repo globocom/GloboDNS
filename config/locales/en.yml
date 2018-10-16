@@ -147,6 +147,7 @@ en:
   layout_menu_bind: "BIND"
   layout_menu_export: "Export"
   layout_menu_views: "Views"
+  layout_menu_acls: "ACLs"
   layout_menu_logout: "Logout"
 
   help_search: "Enter terms to search by domain name. Use the * character as wildcard."
@@ -290,6 +291,13 @@ en:
   title_soa_record: "SOA Record"
   label_soa_record_yet_propagated_from_master: "SOA record yet propagated from master server"
   label_primary_name_server: "Primary name server"
+
+  # Acls labels
+  title_acls: "ACLs"
+  label_add_acl: "Add ACL"
+  label_acls_name: "Nome"
+  label_acls_content: "Content"
+  confirm_acls_delete: "Are you sure you want to delete this ACL?"
 
   title_records: 'Records'
   label_add_record: "Add Record"
