@@ -1,5 +1,5 @@
 GEM
-  remote: https://rubygems.org/
+  remote: https://artifactory.globoi.com/artifactory/api/gems/gem-repos/
   specs:
     actionmailer (4.2.10)
       actionpack (= 4.2.10)
@@ -55,6 +55,8 @@ GEM
       net-ssh-gateway (>= 1.1.0)
     chronic (0.10.2)
     citrus (2.4.1)
+    city-state (0.0.13)
+      rubyzip (~> 1.1)
     coffee-rails (4.1.1)
       coffee-script (>= 2.2.0)
       railties (>= 4.0.0, < 5.1.x)
@@ -162,6 +164,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
+    rubyzip (1.2.2)
     sass (3.5.5)
       sass-listen (~> 4.0.0)
     sass-listen (4.0.0)
@@ -214,6 +217,7 @@ DEPENDENCIES
   byebug
   capistrano (= 2.15.0)
   citrus (~> 2.4.1)
+  city-state
   coffee-rails (~> 4.1.1)
   devise (~> 3.5.6)
   devise-encryptable

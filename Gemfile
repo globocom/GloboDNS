@@ -1,4 +1,4 @@
-source "https://rubygems.org"
+source "https://artifactory.globoi.com/artifactory/api/gems/gem-repos/"
 
 group :development do
   gem "capistrano", "2.15.0"
@@ -12,7 +12,7 @@ gem 'rails',                '~> 4.2.7'
 gem 'mysql2',               '~> 0.3.15'
 gem 'haml',					'~>4.0.7'
 gem 'jquery-rails',			'~>4.1.1'
-gem 'will_paginate',		'~>3.1.0'	
+gem 'will_paginate',		'~>3.1.0'
 gem 'audited-activerecord',	'~>4.2.0'
 gem 'devise',				'~>3.5.6'
 gem 'awesome_print',        '~> 1.0'
@@ -27,6 +27,7 @@ gem 'devise-encryptable'
 gem 'protected_attributes'
 gem 'rest-client'
 gem 'net-ping'
+gem 'city-state'
 
 group :assets do
     gem 'sass-rails',		'~>5.0.4'
