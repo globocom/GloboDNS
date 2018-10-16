@@ -1,0 +1,8 @@
+%h1
+  = Acl.model_name.human.titleize
+  - if current_user.admin? || current_user.operator?
+    = link_to('', '#', :class => 'edit-acls-button ui-icon-edit', :title => t(:generic_edit))
+  - if current_user.admin?
+    = link_to('', acl_path(@acl), :class => 'delete-acls-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :data => {:confirm => t(:confirm_acls_delete, :acl => @acl.name)})
+
+= render :partial => 'form'

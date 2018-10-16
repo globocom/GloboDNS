@@ -1,0 +1,5 @@
+- acl ||= @acl
+- if acl && acl.errors.any?
+  %ul.errors
+    - acl.errors.full_messages.each do |msg|
+      %li= msg

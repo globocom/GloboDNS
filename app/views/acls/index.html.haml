@@ -1,0 +1,8 @@
+#div{ :style => 'display: none' }
+  #new-acl= t(:help_acl_add)
+
+%h1= t(:title_acls)
+= render :partial => 'list', :object => @acls, :as => :acls
+
+= button_tag t(:label_add_acl).titleize, :class => 'new-acls-button ui-icon-plus'
+= render :partial => 'new', :object => Acl.new, :as => :acl
