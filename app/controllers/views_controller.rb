@@ -83,6 +83,5 @@ class ViewsController < ApplicationController
       @view.errors.add(:id, "View is associated to a domain/domain template")
       respond_with(@view)
     end
-
   end
 end
