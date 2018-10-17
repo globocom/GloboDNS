@@ -15,7 +15,7 @@
         %table#show-clients
           - @view.acls.each do |acl|
             %tr
-              %td= link_to acl.acl.name, acl
+              %td= link_to acl.acl.name, acl.acl
               %td= acl.denied? ? '(denied)' : ''
               - if current_user.admin?
                 %td= link_to('', view_acl_path(acl), :class => 'delete-view-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :data => {:confirm => t(:confirm_acls_delete, :view_acl => acl.acl.name)})
