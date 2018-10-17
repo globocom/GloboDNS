@@ -18,6 +18,10 @@ class Acl < ActiveRecord::Base
     Acl.find(AclRelationship.where(acl_id: self.id).collect{|child| child.child_id})
   end
 
+  def can_be_deleted?
+    ViewAcl.where(acl: self).empty?
+  end
+
   def clients
     acls = self.acls
     return "any;" if acls.empty?

@@ -65,7 +65,13 @@ class AclsController < ApplicationController
 
   def destroy
     @acl = Acl.find(params[:id])
-    @acl.destroy
-    respond_with(@acl)
+
+    if @acl.can_be_deleted?
+      @acl.destroy
+      respond_with(@acl)
+    else
+      @acl.errors.add(:id, "View is associated to a domain/domain template")
+      respond_with(@acl)
+    end
   end
 end
