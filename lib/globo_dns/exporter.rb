@@ -885,7 +885,7 @@ module GloboDns
     def check_zones_being_exported(chroot_dir, named_conf_file)
       export_zones_count = count_zones_being_exported(chroot_dir, named_conf_file)
       if @views_enabled
-        db_zones_count = View.all.collect{|v| v.domains.not_default_view.count}.sum + View.default.domains.count * 4
+        db_zones_count = View.all.collect{|v| v.domains.not_default_view.count}.sum + View.default.domains.count * View.count
       else
         db_zones_count = Domain.master_or_reverse_or_slave.count
       end
