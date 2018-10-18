@@ -11,7 +11,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180619122648) do
+ActiveRecord::Schema.define(version: 20181002170445) do
+
+  create_table "acl_relationships", force: :cascade do |t|
+    t.integer  "acl_id",     limit: 4
+    t.integer  "child_id",   limit: 4
+    t.datetime "created_at",           null: false
+    t.datetime "updated_at",           null: false
+  end
+
+  create_table "acls", force: :cascade do |t|
+    t.string   "name",       limit: 255, null: false
+    t.string   "content",    limit: 255
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+    t.string   "acl_type",   limit: 255
+    t.string   "country",    limit: 255
+    t.string   "region",     limit: 255
+    t.string   "city",       limit: 255
+  end
 
   create_table "audits", force: :cascade do |t|
     t.integer  "auditable_id",    limit: 4
@@ -139,9 +157,19 @@ ActiveRecord::Schema.define(version: 20180619122648) do
     t.string   "provider",             limit: 255
   end
 
+  create_table "view_acls", force: :cascade do |t|
+    t.integer  "view_id",    limit: 4
+    t.integer  "acl_id",     limit: 4
+    t.boolean  "denied",               default: false
+    t.datetime "created_at",                           null: false
+    t.datetime "updated_at",                           null: false
+  end
+
+  add_index "view_acls", ["acl_id"], name: "index_view_acls_on_acl_id", using: :btree
+  add_index "view_acls", ["view_id"], name: "index_view_acls_on_view_id", using: :btree
+
   create_table "views", force: :cascade do |t|
     t.string   "name",         limit: 32,   null: false
-    t.string   "clients",      limit: 1024
     t.string   "destinations", limit: 1024
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -153,4 +181,6 @@ ActiveRecord::Schema.define(version: 20180619122648) do
   add_foreign_key "domains", "views", name: "fk_domains_views1"
   add_foreign_key "record_templates", "domain_templates", name: "fk_record_templates_domain_templates1"
   add_foreign_key "records", "domains", name: "fk_records_domains1"
+  add_foreign_key "view_acls", "acls"
+  add_foreign_key "view_acls", "views"
 end

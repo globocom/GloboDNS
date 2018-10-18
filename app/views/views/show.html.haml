@@ -1,18 +1,8 @@
-%h1= t(:title_view_detail_for, :view => @view.name)
+%h1
+  = View.model_name.human.titleize
+  - if current_user.admin? || current_user.operator?
+    = link_to('', '#', :class => 'edit-view-button ui-icon-edit', :title => t(:generic_edit))
+  - if current_user.admin?
+    = link_to('', view_path(@view), :class => 'delete-view-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :data => {:confirm => t(:confirm_view_delete, :view => @view.name)})
 
-%table.grid
-  %tbody
-    %tr
-      %td= t :label_view_name
-      %td= @view.name
-    %tr
-      %td= t :label_view_clients
-      %td= @view.clients
-    %tr
-      %td= t :label_view_destinations
-      %td= @view.destinations
-  %tfoot
-    %tr.actions
-      %td{:colspan => 2}
-        = button_tag(t(:generic_cancel), :class => 'cancel--view-button ui-icon-ban-circle')
-        = f.button(t(:generic_save),   :class => 'update-view-button ui-icon-download-alt')
+= render :partial => 'form'

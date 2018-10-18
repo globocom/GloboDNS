@@ -1,0 +1,64 @@
+%div.show-acls-container
+  %table#show-acls
+    %tr
+      %td= label_tag t(:label_acls_name)
+      %td= @acl.name
+    %tr
+      %td= label_tag "Type"
+      %td= @acl.acl_type
+      - if @acl.acl_type.eql? "ACL"
+        %tr
+
+          %td.clients-label= label_tag t(:label_view_clients)
+          %td
+            %table#show-clients
+              - @acl.acls.each do |acl|
+                %tr
+                  %td= link_to acl.name, acl
+                  - if current_user.admin?
+                    %td= link_to('', acl_relationship_path(acl.relation_with_parent(@acl)), :class => 'delete-view-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :data => {:confirm => t(:confirm_acls_delete, :view_acl => acl.name)})
+
+        %tr
+          = render :partial => 'acl_relationships/new', :object => @acl.acl_relationships.new, :as => :acl_relationship
+      - elsif  @acl.acl_type.eql? "GeoIP"
+        %tr
+          %td= label_tag "Country"
+          %td= @acl.country
+        %tr
+          %td= label_tag "Region"
+          %td= @acl.region
+        %tr
+          %td= label_tag "City"
+          %td= @acl.city
+      - else
+        %tr
+          %td= label_tag t(:label_acls_content)
+          %td= @acl.content
+
+
+
+- if current_user.admin? || current_user.operator?
+  %div.edit-acls-container{:class => @acl.errors.empty? ? 'hidden' : '' }
+    = form_for(@acl, :as => 'acl', :url => acl_path(@acl), :remote => true, :method => :put, :html => {:class => 'update-acls-form'}) do |f|
+
+      - if @acl && @acl.errors.any?
+        %ul.errors
+          - @acl.errors.full_messages.each do |msg|
+            %li= msg
+
+      %table#edit-acls
+        %tbody
+          %tr
+            %td= f.label t(:label_acls_name)
+            %td= f.text_field :name
+          %tr
+            %td= label_tag "Type"
+            %td= @acl.acl_type
+            - if @acl.acl_type.eql? "Network blocks"
+              %tr
+                %td= f.label t(:label_acls_content)
+                %td= f.text_field :content
+          %tr.actions
+            %td{:colspan => 3}
+              = button_tag(t(:generic_cancel), :class => 'cancel-update-acls-button ui-icon-ban-circle')
+              = f.button(t(:generic_save),   :class => 'update-acls-button ui-icon-download-alt')

@@ -1,0 +1,40 @@
+%div.new-acls-form-container{ :class => acl.errors.any? ? '' : 'hidden' }
+  = form_for(acl, :remote => true, :html => {:class => 'new-acls-form'}) do |f|
+    - if acl && acl.errors.any?
+      %ul.errors
+      - acl.errors.full_messages.each do |msg|
+        %li= msg
+
+    %table#new-acl
+      %tbody
+        %tr
+          %td= f.label :name, t(:label_acls_name)
+          %td= f.text_field :name
+        %tr
+          %td= f.label :acl_type, "Type"
+          %td= f.select :acl_type, options_for_select(["Network blocks", "GeoIP", "ACL"])
+        %tr.content-info.network-blocks-info
+          %td= f.label "Content"
+          %td= f.text_field :content
+          %td  &nbsp;
+        %tr.content-info.geoip-info.country.hidden
+          %td= f.label "Country"
+          %td= f.select :country, options_for_select(@countries), {:include_blank => "Choose"}
+          %td  &nbsp;
+        %tr.content-info.geoip-info.region.hidden
+          %td= f.label "Region"
+          %td= f.select :region, options_for_select([["Select Country first", '']])
+          %td
+            %span
+              %i=  "Optional"
+        %tr.content-info.geoip-info.city.hidden
+          %td= f.label "City"
+          %td= f.select :city, options_for_select([["Select Region first", '']])
+          %td
+            %span
+              %i=  "Optional"
+      %tfoot
+        %tr.actions
+          %td{:colspan => 3}
+            = button_tag(t(:generic_cancel), :class => 'cancel-new-acls-button ui-icon-ban-circle')
+            = f.button(t(:generic_create),   :class => 'create-acls-button ui-icon-download-alt')

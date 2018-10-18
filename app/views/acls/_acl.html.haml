@@ -1,0 +1,4 @@
+- even_odd = cycle('even', 'odd')
+%tr[ acl, :show ]{ :class => "#{even_odd} show-acl" }
+  %td.name
+    = link_to acl.name, acl_path(acl.id)

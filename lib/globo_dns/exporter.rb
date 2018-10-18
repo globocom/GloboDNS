@@ -49,7 +49,7 @@ module GloboDns
 
       @views=View.all.collect(&:name)
 
-      Domain.connection.execute("LOCK TABLE #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ, #{Audited::Adapters::ActiveRecord::Audit.table_name} READ") unless (lock_tables == false)
+      Domain.connection.execute("LOCK TABLE #{AclRelationship.table_name} READ, #{ViewAcl.table_name} READ, #{Acl.table_name} READ, #{View.table_name} READ, #{Domain.table_name} READ, #{Record.table_name} READ, #{Audited::Adapters::ActiveRecord::Audit.table_name} READ") unless (lock_tables == false)
       export_master(master_named_conf_content, options)
       if SLAVE_ENABLED?
         Bind::Slaves.each_with_index do |slave, index|
@@ -162,6 +162,10 @@ module GloboDns
         File.exist?(abs_views_dir) || FileUtils.mkdir(abs_views_dir)
 
         File.open(abs_views_file, 'w') do |file|
+           Acl.all.each do |acl|
+            file.puts acl.to_bind9_conf
+          end
+
           View.all.each do |view|
             file.puts view.to_bind9_conf(zones_root_dir, '', @slave) unless view.default?
             if @slave == true
@@ -293,6 +297,10 @@ module GloboDns
       File.exist?(abs_views_dir) or FileUtils.mkdir(abs_views_dir)
 
       File.open(abs_views_file, 'w') do |file|
+        Acl.all.each do |acl|
+          file.puts acl.to_bind9_conf
+        end
+
         View.all.each do |view|
           file.puts view.to_bind9_conf(zones_root_dir, '', @slave) unless view.default?
           if @slave == true
@@ -876,7 +884,11 @@ module GloboDns
 
     def check_zones_being_exported(chroot_dir, named_conf_file)
       export_zones_count = count_zones_being_exported(chroot_dir, named_conf_file)
-      db_zones_count = Domain.master_or_reverse_or_slave.count
+      if @views_enabled
+        db_zones_count = View.all.collect{|v| v.domains.not_default_view.count}.sum + View.default.domains.count * View.count
+      else
+        db_zones_count = Domain.master_or_reverse_or_slave.count
+      end
 
       exporting_diff = check_exporting_diff(export_zones_count, db_zones_count)
       exporting_percentage = check_exporting_percentage(export_zones_count, db_zones_count)

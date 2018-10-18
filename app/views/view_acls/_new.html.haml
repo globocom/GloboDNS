@@ -1,0 +1,19 @@
+%div.new-view-acl-form-container
+  %div
+    = form_for(acl, :html => {:id => 'new-view-acl-form'}) do |f|
+      - unless @acls.empty?
+        %table#new-view-acl
+          %thead
+            %th= "Add client"
+          %tbody
+            %tr
+              %td= f.select :acl_id, options_for_select(@acls)
+            %tr
+              %td= f.label "denied", "Deny this client?"
+              %td= f.check_box "denied", {}, true, false
+            %tr
+              %td.hidden= f.radio_button :view_id, @view.id, :checked => true
+            %tr
+              %td= f.button "Add client"
+      - else
+        %h4= "No more ACL available to add as new client"

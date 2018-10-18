@@ -1,23 +1,15 @@
 %div.new-view-form-container{ :class => view.errors.any? ? '' : 'hidden' }
   = form_for(view, :remote => true, :html => {:class => 'new-view-form'}) do |f|
     - if view && view.errors.any?
-      %ul.errors 
+      %ul.errors
       - view.errors.full_messages.each do |msg|
         %li= msg
 
     %table#new-view
       %tbody
         %tr
-          %td= f.label :login, t(:label_view_name)
+          %td= f.label :name, t(:label_view_name)
           %td= f.text_field :name
-          %td  &nbsp;
-        %tr
-          %td= f.label :clients, t(:label_view_clients)
-          %td= f.text_field :clients
-          %td  &nbsp;
-        %tr
-          %td= f.label :destinations, t(:label_view_destinations)
-          %td= f.text_field :destinations
           %td  &nbsp;
       %tfoot
         %tr.actions

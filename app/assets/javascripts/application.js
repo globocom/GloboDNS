@@ -25,6 +25,7 @@
 //= require domain_templates
 //= require users
 //= require views
+//= require acls
 //= require audits
 //= require bind
 //= require_self

@@ -1,0 +1,9 @@
+%div.acls-table-container
+  %table#acls-table
+    %thead
+      %tr
+        %th= t(:label_acls_name)
+    %tbody
+      = render :partial => 'acl', :collection => acls
+  = will_paginate acls, :id => 'acls-table-pagination', :previous_label => '«'.html_safe, :next_label => '»'.html_safe
+

@@ -1,0 +1,9 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  view_id: 
+  acl_id: 
+
+two:
+  view_id: 
+  acl_id: 
