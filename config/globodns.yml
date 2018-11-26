@@ -61,6 +61,7 @@ development: &devconf
     views_file:             'views.conf'
     subdir_depth:           3
 
+    domains_ownership:       true
     enable_view:             false
     increase_ttl:            false
 
