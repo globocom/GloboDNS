@@ -175,4 +175,19 @@ class RecordsController < ApplicationController
     else
     end
   end
+
+  def verify_owner
+    @record = Record.find(params[:id])
+
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      users_permissions_info = DomainOwnership::API.instance.users_permissions_info(current_user)
+      @sub_components = users_permissions_info[:sub_components]
+      @record_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info(@record.url)
+    end
+
+    @record = Record.find(params[:id])
+    respond_to do |format|
+      format.html { render :partial => 'owner_info' } if request.xhr?
+    end
+  end
 end
