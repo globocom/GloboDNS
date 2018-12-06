@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'domain_ownership'
+
 class DomainsController < ApplicationController
   include GloboDns::Config
 
@@ -26,6 +28,10 @@ class DomainsController < ApplicationController
 
   def index
     @ns = get_nameservers
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      users_permissions_info = DomainOwnership::API.instance.users_permissions_info(current_user)
+      @sub_components = users_permissions_info[:sub_components]
+    end
     session[:show_reverse_domains] = (params[:reverse] == 'true') if params.has_key?(:reverse)
     @domains = session[:show_reverse_domains] ? Domain.all : Domain.nonreverse
     @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
