@@ -31,6 +31,13 @@
   %div.actions
     = button_tag t(:generic_close), :class => 'close-button close-resolve-result-button ui-icon-remove'
 
+
+- if GloboDns::Config::DOMAINS_OWNERSHIP
+  %div#owner-info.dialog
+    %div.content
+    %div.actions
+      = button_tag t(:generic_close), :class => 'close-button close-owner-info-button ui-icon-remove'
+
 %h1
   = Domain.model_name.human.titleize
   - if current_user.admin? || current_user.operator?
