@@ -167,12 +167,21 @@ class DomainsController < ApplicationController
     end
 
     @domain = Domain.find(params[:id])
-    @domain.update_attributes(params[:domain])
+    ownership = true
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      unless  current_user.admin?
+        ownership = !DomainOwnership::API.instance.get_domain_ownership_info(@domain.name)[:sub_component].nil? and @domain.check_ownership(current_user)
+      end
+    end
+
+    valid = (!@domain.errors.any? and ownership)
+
+    @domain.update_attributes(params[:domain]) if valid
     # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
 
     respond_with(@domain) do |format|
-      format.html { render :status  => @domain.valid? ? :ok     : :unprocessable_entity,
-                    :partial => @domain.valid? ? 'form'  : 'errors',
+      format.html { render :status  => valid ? :ok     : :unprocessable_entity,
+                    :partial => valid ? 'form'  : 'errors',
                     :object  => @domain, :as => :domain } if request.xhr?
     end
   end
