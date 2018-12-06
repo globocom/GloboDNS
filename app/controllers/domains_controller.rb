@@ -191,4 +191,28 @@ class DomainsController < ApplicationController
     @domain.destroy
     respond_with(@domain)
   end
+
+  def update_domain_owner
+    @domain = Domain.find(params[:id])
+
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      users_permissions_info = DomainOwnership::API.instance.users_permissions_info(current_user)
+      @sub_components = users_permissions_info[:sub_components]
+      @domain_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info(@domain.name)
+
+      if @domain_ownership_info[:id].nil?
+        DomainOwnership::API.instance.post_domain_ownership_info(@domain.name, params[:sub_component], "domain", current_user)
+      else
+        DomainOwnership::API.instance.patch_domain_ownership_info(@domain_ownership_info[:id], @domain.name, params[:sub_component], "domain")
+      end
+
+      @domain_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info(@domain.name)
+
+      @domain = Domain.find(params[:id])
+      respond_to do |format|
+        format.html { render :partial => 'owner_info' }
+      end
+    else
+    end
+  end
 end
