@@ -151,4 +151,28 @@ class RecordsController < ApplicationController
       # format.json { render :json => {'master' => @master_response, 'slave' => @slave_response}.to_json }
     end
   end
+
+  def update_domain_owner
+    @record = Record.find(params[:id])
+
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      users_permissions_info = DomainOwnership::API.instance.users_permissions_info(current_user)
+      @sub_components = users_permissions_info[:sub_components]
+      @record_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info(@record.url)
+
+      if @record_ownership_info[:id].nil?
+        DomainOwnership::API.instance.post_domain_ownership_info(@record.url, params[:sub_component], "domain", current_user)
+      else
+        DomainOwnership::API.instance.patch_domain_ownership_info(@record_ownership_info[:id], @record.url, params[:sub_component], "domain")
+      end
+
+      @record_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info(@record.url)
+
+      @record = Record.find(params[:id])
+      respond_to do |format|
+        format.html { render :partial => 'owner_info' }
+      end
+    else
+    end
+  end
 end
