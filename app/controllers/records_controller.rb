@@ -100,11 +100,38 @@ class RecordsController < ApplicationController
     end
 
     @record = Record.find(params[:id])
-    @record.update_attributes(params[:record])
+
+    valid = (!@record.errors.any? and @record.valid?)
+
+    ownership = true
+    old_ownership_info = nil
+    new_ownership_info = nil
+
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      unless current_user.admin?
+        ownership = @record.check_ownership(current_user)
+        name_changed = !(@record.name.eql? params[:record][:name])
+        if name_changed
+          old_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info @record.url
+          @record.name = params[:record][:name]
+          new_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info @record.url
+          ownership = @record.check_ownership(current_user)
+        end
+      end
+    end
+
+    valid = (valid and ownership)
+
+    if valid and GloboDns::Config::DOMAINS_OWNERSHIP
+      @record.update_attributes(params[:record])
+      @record.set_ownership(old_ownership_info[:sub_component_id], current_user) if name_changed and new_ownership_info[:group_id].nil?
+
+    end
+
     flash[:warning] = "#{@record.warnings.full_messages * '; '}" if @record.has_warnings?
     respond_with(@record.becomes(Record)) do |format|
-      format.html { render :status  => @record.valid? ? :ok     : :unprocessable_entity,
-                    :partial => @record.valid? ? @record : 'errors' } if request.xhr?
+      format.html { render :status  => valid ? :ok     : :unprocessable_entity,
+                    :partial => valid ? @record : 'errors' } if request.xhr?
     end
   end
 
