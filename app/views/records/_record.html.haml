@@ -17,6 +17,8 @@
     %span= record.content
   %td.actions
     - if current_user.admin? || current_user.operator?
+      - if GloboDns::Config::DOMAINS_OWNERSHIP
+        = link_to('', verify_owner_record_path(record), :remote => true, :class => 'owner-info-record-button ui-icon-key', :title => "Check Owner")
       = link_to '', '#', :class => 'edit-record-button ui-icon-edit', :title => t(:generic_edit)
       = link_to '', record_path(record), :remote => true, :method => :delete, :data => {:confirm => t(:confirm_domain_delete_record)}, :class => 'delete-record-button ui-icon-trash', :title => t(:generic_delete)
       = link_to '', resolve_record_path(record), :remote => true, :class => 'resolve-record-button ui-icon-cogs', :title => t(:label_dns_query)

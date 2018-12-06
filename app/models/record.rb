@@ -172,6 +172,21 @@ class Record < ActiveRecord::Base
     self.type == 'AAAA'
   end
 
+  def set_ownership(sub_component, user)
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      DomainOwnership::API.instance.post_domain_ownership_info(self.url, sub_component, "record", user) if DomainOwnership::API.instance.get_domain_ownership_info(self.url)[:sub_component].nil?
+    end
+  end
+
+  def check_ownership(user)
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      permission = DomainOwnership::API.instance.has_permission?(self.url, user)
+      self.errors.add(:base, "User doesn't have ownership of '#{self.url}'") unless permission
+      # TODO: verify hierarchically
+    end
+    permission
+  end
+
   def url
     if self.name.ends_with? '.'
       self.name.chomp('.')
