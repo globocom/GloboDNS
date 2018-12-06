@@ -59,6 +59,11 @@ class DomainsController < ApplicationController
 
   def show
     @domain = Domain.find(params[:id])
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      users_permissions_info = DomainOwnership::API.instance.users_permissions_info(current_user)
+      @sub_components = users_permissions_info[:sub_components]
+      @domain_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info(@domain.name)
+    end
     query    = params[:records_query].blank? ? nil : params[:records_query].gsub("%","*")
     if query.nil?
       @records = @domain.records.without_soa.paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
