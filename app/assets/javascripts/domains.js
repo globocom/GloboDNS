@@ -16,6 +16,19 @@
 */
 $(document).ready(function() {
 
+	//--------------------- Ownership info --------------------------
+
+	$('.edit-owner-button').click(function () {
+		$('#show-owner').hide();
+		$('#edit-owner').show();
+		return false;
+	});
+
+	$('.cancel-owner-button').click(function () {
+		$('#show-owner').show();
+		$('#edit-owner').hide();
+		return false;
+	});
 
 	// ----------------- domains#index -----------------
 
@@ -272,6 +285,12 @@ $(document).ready(function() {
 		showDialog('#resolve-result', data);
 	}).live('ajax:error', function () {
 		alert("[ERROR] unable to resolve Record");
+	});
+
+	$('.owner-info-record-button').live('ajax:success', function (evt, data, statusStr, xhr) {
+		showDialog('#owner-info', data);
+	}).live('ajax:error', function () {
+		alert("[ERROR] unable to get info");
 	});
 
 	var showDialog = function (id, content) {
