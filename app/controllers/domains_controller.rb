@@ -131,12 +131,33 @@ class DomainsController < ApplicationController
       @domain.export_to = nil if @domain.export_to.empty?
     end
 
-    @domain.save unless @domain.errors.any?
+    valid = (!@domain.errors.any? and @domain.valid?)
+
+    ownership = true
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      unless current_user.admin?
+        name_available = DomainOwnership::API.instance.get_domain_ownership_info(@domain.name)[:group].nil?
+        permission = @domain.check_ownership(current_user)
+        ownership = name_available or permission
+      end
+    end
+
+    valid = (valid and ownership)
+
+    if valid
+      @domain.save
+      if GloboDns::Config::DOMAINS_OWNERSHIP
+        @domain.set_ownership(params[:sub_component], current_user)
+        @domain.records.each do |record|
+          record.set_ownership(params[:sub_component], current_user)
+        end
+      end
+    end
     # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
 
     respond_with(@domain) do |format|
-      format.html { render :status  => @domain.valid? ? :ok     : :unprocessable_entity,
-                    :partial => @domain.valid? ? @domain : 'errors' } if request.xhr?
+      format.html { render :status  => valid ? :ok     : :unprocessable_entity,
+                    :partial => valid ? @domain : 'errors' } if request.xhr?
     end
   end
 
