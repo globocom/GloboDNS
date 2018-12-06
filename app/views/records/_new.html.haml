@@ -46,6 +46,11 @@
         %tr
           %td= f.label :content, t(:label_domain_record_content)
           %td= f.text_field :content
+        - if GloboDns::Config::DOMAINS_OWNERSHIP
+          %tr
+            %td= label :sub_component, "Sub Component"
+            %td= select_tag :sub_component, options_for_select(@sub_components, @domain_ownership_info[:sub_component_id]), {:required => true}
+        %tfoot
         %tr.actions
           %td{:colspan => 2}
             = button_tag(t(:generic_cancel), :class => 'cancel-new-record-button ui-icon-ban-circle')
