@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'domain_ownership'
+
 class RecordsController < ApplicationController
   include RecordsHelper
 
@@ -60,11 +62,31 @@ class RecordsController < ApplicationController
 
     @record = params[:record][:type].constantize.new(params[:record])
     @record.domain_id = params[:domain_id]
-    @record.save
+
+    valid = (!@record.errors.any? and @record.valid?)
+
+    ownership = true
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      unless current_user.admin?
+        name_available = DomainOwnership::API.instance.get_domain_ownership_info(@record.url)[:group].nil?
+        permission = @record.check_ownership(current_user)
+        ownership = (name_available or permission)
+      end
+    end
+
+    valid = (valid and ownership)
+
+    if valid
+      @record.save
+      if GloboDns::Config::DOMAINS_OWNERSHIP
+        @record.set_ownership(params[:sub_component], current_user)
+      end
+    end
+
     flash[:warning] = "#{@record.warnings.full_messages * '; '}" if @record.has_warnings?
     respond_with(@record.becomes(Record)) do |format|
-      format.html { render :status  => @record.valid? ? :ok     : :unprocessable_entity,
-                    :partial => @record.valid? ? @record : 'errors' } if request.xhr?
+      format.html { render :status  => valid ? :ok     : :unprocessable_entity,
+                    :partial => valid ? @record : 'errors' } if request.xhr?
     end
   end
 
