@@ -67,11 +67,7 @@ class RecordsController < ApplicationController
 
     ownership = true
     if GloboDns::Config::DOMAINS_OWNERSHIP
-      unless current_user.admin?
-        name_available = DomainOwnership::API.instance.get_domain_ownership_info(@record.url)[:group].nil?
-        permission = @record.check_ownership(current_user)
-        ownership = (name_available or permission)
-      end
+      ownership = @record.check_ownership(current_user, true) unless current_user.admin?
     end
 
     valid = (valid and ownership)
