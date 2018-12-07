@@ -178,12 +178,25 @@ class Record < ActiveRecord::Base
     end
   end
 
-  def check_ownership(user)
+  def check_ownership(user, creation = false)
     if GloboDns::Config::DOMAINS_OWNERSHIP
       permission = DomainOwnership::API.instance.has_permission?(self.url, user)
-      self.errors.add(:base, "User doesn't have ownership of '#{self.url}'") unless permission
-      # TODO: verify hierarchically
+      if (creation and !permission)
+        sub_domain = self.domain.name
+        splited = self.url.chomp(sub_domain).split(".")
+        splited.delete_at(0) unless splited.empty?
+        ended = false
+        while(!permission and !ended)
+          permission = DomainOwnership::API.instance.has_permission?(sub_domain, user)
+          if splited.empty?
+            ended = true
+          else
+            sub_domain = splited.pop + "." + sub_domain
+          end
+        end
+      end
     end
+    self.errors.add(:base, "User doesn't have ownership of '#{self.url}'") unless permission
     permission
   end
 
