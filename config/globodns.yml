@@ -4,10 +4,10 @@ development: &devconf
       master:
         # ipaddr_external: '1.2.3.4' # if use a special ip for master for any slave (optional)
         user:            'globodns'
-        host:            'master'
-        ipaddr:          '192.168.0.100'
-        port:            53
-        rndc_port:       953
+        host:            <%= ENV.fetch('BIND_MASTER_HOST', 'master') %>
+        ipaddr:          <%= ENV.fetch('BIND_MASTER_IPADDR', '192.168.0.100') %>
+        port:            <%= ENV.fetch('BIND_MASTER_PORT', 53) %>
+        rndc_port:       <%= ENV.fetch('BIND_MASTER_RNDC_PORT', 953) %>
         chroot_dir:      '/var/named/chroot'
         zones_dir:       '/etc/named'
         named_conf_file: '/etc/named/named.conf'  # must be inside zones_dir
@@ -16,10 +16,10 @@ development: &devconf
 
       slaves:
         - user:             'globodns'
-          host:             'slave0' ### empty means you don't have slave
-          ipaddr:           '192.168.0.101'
-          port:             5354
-          rndc_port:        5954
+          host:             <%= ENV['BIND_SLAVE0_HOST'] %> ## ex.: 'slave0' ### empty means you don't have slave
+          ipaddr:           <%= ENV.fetch('BIND_SLAVE0_IPADDR', '192.168.0.101') %>
+          port:             <%= ENV.fetch('BIND_SLAVE0_PORT', 5354) %>
+          rndc_port:        <%= ENV.fetch('BIND_SLAVE0_RNDC_PORT', 5954) %>
           chroot_dir:       '/var/named/chroot'
           zones_dir:        '/etc/named'
           named_conf_file:  '/etc/named/named.conf'  # must be inside zones_dir
@@ -28,10 +28,10 @@ development: &devconf
           # masters_external_ip: true # if slave use a different ip for communicate to master, this setting should be set to true
 
         - user:             'globodns'
-          host:             'slave1' ### empty means you don't have slave
-          ipaddr:           '192.168.0.102'
-          port:             5354
-          rndc_port:        5954
+          host:             <%= ENV['BIND_SLAVE1_HOST'] %> ## ex.: 'slave1' ### empty means you don't have slave
+          ipaddr:           <%= ENV.fetch('BIND_SLAVE1_IPADDR', '192.168.0.102') %>
+          port:             <%= ENV.fetch('BIND_SLAVE1_PORT', 5354) %>
+          rndc_port:        <%= ENV.fetch('BIND_SLAVE1_RNDC_PORT', 5954) %>
           chroot_dir:       '/var/named/chroot'
           zones_dir:        '/etc/named'
           named_conf_file:  '/etc/named/named.conf'  # must be inside zones_dir
@@ -41,7 +41,7 @@ development: &devconf
 
     bind_user:                   'named'
     bind_group:                  'named'
-    additional_dns_servers: ['8.8.8.8', '8.8.4.4'] # additional dns servers ips to check if record is responding correctly
+    additional_dns_servers:  <%= ENV.fetch('ADDITIONAL_DNS_SERVERS', '8.8.8.8,8.8.4.4') %>.split(',') # additional dns servers ips to check if record is responding correctly
 
 
     bind_error_log:         '/var/named/chroot_master/var/log/globodns.error.log'
@@ -91,19 +91,19 @@ development: &devconf
 
 test:
     bind_master_user:            <%= ENV['USER'] %>
-    bind_master_host:            'localbindmaster'
-    bind_master_ipaddr:          '127.0.0.1'
-    bind_master_port:            5353
-    bind_master_rndc_port:       5953
+    bind_master_host:            <%= ENV.fetch('BIND_MASTER_HOST', 'localbindmaster') %>
+    bind_master_ipaddr:          <%= ENV.fetch('BIND_MASTER_IPADDR', '127.0.0.1') %>
+    bind_master_port:            <%= ENV.fetch('BIND_MASTER_PORT', 5353) %>
+    bind_master_rndc_port:       <%= ENV.fetch('BIND_MASTER_RNDC_PORT', 5953) %>
     bind_master_chroot_dir:      <%= Rails.root.join('test', 'mock', 'chroot_master') %>
     bind_master_zones_dir:       '/etc/named'
     bind_master_named_conf_file: '/etc/named.conf'
 
     bind_slave_user:             'bind'
-    bind_slave_host:             'localbindslave'
-    bind_slave_ipaddr:           '127.0.0.1'
-    bind_slave_port:             5354
-    bind_slave_rndc_port:        5954
+    bind_slave_host:             <%= ENV.fetch('BIND_SLAVE_HOST', 'localbindslave') %>
+    bind_slave_ipaddr:           <%= ENV.fetch('BIND_SLAVE_IPADDR', '127.0.0.1') %>
+    bind_slave_port:             <%= ENV.fetch('BIND_SLAVE_PORT', 5354) %>
+    bind_slave_rndc_port:        <%= ENV.fetch('BIND_SLAVE_RNDC_PORT', 5954) %>
     bind_slave_chroot_dir:      <%= Rails.root.join('test', 'mock', 'chroot_slave') %>
     bind_slave_zones_dir:        '/etc/named'
     bind_slave_named_conf_file:  '/etc/named.conf'
