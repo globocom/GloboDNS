@@ -8,11 +8,11 @@ development: &devconf
         ipaddr:          <%= ENV.fetch('BIND_MASTER_IPADDR', '192.168.0.100') %>
         port:            <%= ENV.fetch('BIND_MASTER_PORT', 53) %>
         rndc_port:       <%= ENV.fetch('BIND_MASTER_RNDC_PORT', 953) %>
-        chroot_dir:      '/var/named/chroot'
+        chroot_dir:      <%= ENV.fetch('BIND_CHROOT_DIR', '/var/named/chroot') %>
         zones_dir:       '/etc/named'
         named_conf_file: '/etc/named/named.conf'  # must be inside zones_dir
         named_conf_link: '/etc/named.conf'  # can be anywhere
-        export_chroot_dir:    <%= Rails.root.join('tmp', 'named', 'chroot_master') %>
+        export_chroot_dir: <%= Rails.root.join('tmp', 'named', 'chroot_master') %>
 
       slaves:
         - user:             'globodns'
@@ -20,7 +20,7 @@ development: &devconf
           ipaddr:           <%= ENV.fetch('BIND_SLAVE0_IPADDR', '192.168.0.101') %>
           port:             <%= ENV.fetch('BIND_SLAVE0_PORT', 5354) %>
           rndc_port:        <%= ENV.fetch('BIND_SLAVE0_RNDC_PORT', 5954) %>
-          chroot_dir:       '/var/named/chroot'
+          chroot_dir:       <%= ENV.fetch('BIND_CHROOT_DIR', '/var/named/chroot') %>
           zones_dir:        '/etc/named'
           named_conf_file:  '/etc/named/named.conf'  # must be inside zones_dir
           named_conf_link:  '/etc/named.conf'  # can be anywhere
@@ -32,7 +32,7 @@ development: &devconf
           ipaddr:           <%= ENV.fetch('BIND_SLAVE1_IPADDR', '192.168.0.102') %>
           port:             <%= ENV.fetch('BIND_SLAVE1_PORT', 5354) %>
           rndc_port:        <%= ENV.fetch('BIND_SLAVE1_RNDC_PORT', 5954) %>
-          chroot_dir:       '/var/named/chroot'
+          chroot_dir:       <%= ENV.fetch('BIND_CHROOT_DIR', '/var/named/chroot') %>
           zones_dir:        '/etc/named'
           named_conf_file:  '/etc/named/named.conf'  # must be inside zones_dir
           named_conf_link:  '/etc/named.conf'  # can be anywhere
@@ -44,7 +44,7 @@ development: &devconf
     additional_dns_servers:  <%= ENV.fetch('ADDITIONAL_DNS_SERVERS', '8.8.8.8,8.8.4.4') %>.split(',') # additional dns servers ips to check if record is responding correctly
 
 
-    bind_error_log:         '/var/named/chroot_master/var/log/globodns.error.log'
+    bind_error_log:         <%= "#{ENV.fetch('BIND_CHROOT_DIR', '/var/named/chroot')}/var/log/globodns.error.log" %>
 
     rndc_config_file:       '/etc/rndc.conf'
     rndc_key_name:          'rndc-key'
