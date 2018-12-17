@@ -1,6 +1,3 @@
-<script>
-$(document).ready(function() { $("#sub_componente").select2(); });
-</script>
 
 <div class="dynamic-2 show-domain-owner-container">
   <h1>Owner (<%= @record.url %>)
@@ -25,7 +22,7 @@ $(document).ready(function() { $("#sub_componente").select2(); });
     <table class='hidden edit-record-owner'>
       <tr>
         <td><label>Sub Component</label></td>
-        <td> <%= select_tag :sub_component_domain_edit, id : 'sub_componente', options_for_select(@sub_components, @record_ownership_info[:sub_component_id]), {:required => true} %></td>
+        <td> <%= select_tag :sub_component_domain_edit, options_for_select(@sub_components, @record_ownership_info[:sub_component_id]), {:required => true} %></td>
       </tr>
       <tr>
         <td>
