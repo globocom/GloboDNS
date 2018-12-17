@@ -28,7 +28,7 @@
 //= require audits
 //= require bind
 //= require_self
-
+//= require select2-full
 $(document).ready(function() {
     // ----------------- ajax activity indicator -----------------
     // $('body').append('<div id="ajaxBusy"><img src="<%= image_path('loading.gif') %>"/></div>');

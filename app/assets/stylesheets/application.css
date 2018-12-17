@@ -25,6 +25,9 @@
 *= require_self
 */
 
+*= require select2
+*= require select2-bootstrap
+
 body {
     margin: 0;
     padding: 0;
