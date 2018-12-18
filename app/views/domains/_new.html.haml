@@ -1,4 +1,8 @@
 - domain ||= @domain
+<script>
+  $('#e1').select2();
+</script>
+
 %div.new-domain-form-container{ :class => (domain.errors.any? || defined?(show_form)) ? '' : 'hidden' }
   %div{ :style => 'display: none' }
     #help-domain=t :help_domain_fqdn
