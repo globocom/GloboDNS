@@ -34,6 +34,8 @@ group :assets do
     gem 'coffee-rails',		'~>4.1.1'
     gem 'therubyracer',		'~>0.12.2'
     gem 'uglifier',			'~>3.0.0'
+
+
 end
 
 group :development, :test do
