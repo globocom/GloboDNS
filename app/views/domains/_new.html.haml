@@ -1,3 +1,7 @@
+  <script>
+    $(document).ready(function() { $("#e1").select2(); });
+  </script>
+
 - domain ||= @domain
 %div.new-domain-form-container{ :class => (domain.errors.any? || defined?(show_form)) ? '' : 'hidden' }
   %div{ :style => 'display: none' }
@@ -93,7 +97,7 @@
       - if GloboDns::Config::DOMAINS_OWNERSHIP
         %tr
           %td= label :sub_component, "Sub component"
-          %td= select_tag :sub_component, options_for_select(@sub_components), {:required => true}
+          %td= select_tag :sub_component, :id =>  'e1', options_for_select(@sub_components), {:required => true}
       %tfoot
         %tr.actions
           %td{:colspan => 3}

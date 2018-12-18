@@ -28,6 +28,7 @@
 //= require audits
 //= require bind
 //= require_self
+//= require select2
 
 $(document).ready(function() {
     // ----------------- ajax activity indicator -----------------
