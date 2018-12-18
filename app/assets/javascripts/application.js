@@ -28,7 +28,7 @@
 //= require audits
 //= require bind
 //= require_self
-//= require select2.min.js
+//= require select2.min
 
 
 
