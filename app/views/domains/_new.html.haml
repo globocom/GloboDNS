@@ -1,3 +1,7 @@
+<script type="text/javascript">
+  $('#sub_component').select2();
+</script>
+
 - domain ||= @domain
 %div.new-domain-form-container{ :class => (domain.errors.any? || defined?(show_form)) ? '' : 'hidden' }
   %div{ :style => 'display: none' }
