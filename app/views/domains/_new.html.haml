@@ -97,7 +97,7 @@
       - if GloboDns::Config::DOMAINS_OWNERSHIP
         %tr
           %td= label :sub_component, "Sub component"
-          %td= select_tag :sub_component, :id =>  'e1', options_for_select(@sub_components), {:required => true}
+          %td= select_tag :sub_component, :id => 'e1', options_for_select(@sub_components), {:required => true}
       %tfoot
         %tr.actions
           %td{:colspan => 3}

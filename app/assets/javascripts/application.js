@@ -28,7 +28,9 @@
 //= require audits
 //= require bind
 //= require_self
-//= require select2
+//= require select2.min.js
+
+
 
 $(document).ready(function() {
     // ----------------- ajax activity indicator -----------------
