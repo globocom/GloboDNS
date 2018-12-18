@@ -23,7 +23,6 @@
 *= require font-vagrounded
 *= require dns_group
 *= require_self
-*= require select2.min.css
 */
 
 body {
