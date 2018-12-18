@@ -15,7 +15,6 @@
 * limitations under the License.
 */
 //= require jquery.js
-//= require select2.min.js
 //# require jquery.min.js
 //= require jquery.tipTip.js
 //= require humane.js
@@ -28,7 +27,7 @@
 //= require views
 //= require audits
 //= require bind
-//= require_directory
+//= require_self
 
 
 
