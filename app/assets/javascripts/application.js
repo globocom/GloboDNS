@@ -37,7 +37,7 @@ $(document).ready(function() {
     // $('body').append('<div id="ajaxBusy"><img src="<%= image_path('loading.gif') %>"/></div>');
     // $('body').append('<div id="ajaxBusy"><img src="/assets/loading.gif"></div>');
 
-
+	$("#e1").select2(); 
     // setup tooltips where required
     $('.help-icon').each(function(i, icon){
         $(icon).tipTip({
