@@ -28,7 +28,7 @@
 //= require views
 //= require audits
 //= require bind
-//= require_tree
+//= require_directory
 
 
 
