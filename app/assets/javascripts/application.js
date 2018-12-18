@@ -33,6 +33,10 @@
 
 
 $(document).ready(function() {
+
+  $('#sub_component').select2();
+
+
     // ----------------- ajax activity indicator -----------------
     // $('body').append('<div id="ajaxBusy"><img src="<%= image_path('loading.gif') %>"/></div>');
     // $('body').append('<div id="ajaxBusy"><img src="/assets/loading.gif"></div>');
