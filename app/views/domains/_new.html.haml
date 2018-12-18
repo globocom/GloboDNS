@@ -1,7 +1,3 @@
-<script type="text/javascript">
-  $('#sub_component').select2();
-</script>
-
 - domain ||= @domain
 %div.new-domain-form-container{ :class => (domain.errors.any? || defined?(show_form)) ? '' : 'hidden' }
   %div{ :style => 'display: none' }
@@ -103,3 +99,8 @@
           %td{:colspan => 3}
             = button_tag(t(:generic_cancel), :class => 'cancel-new-domain-button ui-icon-ban-circle')
             = f.button(t(:generic_create),   :class => 'create-domain-button ui-icon-download-alt')
+
+<script type="text/javascript">
+  $('#sub_component').select2();
+</script>
+
