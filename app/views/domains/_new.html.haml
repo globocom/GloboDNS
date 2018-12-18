@@ -1,4 +1,4 @@
-<%= javascript_include_tag '/app/assets/javascripts/select2.min.js' %>
+%javascript_include_tag '/app/assets/javascripts/select2.min.js'
 
 - domain ||= @domain
 %div.new-domain-form-container{ :class => (domain.errors.any? || defined?(show_form)) ? '' : 'hidden' }
