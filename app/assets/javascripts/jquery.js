@@ -1,7 +1,7 @@
 /*!
  * jQuery JavaScript Library v1.6.1
  * http://jquery.com/
- *teste 3
+ *
  * Copyright 2011, John Resig
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://jquery.org/license

@@ -73,7 +73,7 @@ module GloboDns
     config.assets.enabled = true
     config.assets.paths << Rails.root.join('vendor', 'assets', 'fonts')
     config.assets.precompile << /\.(?:svg|eot|woff|ttf)$/
-    config.assets.initialize_on_precompile = true
+
 
     # application version
     version_file_name = File.expand_path('../../REVISION', __FILE__)
