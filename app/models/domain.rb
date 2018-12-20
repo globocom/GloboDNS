@@ -177,10 +177,11 @@ class Domain < ActiveRecord::Base
 
   def set_ownership(sub_component, user)
     if GloboDns::Config::DOMAINS_OWNERSHIP
-      ownership = DomainOwnership::API.instance.post_domain_ownership_info(self.name, sub_component, "domain", user) if DomainOwnership::API.instance.get_domain_ownership_info(self.name)[:sub_component].nil?
-      self.errors.add(:base, "Subcomponent is blacklisted") unless ownership
-      return
+      DomainOwnership::API.instance.post_domain_ownership_info(self.name, sub_component, "domain", user) if DomainOwnership::API.instance.get_domain_ownership_info(self.name)[:sub_component].nil?
+      return true
     end
+    self.errors.add(:base, "Subcomponent is blacklisted")
+    return false
   end
 
   def check_ownership(user)
