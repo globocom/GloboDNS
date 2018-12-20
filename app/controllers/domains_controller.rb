@@ -150,7 +150,6 @@ class DomainsController < ApplicationController
         @domain.set_ownership(params[:sub_component], current_user)
         @domain.records.each do |record|
           record.set_ownership(params[:sub_component], current_user)
-          return 
         end
       end
     end
