@@ -178,7 +178,7 @@ class Domain < ActiveRecord::Base
   def set_ownership(sub_component, user)
     if GloboDns::Config::DOMAINS_OWNERSHIP
       self.errors.add(:base, "Test Messages")
-      DomainOwnership::API.instance.post_domain_ownership_info(self.name, sub_component, "domain", user) if DomainOwnership::API.instance.get_domain_ownership_info(self.name)[:sub_component].nil?
+     # DomainOwnership::API.instance.post_domain_ownership_info(self.name, sub_component, "domain", user) if DomainOwnership::API.instance.get_domain_ownership_info(self.name)[:sub_component].nil?
     end
   end
 
