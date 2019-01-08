@@ -147,6 +147,8 @@ class DomainsController < ApplicationController
     if valid
       @domain.save
       if GloboDns::Config::DOMAINS_OWNERSHIP
+        //consulta
+        @domain.save
         @domain.set_ownership(params[:sub_component], current_user)
         @domain.records.each do |record|
           record.set_ownership(params[:sub_component], current_user)
