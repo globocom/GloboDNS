@@ -149,13 +149,13 @@ class DomainsController < ApplicationController
       if GloboDns::Config::DOMAINS_OWNERSHIP
         //consulta
         blacklist = @domain.get_sub_component_black_list(params[:sub_component])
-        if !blacklist
+        unless blacklist
           @domain.save
           @domain.set_ownership(params[:sub_component], current_user)
           @domain.records.each do |record|
             record.set_ownership(params[:sub_component], current_user)
+          end
         end
-      end
     end
     # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
 
