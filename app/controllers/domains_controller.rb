@@ -148,10 +148,12 @@ class DomainsController < ApplicationController
       @domain.save
       if GloboDns::Config::DOMAINS_OWNERSHIP
         //consulta
-        @domain.save
-        @domain.set_ownership(params[:sub_component], current_user)
-        @domain.records.each do |record|
-          record.set_ownership(params[:sub_component], current_user)
+        blacklist = @domain.get_sub_component_black_list(params[:sub_component])
+        if !blacklist
+          @domain.save
+          @domain.set_ownership(params[:sub_component], current_user)
+          @domain.records.each do |record|
+            record.set_ownership(params[:sub_component], current_user)
         end
       end
     end
