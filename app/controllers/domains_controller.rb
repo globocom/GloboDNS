@@ -219,4 +219,5 @@ class DomainsController < ApplicationController
     else
     end
   end
-end
+  end
+  end
