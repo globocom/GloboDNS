@@ -147,7 +147,6 @@ class DomainsController < ApplicationController
     if valid
       @domain.save
       if GloboDns::Config::DOMAINS_OWNERSHIP
-        //consulta
         blacklist = @domain.get_sub_component_black_list(params[:sub_component])
         unless blacklist
           @domain.save
