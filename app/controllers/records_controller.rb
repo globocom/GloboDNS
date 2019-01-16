@@ -105,7 +105,6 @@ class RecordsController < ApplicationController
 
     if GloboDns::Config::DOMAINS_OWNERSHIP
       unless current_user.admin?
-        ownership = @record.check_ownership(current_user)
         name_changed = !(@record.name.eql? params[:record][:name])
         if name_changed
           old_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info @record.url
