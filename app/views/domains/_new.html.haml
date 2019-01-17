@@ -90,7 +90,7 @@
           %td= f.label :minimum, t(:label_domain_minimum)
           %td= f.text_field :minimum
           %td= help_icon('help-minimum')
-      - if GloboDns::Config::DOMAINS_OWNERSHIP
+      - if current_user.admin?
         %tr
           %td= label :sub_component, "Sub component"
           %td= select_tag :sub_component, options_for_select(@sub_components), {:required => true}
