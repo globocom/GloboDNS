@@ -169,14 +169,9 @@ class DomainsController < ApplicationController
     @domain = Domain.find(params[:id])
     Rails.logger.info @domain
 
-    ownership = true
-    if GloboDns::Config::DOMAINS_OWNERSHIP
-      unless  current_user.admin?
-        ownership = !DomainOwnership::API.instance.get_domain_ownership_info(@domain.name)[:sub_component].nil? and @domain.check_ownership(current_user)
-      end
-    end
+ 
 
-    valid = (!@domain.errors.any? and ownership)
+    valid = (!@domain.errors.any?)
 
     @domain.update_attributes(params[:domain]) if valid
     # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
