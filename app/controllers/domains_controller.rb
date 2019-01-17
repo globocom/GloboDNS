@@ -162,25 +162,7 @@ class DomainsController < ApplicationController
   end
 
   def update
-    params[:domain].each do |label, value|
-      params[:domain][label] = params[:domain][label].to_s.gsub(/^[ \t]/,'') unless (value.nil? or label == 'notes')
-    end
-
-    @domain = Domain.find(params[:id])
-    Rails.logger.info @domain
-
- 
-
-    valid = (!@domain.errors.any?)
-
-    @domain.update_attributes(params[:domain]) if valid
-    # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
-
-    respond_with(@domain) do |format|
-      format.html { render :status  => valid ? :ok     : :unprocessable_entity,
-                    :partial => valid ? 'form'  : 'errors',
-                    :object  => @domain, :as => :domain } if request.xhr?
-    end
+    Rails.logger.info "Update"
   end
 
   def destroy
