@@ -170,7 +170,6 @@ class DomainsController < ApplicationController
     ownership = true
     if GloboDns::Config::DOMAINS_OWNERSHIP
       unless  current_user.admin?
-        ownership = !DomainOwnership::API.instance.get_domain_ownership_info(@domain.name)[:sub_component].nil? and @domain.check_ownership(current_user)
       end
     end
 
