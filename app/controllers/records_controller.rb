@@ -109,9 +109,9 @@ class RecordsController < ApplicationController
         name_changed = !(@record.name.eql? params[:record][:name])
         if name_changed
           old_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info @record.url
+          DomainOwnership::API.instance.delete_domain @record.name
           @record.name = params[:record][:name]
           new_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info @record.url
-          ownership = @record.check_ownership(current_user)
         end
       end
     end

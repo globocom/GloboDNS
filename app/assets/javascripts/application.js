@@ -27,13 +27,20 @@
 //= require views
 //= require audits
 //= require bind
+//= require select2.min.js
 //= require_self
 
+
+
+
 $(document).ready(function() {
+
+  $('#sub_component').select2();
+
+
     // ----------------- ajax activity indicator -----------------
     // $('body').append('<div id="ajaxBusy"><img src="<%= image_path('loading.gif') %>"/></div>');
     // $('body').append('<div id="ajaxBusy"><img src="/assets/loading.gif"></div>');
-
 
     // setup tooltips where required
     $('.help-icon').each(function(i, icon){

@@ -27,12 +27,15 @@ gem 'devise-encryptable'
 gem 'protected_attributes'
 gem 'rest-client'
 gem 'net-ping'
+gem "select2-rails"
 
 group :assets do
     gem 'sass-rails',		'~>5.0.4'
     gem 'coffee-rails',		'~>4.1.1'
     gem 'therubyracer',		'~>0.12.2'
     gem 'uglifier',			'~>3.0.0'
+
+
 end
 
 group :development, :test do

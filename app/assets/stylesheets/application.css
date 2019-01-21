@@ -22,6 +22,7 @@
 *= require font-awesome
 *= require font-vagrounded
 *= require dns_group
+*= require select2.min.css
 *= require_self
 */
 
