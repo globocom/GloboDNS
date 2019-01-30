@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'domain_ownership'
+
 class DomainsController < ApplicationController
   include GloboDns::Config
 
@@ -26,6 +28,10 @@ class DomainsController < ApplicationController
 
   def index
     @ns = get_nameservers
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      users_permissions_info = DomainOwnership::API.instance.users_permissions_info(current_user)
+      @sub_components = users_permissions_info[:sub_components]
+    end
     session[:show_reverse_domains] = (params[:reverse] == 'true') if params.has_key?(:reverse)
     @domains = session[:show_reverse_domains] ? Domain.all : Domain.nonreverse
     @domains = @domains.includes(:records).paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
@@ -53,6 +59,11 @@ class DomainsController < ApplicationController
 
   def show
     @domain = Domain.find(params[:id])
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      users_permissions_info = DomainOwnership::API.instance.users_permissions_info(current_user)
+      @sub_components = users_permissions_info[:sub_components]
+      @domain_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info(@domain.name)
+    end
     query    = params[:records_query].blank? ? nil : params[:records_query].gsub("%","*")
     if query.nil?
       @records = @domain.records.without_soa.paginate(:page => params[:page], :per_page => params[:per_page] || DEFAULT_PAGE_SIZE)
@@ -120,28 +131,33 @@ class DomainsController < ApplicationController
       @domain.export_to = nil if @domain.export_to.empty?
     end
 
-    @domain.save unless @domain.errors.any?
+    valid = (!@domain.errors.any? and @domain.valid?)
+
+    ownership = true
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      unless current_user.admin?
+        name_available = DomainOwnership::API.instance.get_domain_ownership_info(@domain.name)[:group].nil?
+        permission = @domain.check_ownership(current_user)
+        ownership = name_available or permission
+      end
+    end
+
+    valid = (valid and ownership)
+
+    if valid
+      @domain.save
+      if GloboDns::Config::DOMAINS_OWNERSHIP
+          @domain.save
+          @domain.set_ownership(params[:sub_component], current_user)
+          @domain.records.each do |record|
+            record.set_ownership(params[:sub_component], current_user)
+        end
+    end
     # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
 
     respond_with(@domain) do |format|
-      format.html { render :status  => @domain.valid? ? :ok     : :unprocessable_entity,
-                    :partial => @domain.valid? ? @domain : 'errors' } if request.xhr?
-    end
-  end
-
-  def update
-    params[:domain].each do |label, value|
-      params[:domain][label] = params[:domain][label].to_s.gsub(/^[ \t]/,'') unless (value.nil? or label == 'notes')
-    end
-
-    @domain = Domain.find(params[:id])
-    @domain.update_attributes(params[:domain])
-    # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
-
-    respond_with(@domain) do |format|
-      format.html { render :status  => @domain.valid? ? :ok     : :unprocessable_entity,
-                    :partial => @domain.valid? ? 'form'  : 'errors',
-                    :object  => @domain, :as => :domain } if request.xhr?
+      format.html { render :status  => valid ? :ok     : :unprocessable_entity,
+                    :partial => valid ? @domain : 'errors' } if request.xhr?
     end
   end
 
@@ -150,4 +166,55 @@ class DomainsController < ApplicationController
     @domain.destroy
     respond_with(@domain)
   end
-end
+
+  def update_domain_owner
+    @domain = Domain.find(params[:id])
+
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      users_permissions_info = DomainOwnership::API.instance.users_permissions_info(current_user)
+      @sub_components = users_permissions_info[:sub_components]
+      @domain_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info(@domain.name)
+
+      if @domain_ownership_info[:id].nil?
+        DomainOwnership::API.instance.post_domain_ownership_info(@domain.name, params[:sub_component], "domain", current_user)
+      else
+        DomainOwnership::API.instance.patch_domain_ownership_info(@domain_ownership_info[:id], @domain.name, params[:sub_component], "domain")
+      end
+
+      @domain_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info(@domain.name)
+
+      @domain = Domain.find(params[:id])
+      respond_to do |format|
+        format.html { render :partial => 'owner_info' }
+      end
+    else
+    end
+  end
+  end
+
+  def update
+    params[:domain].each do |label, value|
+      params[:domain][label] = params[:domain][label].to_s.gsub(/^[ \t]/,'') unless (value.nil? or label == 'notes')
+    end
+
+    @domain = Domain.find(params[:id])
+    ownership = true
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      unless  current_user.admin?
+        ownership = !DomainOwnership::API.instance.get_domain_ownership_info(@domain.name)[:sub_component].nil? and @domain.check_ownership(current_user)
+      end
+    end
+
+    valid = (!@domain.errors.any? and ownership)
+
+    @domain.update_attributes(params[:domain]) if valid
+    # flash[:warning] = "#{@domain.warnings.full_messages * '; '}" if @domain.has_warnings? && navigation_format?
+
+    respond_with(@domain) do |format|
+      format.html { render :status  => valid ? :ok     : :unprocessable_entity,
+                           :partial => valid ? 'form'  : 'errors',
+                           :object  => @domain, :as => :domain } if request.xhr?
+    end
+  end
+
+  end

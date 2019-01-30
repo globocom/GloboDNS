@@ -175,6 +175,21 @@ class Domain < ActiveRecord::Base
     rv
   end
 
+  def set_ownership(sub_component, user)
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      self.errors.add(:base, "Test Messages")
+      DomainOwnership::API.instance.post_domain_ownership_info(self.name, sub_component, "domain", user) if DomainOwnership::API.instance.get_domain_ownership_info(self.name)[:sub_component].nil?
+    end
+  end
+
+  def check_ownership(user)
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      permission = DomainOwnership::API.instance.has_permission?(self.name, user)
+      self.errors.add(:base, "User doesn't have ownership of '#{self.name}'") unless permission
+    end
+    permission
+  end
+
   def addressing_type
     read_attribute('addressing_type').presence || set_addressing_type
   end

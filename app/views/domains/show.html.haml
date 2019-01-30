@@ -31,6 +31,13 @@
   %div.actions
     = button_tag t(:generic_close), :class => 'close-button close-resolve-result-button ui-icon-remove'
 
+
+- if GloboDns::Config::DOMAINS_OWNERSHIP
+  %div#owner-info.dialog
+    %div.content
+    %div.actions
+      = button_tag t(:generic_close), :class => 'close-button close-owner-info-button ui-icon-remove'
+
 %h1
   = Domain.model_name.human.titleize
   - if current_user.admin? || current_user.operator?
@@ -38,6 +45,14 @@
   - if current_user.admin?
     = link_to('', domain_path(@domain), :class => 'delete-domain-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :data => {:confirm => t(:confirm_domain_delete, :domain => @domain.name)})
 = render :partial => 'form', :object => @domain, :as => :domain
+
+- if GloboDns::Config::DOMAINS_OWNERSHIP
+  %h1
+    = "Owner"
+    - if current_user.admin?
+      = link_to('', '#', :class => 'edit-owner-button ui-icon-edit', :title => t(:generic_edit))
+    %div.show-domain-owner-container
+  = render :partial => 'owner_info', :object => @domain, :as => :domain
 
 - if @domain.master?
   #domain-soa

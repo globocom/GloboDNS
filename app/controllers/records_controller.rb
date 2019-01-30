@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'domain_ownership'
+
 class RecordsController < ApplicationController
   include RecordsHelper
 
@@ -60,11 +62,27 @@ class RecordsController < ApplicationController
 
     @record = params[:record][:type].constantize.new(params[:record])
     @record.domain_id = params[:domain_id]
-    @record.save
+
+    valid = (!@record.errors.any? and @record.valid?)
+
+    ownership = true
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      ownership = @record.check_ownership(current_user, true) unless current_user.admin?
+    end
+
+    valid = (valid and ownership)
+
+    if valid
+      @record.save
+      if GloboDns::Config::DOMAINS_OWNERSHIP
+        @record.set_ownership(params[:sub_component], current_user)
+      end
+    end
+
     flash[:warning] = "#{@record.warnings.full_messages * '; '}" if @record.has_warnings?
     respond_with(@record.becomes(Record)) do |format|
-      format.html { render :status  => @record.valid? ? :ok     : :unprocessable_entity,
-                    :partial => @record.valid? ? @record : 'errors' } if request.xhr?
+      format.html { render :status  => valid ? :ok     : :unprocessable_entity,
+                    :partial => valid ? @record : 'errors' } if request.xhr?
     end
   end
 
@@ -78,11 +96,38 @@ class RecordsController < ApplicationController
     end
 
     @record = Record.find(params[:id])
-    @record.update_attributes(params[:record])
+
+    valid = (!@record.errors.any? and @record.valid?)
+
+    ownership = true
+    old_ownership_info = nil
+    new_ownership_info = nil
+
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      unless current_user.admin?
+        ownership = @record.check_ownership(current_user)
+        name_changed = !(@record.name.eql? params[:record][:name])
+        if name_changed
+          old_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info @record.url
+          DomainOwnership::API.instance.delete_domain @record.name
+          @record.name = params[:record][:name]
+          new_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info @record.url
+        end
+      end
+    end
+
+    valid = (valid and ownership)
+
+    if valid and GloboDns::Config::DOMAINS_OWNERSHIP
+      @record.update_attributes(params[:record])
+      @record.set_ownership(old_ownership_info[:sub_component_id], current_user) if name_changed and new_ownership_info[:group_id].nil?
+
+    end
+
     flash[:warning] = "#{@record.warnings.full_messages * '; '}" if @record.has_warnings?
     respond_with(@record.becomes(Record)) do |format|
-      format.html { render :status  => @record.valid? ? :ok     : :unprocessable_entity,
-                    :partial => @record.valid? ? @record : 'errors' } if request.xhr?
+      format.html { render :status  => valid ? :ok     : :unprocessable_entity,
+                    :partial => valid ? @record : 'errors' } if request.xhr?
     end
   end
 
@@ -100,6 +145,45 @@ class RecordsController < ApplicationController
     respond_to do |format|
       format.html { render :partial => 'resolve' } if request.xhr?
       # format.json { render :json => {'master' => @master_response, 'slave' => @slave_response}.to_json }
+    end
+  end
+
+  def update_domain_owner
+    @record = Record.find(params[:id])
+
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      users_permissions_info = DomainOwnership::API.instance.users_permissions_info(current_user)
+      @sub_components = users_permissions_info[:sub_components]
+      @record_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info(@record.url)
+
+      if @record_ownership_info[:id].nil?
+        DomainOwnership::API.instance.post_domain_ownership_info(@record.url, params[:sub_component], "domain", current_user)
+      else
+        DomainOwnership::API.instance.patch_domain_ownership_info(@record_ownership_info[:id], @record.url, params[:sub_component], "domain")
+      end
+
+      @record_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info(@record.url)
+
+      @record = Record.find(params[:id])
+      respond_to do |format|
+        format.html { render :partial => 'owner_info' }
+      end
+    else
+    end
+  end
+
+  def verify_owner
+    @record = Record.find(params[:id])
+
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      users_permissions_info = DomainOwnership::API.instance.users_permissions_info(current_user)
+      @sub_components = users_permissions_info[:sub_components]
+      @record_ownership_info = DomainOwnership::API.instance.get_domain_ownership_info(@record.url)
+    end
+
+    @record = Record.find(params[:id])
+    respond_to do |format|
+      format.html { render :partial => 'owner_info' } if request.xhr?
     end
   end
 end

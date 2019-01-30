@@ -263,3 +263,14 @@ At GloboDNS tags 1.7.9 or higher, there will be the feature of increasing TTL. T
       rake "record:increase_ttl"
     end
 
+***14. Enabling/disabling* Domain Ownership**
+
+Domain ownership consists in a validation that verify if the user can manage the domain/record. The domain is associate to a Componente/Subcomponente ID (projetcs) and GloboDNS will verify if the user is associate to those IDs.
+
+**1)** The domain ownership info is validate at the 'lib/domain_ownership.rb' file. if you want to use this feature, you must fill the methods that exists in the lib file with the appropritate code.
+
+**2)** To enable the verification, you should set the variable *'increase_ttl'* to **'true'**, at file *'config/globodns.yml'* .
+
+    increase_ttl: true
+
+*Note:* *increase_ttl* variable value is *'false'* by default.

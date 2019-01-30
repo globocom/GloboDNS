@@ -13,11 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'domain_ownership'
+
 class DashboardController < ApplicationController
   include GloboDns::Config
 
   def index
     @ns = get_nameservers
+    if GloboDns::Config::DOMAINS_OWNERSHIP
+      users_permissions_info = DomainOwnership::API.instance.users_permissions_info(current_user)
+      @sub_components = users_permissions_info[:sub_components]
+    end
     @latest_domains = Domain.nonreverse.reorder('created_at DESC').limit(5)
   end
 end

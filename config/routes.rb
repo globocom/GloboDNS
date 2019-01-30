@@ -41,8 +41,11 @@ GloboDns::Application.routes.draw do
   end
 
   resources :domains do
+    get 'update_domain_owner', :on => :member
     resources :records, :shallow => true do
+      get 'update_domain_owner', :on => :member
       get 'resolve', :on => :member
+      get 'verify_owner', :on => :member
     end
   end
 

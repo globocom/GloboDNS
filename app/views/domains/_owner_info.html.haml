@@ -1,0 +1,23 @@
+%div.dynamic.show-domain-owner-container{:class => @domain.errors.empty? ? '' : 'hidden'}
+  %table#show-owner
+    -unless @domain_ownership_info[:sub_component].nil?
+      %tr
+        %td= label_tag :sub_component, "Sub component"
+        %td= @domain_ownership_info[:sub_component]
+    -else
+      %tr
+        %td Missing information
+  - if current_user.admin?
+    %table#edit-owner.hidden
+      %tr
+        %td= label :sub_component_domain_edit, "Sub Component"
+        %td= select_tag :sub_component_domain_edit, options_for_select(@sub_components, @domain_ownership_info[:sub_component_id]), {:required => true}
+      %tr
+        %td
+          =button_tag("Cancel", :class => 'cancel-owner-button ui-icon-cancel-alt')
+          =button_tag("Update", :class => 'update-owner-button ui-icon-update-alt')
+
+:javascript
+  $('.update-owner-button').click(function () {
+    $('.dynamic').load('/domains/#{@domain.id}/update_domain_owner?sub_component='+$("#sub_component_domain_edit").val());
+  });
