@@ -22,6 +22,7 @@
 *= require font-awesome
 *= require font-vagrounded
 *= require dns_group
+*= require select2.min.css
 *= require_self
 */
 
@@ -366,6 +367,30 @@ textarea#master-named-conf, textarea.slave-named-conf {
 .pagination .previous_page, .pagination .next_page {
     font-size: 11pt;
 }
+.show-domain-owner-container table {
+    margin-bottom: 2em;
+}
+
+table#show-record-owner td, table#edit-record-owner td, table#new-record-owner td {
+    height: 2em;
+}
+table#show-record-owner td label, table#edit-record-owner td label, table#new-record-owner td label {
+    display: block;
+    min-width: 10em;
+    padding-right: 2em;
+}
+
+
+table#show-owner td, table#edit-owner td, table#new-owner td {
+    height: 2em;
+}
+table#show-owner td label, table#edit-owner td label, table#new-owner td label {
+    display: block;
+    min-width: 10em;
+    padding-right: 2em;
+}
+
+
 table#resolv-table {
     width: 100%;
     margin-bottom: 2em;
@@ -498,6 +523,9 @@ table.record-table td input#record_name {
 }
 table.record-table td input#record_ttl, table.record-table td input#record_prio, table.record-table td input#record_weight, table.record-table td input#record_port {
     width: 4em;
+}
+table#new-record td {
+    height: 2em;
 }
 table#new-record td label {
     padding-right: 2em;

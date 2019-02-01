@@ -41,7 +41,11 @@
         %tbody
           %tr.master.slave.forward
             %td= f.label :name, t(:label_domain_name)
-            %td= f.text_field :name
+            %td= @domain.name
+            %td= help_icon('help-domain-name')
+          %tr.master.slave.forward
+            %td= f.label :type, t(:label_domain_authority_type)
+            %td= @domain.authority_type_str
             %td= help_icon('help-domain-name')
           %tr.master.slave.forward.hidden
             %td.hidden= f.label :authority_type, t(:label_domain_authority_type)

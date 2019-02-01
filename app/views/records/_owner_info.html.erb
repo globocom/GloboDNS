@@ -1,0 +1,60 @@
+
+<div class="dynamic-2 show-domain-owner-container">
+  <h1>Owner (<%= @record.url %>)
+    <% if current_user.admin? %>
+      <%= link_to('', '#', :class => 'edit-record-owner-button ui-icon-edit', :title => t(:generic_edit)) %>
+    <% end %>
+  </h1>
+
+  <% unless @record_ownership_info[:sub_component].nil? %>
+     <table class='show-record-owner'>
+        <tr class=<%= cycle("odd", "even") %>>
+          <td><label>Sub Component</label></td>
+          <td><%= @record_ownership_info[:sub_component] %></td>
+        </tr>
+      </table>
+  <% else %>
+    <%= "Missing information" %>
+  <% end %>
+
+
+  <% if current_user.admin? %>
+    <table class='hidden edit-record-owner'>
+      <tr>
+        <td><label>Sub Component</label></td>
+        <td> <%= select_tag :sub_component_domain_edit, options_for_select(@sub_components, @record_ownership_info[:sub_component_id]), {:required => true} %></td>
+      </tr>
+      <tr>
+        <td>
+          <%= button_tag("Cancel", :class => 'cancel-record-owner-button ui-icon-cancel-alt') %>
+          <%= button_tag("Update", :class => 'update-record-owner-button ui-icon-update-alt') %>
+        </td>
+      </tr>
+    </table>
+    <% if @record.name.eql? "@" %>
+      <p><i>Note: This is the same owner as the zone, changing this owner will also change the zone's owner.</i></p>
+    <% end %>
+  <% end %>
+</div>
+<script>
+  $('.edit-record-owner-button').click(function () {
+    console.log("sdhisf");
+    $('.show-record-owner').hide();
+    $('.edit-record-owner').show();
+    return false;
+  });
+
+  $('.cancel-record-owner-button').click(function () {
+    $('.show-record-owner').show();
+    $('.edit-record-owner').hide();
+    return false;
+  });
+
+  $('.update-record-owner-button').click(function () {
+    $('.dynamic-2').load('/records/' + <%= @record.id %> + '/update_domain_owner?sub_component='+$("#sub_component_domain_edit").val());
+
+    if( <%= @record.name.eql? "@" %> ){
+      $('.dynamic').load('/domains/' + <%= @record.domain.id %> + '/update_domain_owner');
+    }
+  });
+</script>
