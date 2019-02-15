@@ -65,12 +65,16 @@ class Record < ActiveRecord::Base
   # before_save     :update_change_date
   # after_save      :update_soa_serial
   after_destroy :update_domain_timestamp
+  after_save    :update_domain_timestamp
+  after_update  :update_domain_timestamp
+
   before_save   :reset_prio
   before_save   :ipv6_remove_leading_zeros, :if => :is_ipv6?
 
   scope :sorted,        -> {order('name ASC')}
   scope :to_update_ttl, -> {without_soa.where('updated_at < ?',DateTime.now - 7.days).where('ttl >= ?', 60)}
   scope :without_soa,   -> {where('type != ?', 'SOA')}
+  scope :soa,           -> {find_by(type: 'SOA')}
   scope :updated_since, -> (timestamp) { where('updated_at > ?', timestamp) }
   scope :matching,      -> (query){
     query.gsub!(/:0{,4}/,":").gsub!(/:{3,}/,"::") if query.include? ":"
@@ -589,7 +593,9 @@ class Record < ActiveRecord::Base
   private
 
   def update_domain_timestamp
-    self.domain.touch
+    self.transaction do
+      Domain.where(name: self.domain.name).each(&:touch)
+    end
   end
 
   def reset_prio
