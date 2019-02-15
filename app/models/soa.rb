@@ -76,21 +76,38 @@ class SOA < Record
   # updates the serial number to the next logical one. Format of the generated
   # serial is YYYYMMDDNN, where NN is the number of the change for the day
   def update_serial(save = false)
-    if (defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW)
-      domains = Domain.where(name: self.domain.name)
-      domains.each do |d|
-        serial = d.records.where(type: "SOA").first.serial
-        if self.serial < serial
-          self.serial = serial
+    not_modify_serial = true
+    if !(defined? GloboDns::Config::ENABLE_VIEW).nil? && GloboDns::Config::ENABLE_VIEW
+      not_modify_serial = false
+      domain_default_queryresult = Domain::DEFAULT_VIEW.domains.where(name: self.domain.name)
+      unless domain_default_queryresult.nil? || domain_default_queryresult.first.nil?
+        domain_default = domain_default_queryresult.first
+        is_self_not_default = domain_default.id != self.domain.id
+        if is_self_not_default
+          default_updated_at = domain_default.updated_at
+          default_soa = domain_default.records.soa
+          default_serial = default_soa.serial
+
+          if default_serial >= self.serial
+            self.serial = default_serial
+            not_modify_serial = default_updated_at > self.updated_at
+          end
+        else # is self default
+          Domain.where(name: self.domain.name).where.not(id: domain_default.id).each do |domain|
+            self.serial = domain.records.soa.serial if domain.records.soa.serial > self.serial
+            not_modify_serial ||= domain.updated_at > self.domain.updated_at
+          end
         end
       end
     end
 
-    current_date = Time.now.strftime('%Y%m%d')
-    if self.serial/100 >= current_date.to_i
-      self.serial += 1
-    else
-      self.serial = (current_date + '00').to_i
+    unless not_modify_serial
+      current_date_zero = Time.now.strftime('%Y%m%d').to_i * 100
+      if self.serial >= current_date_zero
+        self.serial +=  1
+      else
+        self.serial = current_date_zero
+      end
     end
     if save
       set_content
