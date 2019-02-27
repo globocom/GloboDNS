@@ -224,7 +224,7 @@ module GloboDns
 
       # validate configuration with 'named-checkconf'
       run_checkconf(tmp_dir, named_conf_file)
-      check_zones_being_exported(tmp_dir, named_conf_file) unless @slave
+      #check_zones_being_exported(tmp_dir, named_conf_file) unless @slave
 
       # sync generated files on the tmp dir to the local chroot repository
       if @options[:use_tmp_dir]
