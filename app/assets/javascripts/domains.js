@@ -16,9 +16,22 @@
 */
 $(document).ready(function() {
 
+	//--------------------- Ownership info --------------------------
+
+	$('.edit-owner-button').click(function () {
+		$('#show-owner').hide();
+		$('#edit-owner').show();
+		return false;
+	});
+
+	$('.cancel-owner-button').click(function () {
+		$('#show-owner').show();
+		$('#edit-owner').hide();
+		return false;
+	});
 
 	// ----------------- domains#index -----------------
-	
+
 	$('.new-domain-button').click(function () {
 		$(this).hide();
 		$('.new-domain-form-container').show();
@@ -60,6 +73,17 @@ $(document).ready(function() {
 		$('table#domains-table tr:nth-child(even)').addClass("even").removeClass("odd");
 		$('table#domains-table tr:nth-child(odd)').addClass("odd").removeClass("even");
 	}
+
+	$('#export_all').live('change', function (evt) {
+		if(document.getElementById('export_all').checked){
+			$('.export-to').addClass('export-to-hide');
+			$("#domain_export_to").val('').trigger("change");
+		}
+		else{
+			$('.export-to').removeClass('export-to-hide');
+
+		}
+	});
 
 	$('select#domain_domain_template_id').live('change', function (evt) {
 		if ($(this).val() == '') {
@@ -187,9 +211,16 @@ $(document).ready(function() {
 	});
 
 	// ------------------- Records table -------------------
-
-	$('#records-search-form, #record-table-pagination a').live('ajax:success', function (evt, data, statusStr, xhr) {
-		$('.record-table-container').replaceWith(data);
+        //
+        // Search inside both divs for a search
+        // or pagination
+        $('#domain-records .records-search-form, ' +
+          '#domain-records .record-table-pagination a, ' +
+          '#sibling-records .records-search-form, ' +
+          '#sibling-records .record-table-pagination a'
+        ).live('ajax:success', function (evt, data, statusStr, xhr) {
+          // Retrieve it again
+          $(this).closest('#domain-records, #sibling-records').find('.record-table-container').replaceWith(data);
 		fixRecordContentColumnWidth();
 	}).live('ajax:error', function () {
 		alert("[ERROR] unable to retrieve domains");
@@ -256,6 +287,12 @@ $(document).ready(function() {
 		alert("[ERROR] unable to resolve Record");
 	});
 
+	$('.owner-info-record-button').live('ajax:success', function (evt, data, statusStr, xhr) {
+		showDialog('#owner-info', data);
+	}).live('ajax:error', function () {
+		alert("[ERROR] unable to get info");
+	});
+
 	var showDialog = function (id, content) {
 		var elem = $(id);
 		var win  = $(window);
@@ -298,27 +335,27 @@ $(document).ready(function() {
 	};
 
 	var fixRecordTableZebraStriping = function () {
-		$('table#record-table tr.show-record:nth-child(even), table#record-table tr.edit-record:nth-child(odd)').addClass("even").removeClass("odd");
-		$('table#record-table tr.show-record:nth-child(odd), table#record-table tr.edit-record:nth-child(even)').addClass("odd").removeClass("even");
+		$('table.record-table tr.show-record:nth-child(even), table.record-table tr.edit-record:nth-child(odd)').addClass("even").removeClass("odd");
+		$('table.record-table tr.show-record:nth-child(odd), table.record-table tr.edit-record:nth-child(even)').addClass("odd").removeClass("even");
 	}
 
 	// -------------- fix td.content width -------------
 	var fixRecordContentColumnWidth = function () {
-		$('#record-table td.content').width('auto');
-		$('#record-table td.content span').width('1px');
-		var width = $('#record-table td.content').width();
+		$('.record-table td.content').width('auto');
+		$('.record-table td.content span').width('1px');
+		var width = $('.record-table td.content').width();
 		// var table = td.closest('table');
 		// var width = table.parent().width() - td.position().left + table.position().left - 5;
-		$('#record-table td.content span').width(width);
+		$('.record-table td.content span').width(width);
 	};
 
-	if ($('#record-table').size() > 0)
+	if ($('.record-table').size() > 0)
 		fixRecordContentColumnWidth();
 
 	// ---------------- New Record form -------------------
 	$('#new-record-form').live('ajax:success', function (evt, data, statusSTr, xhr) {
 		$('.new-record-form-container ul.errors').remove();
-		$('table#record-table tbody').append(data);
+		$('table.record-table tbody').append(data);
 		fixRecordTableZebraStriping();
 	}).live('ajax:error', function (evt, xhr, statusStr, error) {
 		if (xhr.status == 422) { // :unprocessable_entity
@@ -348,8 +385,21 @@ $(document).ready(function() {
 	});
 
 	$('#new-record-form select#record_type').live('change', function () {
+		$('input#record_prio').val(null);
+		$('input#record_weight').val(null);
+		$('input#record_port').val(null);
+		$('input#record_tag').val(null);
+
 		var val = $(this).val();
-		$('#new-record-form input#record_prio').closest('tr').toggle((val == 'MX' || val == 'SRV'));
+		$('#new-record-form input#record_prio').closest('tr').toggle((val == 'MX' || val == 'SRV' || val == 'CAA'));
+		$('#new-record-form input#record_weight').closest('tr').toggle(val == 'SRV');
+		$('#new-record-form input#record_port').closest('tr').toggle(val == 'SRV');
+		if (val == 'CAA') {
+			$('#new-record-form select#record_tag').closest('tr').toggle();
+		}
+		else{
+			$('#new-record-form select#record_tag').closest('tr').hide();
+		}
 		$(this).blur();
 	});
 	$('#new-record-form select#record_type').change();
@@ -364,5 +414,22 @@ $(document).ready(function() {
 		$('.domains-table-container').replaceWith(data);
 	}).live('ajax:error', function () {
 		alert("[ERROR] unable to retrieve domains");
+	});
+
+	$('#generate_checkbox').live('change', function () {
+		console.log("teste");
+	    if(this.checked) {
+			$('#new-record-form input#record_ttl').closest('tr').hide();
+			$('input#record_ttl').val(null);
+			$('#new-record-form input#record_range').closest('tr').show();
+			if (showAlert){
+				alert("Atention! By checking this, the record will be create as a generate directive.");
+			}
+	    }
+	    else{
+			$('#new-record-form input#record_ttl').closest('tr').show();
+			$('#new-record-form input#record_range').closest('tr').hide();
+			$('input#record_range').val(null);
+	    }
 	});
 });

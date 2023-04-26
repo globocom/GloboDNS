@@ -29,10 +29,10 @@
           %td= f.label :domain_template_id, t(:label_domain_domain_template)
           %td
             - if DomainTemplate.with_soa.count > 0
-              = collection_select(:domain, :domain_template_id, DomainTemplate.with_soa.all, :id, :name, :include_blank => true)
+              = collection_select(:domain, :domain_template_id, (DomainTemplate.with_soa.all.append DomainTemplate.new(id: nil, name: t(:label_blank_domain_template))), :id, :name)
             - else
               %em
-                = link_to(t(:label_create_domain_templates), new_domain_template_path)
+                = link_to(t(:label_create_domain_templates), domain_templates_path)
                 = t(:label_domain_for_eazy_management)
           %td &nbsp;
         %tr.notemplate.slave.master.forward
@@ -44,13 +44,24 @@
           %td= f.text_field :master
           %td= help_icon('help-master')
         %tr#forward-address.notemplate.forward
-          %td= f.label :forwarder, t(:label_domain_forwarder)
-          %td= f.text_field :forwarder
+          %td= f.label :master, t(:label_domain_forwarder)
+          %td= f.text_field :master
           %td= help_icon('help-forwarder')
         %tr.notemplate.master.slave.forward
           %td= f.label :view, t(:label_domain_view)
           %td= f.collection_select :view_id, View.all, :id, :name, :include_blank => true
           %td= help_icon('help-domain-view')
+        - if current_user.admin?
+          %tr.notemplate.forward
+            %td= label_tag :export_all, "Export to all ns servers"
+            %td= check_box_tag :export_all, {}, true
+            %td= help_icon('help-domain-view')
+          %tr.notemplate.forward.export-to.export-to-hide
+            %td= f.label :export_to, "Export to"
+            %td= "Use ctrl/cmd to multiple select"
+          %tr.notemplate.forward.export-to.export-to-hide
+            %td
+            %td.export-to= f.select :export_to, options_from_collection_for_select(@ns, :first, :last), {height: "80px"}, multiple: true, allow_blank: true
         %tr.notemplate.master
           %td= f.label :ttl, t(:label_domain_ttl)
           %td= f.text_field :ttl
@@ -79,6 +90,10 @@
           %td= f.label :minimum, t(:label_domain_minimum)
           %td= f.text_field :minimum
           %td= help_icon('help-minimum')
+      - if GloboDns::Config::DOMAINS_OWNERSHIP
+        %tr
+          %td= label :sub_component, "Sub component"
+          %td= select_tag :sub_component, options_for_select(@sub_components), {:required => true}
       %tfoot
         %tr.actions
           %td{:colspan => 3}

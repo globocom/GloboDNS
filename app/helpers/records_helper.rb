@@ -14,4 +14,7 @@
 # limitations under the License.
 
 module RecordsHelper
+  def should_increase_ttl?
+    GloboDns::Config::INCREASE_TTL
+  end
 end

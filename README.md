@@ -30,13 +30,13 @@ Below: Some screenshots from the admin user.
 
 ![Listing lasts actions on Dns-Api](doc/img/logs.png "Listing lasts actions on GloboDNS")
 
-##Security
-	With multiple levels of privilege, we can ensure that a specific user is abble to perform only specific tasks.
+## Security
+	With multiple levels of privilege, we can ensure that a specific user is able to perform only specific tasks.
 	
-##Integrity
+## Integrity
 	All actions are validated to prevent bad records or other undesirable human mistakes.
 	
-##Usability
+## Usability
 	The UI provides a simplier way to manage the service.
 
 ## Features
@@ -51,6 +51,8 @@ Below: Some screenshots from the admin user.
 
 Documentation
 =============
+
+[Changelog](./CHANGELOG.md)
 
 [Setup your environment](./doc/setup.md)
 

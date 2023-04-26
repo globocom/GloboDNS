@@ -21,6 +21,8 @@
 *= require tipTip
 *= require font-awesome
 *= require font-vagrounded
+*= require dns_group
+*= require select2.min.css
 *= require_self
 */
 
@@ -33,7 +35,7 @@ body {
     background-color: #eee;
 }
 .container {
-    width: 900px;
+    width: 1200px;
     margin: 2em auto 2em auto;
     box-shadow: 0px 0px 16px #888;
     background-color: white;
@@ -82,7 +84,7 @@ body {
 .nav a:hover {
     color: #4a65be;
 }
-#search-bar, #records-search-bar {
+#search-bar, .records-search-bar {
     float: right;
     margin-right: -1em;
 }
@@ -93,11 +95,11 @@ body {
     left: -1.5em;
     width: 0;
 }
-#search-bar input, #records-search-bar input {
+#search-bar input, .records-search-bar input {
     width: 10em;
     padding-right: 1.5em;
 }
-#records-search-bar {
+.records-search-bar {
     margin-right: -1.5em;
 }
 .clearer {
@@ -344,7 +346,7 @@ input[type="submit"]::-moz-focus-inner, input[type="button"]:focus {
     margin: 2em 0 .5em 0;
     padding: 0;
 }
-textarea#master-named-conf, textarea#slave-named-conf {
+textarea#master-named-conf, textarea.slave-named-conf {
     width: 99%;
     height: 25em;
     font-family: Monospace, Courier New;
@@ -365,6 +367,42 @@ textarea#master-named-conf, textarea#slave-named-conf {
 .pagination .previous_page, .pagination .next_page {
     font-size: 11pt;
 }
+.show-domain-owner-container table {
+    margin-bottom: 2em;
+}
+
+table#show-record-owner td, table#edit-record-owner td, table#new-record-owner td {
+    height: 2em;
+}
+table#show-record-owner td label, table#edit-record-owner td label, table#new-record-owner td label {
+    display: block;
+    min-width: 10em;
+    padding-right: 2em;
+}
+
+
+table#show-owner td, table#edit-owner td, table#new-owner td {
+    height: 2em;
+}
+table#show-owner td label, table#edit-owner td label, table#new-owner td label {
+    display: block;
+    min-width: 10em;
+    padding-right: 2em;
+}
+
+
+table#resolv-table {
+    width: 100%;
+    margin-bottom: 2em;
+    border-bottom: 1px solid #efefef;
+    border-collapse: collapse;
+}
+table#resolv-table td {
+    padding: .5em 0;
+}
+table#resolv-table tr.even {
+    background-color: #f7f7f7;
+}
 table#domains-table {
     width: 100%;
     margin-bottom: 2em;
@@ -379,7 +417,6 @@ table#domains-table tr.even {
 }
 .domains-selector-buttons {
     float: right;
-    margin: -1em 0 2em 0;
 }
 .domains-selector-buttons input[type="checkbox"] {
     visibility: hidden;
@@ -441,51 +478,54 @@ table#show-soa-record td, table#edit-soa-record td {
 table#show-soa-record td label, table#edit-soa-record td label {
     padding-right: 2em;
 }
-table#record-table {
+table.record-table {
     width: 100%;
     margin-bottom: 2em;
     border-collapse: collapse;
     border-bottom: 1px solid #efefef;
 }
-table#record-table th {
+table.record-table th {
     text-align: left;
 }
-table#record-table th, table#record-table td {
+table.record-table th, table.record-table td {
     padding: .5em 0;
     white-space: nowrap;
 }
-table#record-table tr.even {
+table.record-table tr.even {
     background-color: #f7f7f7;
 }
-table#record-table td.actions {
+table.record-table td.actions {
     text-align: right;
     width: 6em;
 }
-table#record-table td.actions a {
+table.record-table td.actions a {
     color: #444;
     font-size: 120%;
 }
-table#record-table td.name {
-    width: 15em;
+table.record-table td.name {
+    width: 28em;
 }
-table#record-table td.content {
+table.record-table td.content {
     padding-right: 1em;
 }
-table#record-table td.content span {
+table.record-table td.content span {
     display: inline-block;
     overflow: hidden;
 }
-table#record-table td.ttl, table#record-table td.type, table#record-table td.prio {
+table.record-table td.ttl, table.record-table td.type, table.record-table td.prio, table.record-table td.weight, table.record-table td.port {
     width: 6em;
 }
-table#record-table tr.edit-record td {
+table.record-table tr.edit-record td {
     padding: 0;
 }
-table#record-table td input#record_name {
+table.record-table td input#record_name {
     width: 12em;
 }
-table#record-table td input#record_ttl, table#record-table td input#record_prio {
+table.record-table td input#record_ttl, table.record-table td input#record_prio, table.record-table td input#record_weight, table.record-table td input#record_port {
     width: 4em;
+}
+table#new-record td {
+    height: 2em;
 }
 table#new-record td label {
     padding-right: 2em;
@@ -565,6 +605,23 @@ table#show-domain-template td label, table#edit-domain-template td label, table#
     padding-right: 2em;
 }
 
+div.select-domain-template-view-form-container {
+    width: 15em;
+}
+
+div.select-domain-template-view-form-container select {
+    height: 2em;
+    box-sizing: border-box;
+}
+
+div.select-domain-template-view-form-container .cancel-select-domain-template-view-button {
+    float: left;
+}
+
+div.select-domain-template-view-form-container .select-domain-template-view-button {
+    float: right;
+}
+
 table#show-soa-record-template td, table#edit-soa-record-template td {
     height: 2em;
 }
@@ -597,13 +654,13 @@ table#record-templates-table td.actions a {
 table#record-templates-table td.name, table#record-templates-table td.data {
     width: 30%;
 }
-table#record-templates-table td.ttl, table#record-templates-table td.type, table#record-templates-table td.prio {
+table#record-templates-table td.ttl, table#record-templates-table td.type, table#record-templates-table td.prio, table#record-templates-table td.weight, table#record-templates-table td.port {
     width: 10%;
 }
 table#record-templates-table tr.edit-record td {
     padding: 0;
 }
-table#record-templates-table td input#record_template_ttl, table#record-templates-table td input#record_template_prio {
+table#record-templates-table td input#record_template_ttl, table#record-templates-table td input#record_template_prio, table#record-templates-table td input#record_template_weight, table#record-templates-table td input#record_template_port {
     width: 4em;
 }
 table#new-record-template td label {
@@ -723,7 +780,7 @@ ul.start li {
 
 .dialog {
     position:   fixed;
-    width:      640px;
+    width:      800px;
     display:    none;
     padding:    2em;
     z-index:    9999;
@@ -757,7 +814,12 @@ ul.start li {
     padding: 0 1em;
     text-align: right;
 }
- 
+.export-to-hide{
+    display: none;
+}
+.export-to select{
+    height: 100px;
+}
 #ajaxBusy {
   display: none;
   margin: 0;

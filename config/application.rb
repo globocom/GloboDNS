@@ -26,6 +26,9 @@ end
 
 module GloboDns
   class Application < Rails::Application
+    # Set if the application uses OmniAuth or not
+    config.omniauth = false
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
@@ -68,6 +71,9 @@ module GloboDns
 
     # Enable the asset pipeline
     config.assets.enabled = true
+    config.assets.paths << Rails.root.join('vendor', 'assets', 'fonts')
+    config.assets.precompile << /\.(?:svg|eot|woff|ttf)$/
+
 
     # application version
     version_file_name = File.expand_path('../../REVISION', __FILE__)

@@ -3,8 +3,9 @@
   %h2= t(:title_master_named_conf)
   ~ text_area_tag 'master-named-conf', @master_named_conf
 
-  %h2= t(:title_slave_named_conf)
-  ~ text_area_tag 'slave-named-conf',  @slave_named_conf
+  - @slaves_named_confs.each_with_index do |slave_named_conf, index|
+    %h2= "\##{index+1} #{t(:title_slave_named_conf)}"
+    ~ text_area_tag "slave-named-conf[]", slave_named_conf, class: 'slave-named-conf'
 
   %div.actions
     = button_tag(t(:generic_reload),   :href => bind9_config_path,          :class => 'reload-bind-config-button          ui-icon-refresh',      :type => 'reset', 'data-method' => :get,  'data-remote' => true)

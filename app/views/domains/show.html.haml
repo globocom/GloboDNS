@@ -31,12 +31,28 @@
   %div.actions
     = button_tag t(:generic_close), :class => 'close-button close-resolve-result-button ui-icon-remove'
 
+
+- if GloboDns::Config::DOMAINS_OWNERSHIP
+  %div#owner-info.dialog
+    %div.content
+    %div.actions
+      = button_tag t(:generic_close), :class => 'close-button close-owner-info-button ui-icon-remove'
+
 %h1
   = Domain.model_name.human.titleize
   - if current_user.admin? || current_user.operator?
     = link_to('', '#', :class => 'edit-domain-button ui-icon-edit', :title => t(:generic_edit))
-    = link_to('', domain_path(@domain), :class => 'delete-domain-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :confirm => t(:confirm_domain_delete, :domain => @domain.name))
+  - if current_user.admin?
+    = link_to('', domain_path(@domain), :class => 'delete-domain-button ui-icon-trash', :title => t(:generic_delete), :method => :delete, :data => {:confirm => t(:confirm_domain_delete, :domain => @domain.name)})
 = render :partial => 'form', :object => @domain, :as => :domain
+
+- if GloboDns::Config::DOMAINS_OWNERSHIP
+  %h1
+    = "Owner"
+    - if current_user.admin?
+      = link_to('', '#', :class => 'edit-owner-button ui-icon-edit', :title => t(:generic_edit))
+    %div.show-domain-owner-container
+  = render :partial => 'owner_info', :object => @domain, :as => :domain
 
 - if @domain.master?
   #domain-soa
@@ -46,15 +62,33 @@
         = link_to('', '#', :class => 'edit-soa-record-button ui-icon-edit', :title => t(:generic_edit))
     = render :partial => @domain.soa_record
 
+  - if @sibling_records
+    #sibling-records
+      %h1= link_to t("records_for_sibling_domain"), @sibling
+      .records-search-bar
+        - params[:records_query] = params[:records_query].gsub("%","*") unless params[:records_query].nil?
+        = form_tag(domain_path(@sibling), :method => :get) do
+          = text_field_tag :records_query, params[:records_query], :class => 'search-field', :data => {'help' => 'help-records-search'}
+          %span.search-icon
+      %div.clearer
+      = render :partial => 'records/list', locals: {:records => @sibling_records}
+
+  %div.clearer
   #domain-records
     %h1= t(:title_records)
-    #records-search-bar
-      = form_tag(domain_records_path(@domain), :remote => true, :method => :get, :id => 'records-search-form') do
-        = text_field_tag :query, '', :class => 'search-field', 'data-help' => 'help-records-search'
+    .records-search-bar
+      - params[:records_query] = params[:records_query].gsub("%","*") unless params[:records_query].nil?
+      = form_tag(domain_path(@domain), :method => :get) do
+        = text_field_tag :records_query, params[:records_query], :class => 'search-field', :data => {'help' => 'help-records-search'}
         %span.search-icon
     %div.clearer
-    = render :partial => 'records/list', :object => @records, :as => :records
+    = render :partial => 'records/list', locals: {:records => @records}
+
+    = render :partial => 'other_records'
 
     - if current_user.admin? || current_user.operator?
       = button_tag t(:label_add_record), :class => 'new-record-button ui-icon-plus'
       = render :partial => 'records/new', :object => @domain.records.new, :as => :record
+
+
+

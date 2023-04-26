@@ -44,62 +44,62 @@ module NamedConf
     attr_accessor :chroot_dir
 
     def named_conf
-        view_keys = views.collect(&:key_name)
-        str       = ''
+      view_keys = views.collect(&:key_name)
+      str       = ''
 
-        elements.each do |element|
-            next unless element.respond_to?(:top_level_directive)
-            top_level = element.top_level_directive
+      elements.each do |element|
+        next unless element.respond_to?(:top_level_directive)
+        top_level = element.top_level_directive
 
-            # skip zones and views
-            next if is_rule?(top_level, 'zone') ||
-                    is_rule?(top_level, 'view') ||
-                    is_rule?(top_level, 'key') && top_level.respond_to?(:key_name) && view_keys.include?(top_level.key_name.to_s)
+        # skip zones and views
+        next if is_rule?(top_level, 'zone') ||
+          is_rule?(top_level, 'view') ||
+          is_rule?(top_level, 'key') && top_level.respond_to?(:key_name) && view_keys.include?(top_level.key_name.to_s)
 
-            str << top_level.text_value << "\n\n"
-        end
-        str
+        str << top_level.text_value << "\n\n"
+      end
+      str
     end
 
     def views
-        @views ||= get_views_recursively
+      @views ||= get_views_recursively
     end
 
     def domains
-        @domains ||= get_domains_recursively
+      @domains ||= get_domains_recursively
     end
 
     def directory_option
-        @directory_option ||= get_directory_option_recursively
+      @directory_option ||= get_directory_option_recursively
     end
 
     private
 
     def is_rule?(node, rule_name)
-        node.extension_modules.include?("NamedConf::#{rule_name.camelize}0".constantize)
+      node.extension_modules.include?("NamedConf::#{rule_name.camelize}0".constantize)
     end
 
     def get_views_recursively(node = self, views = Array.new)
-        views << node.view if node.respond_to?(:view)
-        node.elements.each do |child|
-            get_views_recursively(child, views) unless child.terminal?
-        end
-        views
+      views << node.view if node.respond_to?(:view)
+      node.elements.each do |child|
+        get_views_recursively(child, views) unless child.terminal?
+      end
+      views
     end
 
     def get_domains_recursively(node = self, domains = Array.new)
-        node.respond_to?(:view)   and return domains
-        node.respond_to?(:domain) and domains << node.domain
+      node.respond_to?(:view)   and return domains
+      node.respond_to?(:domain) and domains << node.domain
 
-        node.elements.each do |child|
-            get_domains_recursively(child, domains) unless child.terminal?
-        end
-        domains
+      node.elements.each do |child|
+        get_domains_recursively(child, domains) unless child.terminal?
+      end
+      domains
     end
 
     def get_directory_option_recursively(node = self)
-        top_level = elements.find{|e| e.respond_to?(:top_level_directive) && is_rule?(e.top_level_directive, 'options')}
-        top_level and top_level.top_level_directive.options_statements.elements.find{|e| e.respond_to?(:directory_option)}.try(:directory_option)
+      top_level = elements.find{|e| e.respond_to?(:top_level_directive) && is_rule?(e.top_level_directive, 'options')}
+      top_level and top_level.top_level_directive.options_statements.elements.find{|e| e.respond_to?(:directory_option)}.try(:directory_option)
     end
   end
 
@@ -1675,23 +1675,23 @@ module NamedConf
 
   module View1
     def view
-        unless @view
-            @view              = View.new(:name => view_name.text_value.strip_quotes)
-            @view.domains      = get_domains_recursively
-            @view.clients      = view_statements.elements.find{|e| e.respond_to?(:match_clients)}.try(:match_clients).try(:to_s)
-            @view.destinations = view_statements.elements.find{|e| e.respond_to?(:match_destinations)}.try(:match_destinations).try(:to_s)
-        end
-        @view
+      unless @view
+        @view              = View.new(:name => view_name.text_value.strip_quotes)
+        @view.domains      = get_domains_recursively
+        @view.clients      = view_statements.elements.find{|e| e.respond_to?(:match_clients)}.try(:match_clients).try(:to_s)
+        @view.destinations = view_statements.elements.find{|e| e.respond_to?(:match_destinations)}.try(:match_destinations).try(:to_s)
+      end
+      @view
     end
 
     private
 
     def get_domains_recursively(node = self, domains = Array.new)
-        domains << node.domain(self.view) if node.respond_to?(:domain)
-        node.elements.each do |child|
-            get_domains_recursively(child, domains) unless child.terminal?
-        end
-        domains
+      domains << node.domain(self.view) if node.respond_to?(:domain)
+      node.elements.each do |child|
+        get_domains_recursively(child, domains) unless child.terminal?
+      end
+      domains
     end
   end
 
@@ -1837,79 +1837,79 @@ module NamedConf
 
   module Zone1
     def domain(view = nil)
-        # STDERR.puts "[INFO] calling 'zone' method of rule 'zone'"
-        @domain ||= begin
-            name   = zone_name.text_value.strip_quotes
-            type   = zone_statements.elements.find{|zs| zs.respond_to?(:zone_type)}.try(:zone_type)
-            file   = zone_statements.elements.find{|zs| zs.respond_to?(:zone_file)}.try(:zone_file)
-            master = zone_statements.elements.find{|zs| zs.respond_to?(:zone_masters)}.try(:zone_masters)
+      # STDERR.puts "[INFO] calling 'zone' method of rule 'zone'"
+      @domain ||= begin
+        name   = zone_name.text_value.strip_quotes
+        type   = zone_statements.elements.find{|zs| zs.respond_to?(:zone_type)}.try(:zone_type)
+        file   = zone_statements.elements.find{|zs| zs.respond_to?(:zone_file)}.try(:zone_file)
+        master = zone_statements.elements.find{|zs| zs.respond_to?(:zone_masters)}.try(:zone_masters)
 
-            if type == 'master'
-                directory_option = find_directory_in_parents
-                chroot_dir       = find_chroot_dir_in_parents
-                chroot_file_path = Pathname.new(file).absolute? ? File.join(chroot_dir, file) : File.join(chroot_dir, directory_option, file)
-                File.exists?(chroot_file_path) or raise Exception.new("[ERROR] zone file not found: \"#{chroot_file_path}\"")
-                zone_file        = Zonefile.from_file(chroot_file_path, name, chroot_dir, directory_option)
+        if type == 'master'
+          directory_option = find_directory_in_parents
+          chroot_dir       = find_chroot_dir_in_parents
+          chroot_file_path = Pathname.new(file).absolute? ? File.join(chroot_dir, file) : File.join(chroot_dir, directory_option, file)
+          File.exists?(chroot_file_path) or raise Exception.new("[ERROR] zone file not found: \"#{chroot_file_path}\"")
+          zone_file        = Zonefile.from_file(chroot_file_path, name, chroot_dir, directory_option)
 
-                _domain = Domain.new(:name             => zone_file.origin,
-                                     :view             => view,
-                                     :authority_type   => Domain::MASTER,
-                                     :ttl              => zone_file.ttl,
-                                     :import_file_name => chroot_file_path)
+          _domain = Domain.new(:name             => zone_file.origin,
+                               :view             => view,
+                               :authority_type   => Domain::MASTER,
+                               :ttl              => zone_file.ttl,
+                               :import_file_name => chroot_file_path)
 
-                _domain.soa_record = SOA.new(:name       => zone_file.soa[:origin],
-                                             :ttl        => zone_file.soa[:ttl],
-                                             :primary_ns => zone_file.soa[:primary],
-                                             :contact    => zone_file.soa[:email],
-                                             :serial     => zone_file.soa[:serial],
-                                             :refresh    => zone_file.soa[:refresh],
-                                             :retry      => zone_file.soa[:retry],
-                                             :expire     => zone_file.soa[:expire],
-                                             :minimum    => zone_file.soa[:minimumTTL])
-                puts "[Zonefile] parsing file #{chroot_file_path} (name: #{name}) (object_id: #{_domain.object_id}) (inspect: #{_domain.inspect})"
-                _domain.soa_record.serial = zone_file.soa[:serial]
+          _domain.soa_record = SOA.new(:name       => zone_file.soa[:origin],
+                                       :ttl        => zone_file.soa[:ttl],
+                                       :primary_ns => zone_file.soa[:primary],
+                                       :contact    => zone_file.soa[:email],
+                                       :serial     => zone_file.soa[:serial],
+                                       :refresh    => zone_file.soa[:refresh],
+                                       :retry      => zone_file.soa[:retry],
+                                       :expire     => zone_file.soa[:expire],
+                                       :minimum    => zone_file.soa[:minimumTTL])
+          puts "[Zonefile] parsing file #{chroot_file_path} (name: #{name}) (object_id: #{_domain.object_id}) (inspect: #{_domain.inspect})"
+          _domain.soa_record.serial = zone_file.soa[:serial]
 
-                zone_file.all_records.each do |record|
-                    next if record[:type].upcase == 'SOA'
-                    _domain.records << record[:type].constantize.new(:name    => record[:name],
-                                                                     :ttl     => record[:ttl],
-                                                                     :prio    => record[:pri],
-                                                                     :content => record[:host])
-                end
-            else
-                _domain = Domain.new(:name             => name,
-                                     :view             => view,
-                                     :authority_type   => Domain::const_get(type.upcase),
-                                     :master           => master,
-                                     :import_file_name => chroot_file_path)
-            end
-
-            _domain
+          zone_file.all_records.each do |record|
+            next if record[:type].upcase == 'SOA'
+            _domain.records << record[:type].constantize.new(:name    => record[:name],
+                                                             :ttl     => record[:ttl],
+                                                             :prio    => record[:pri],
+                                                             :content => record[:host])
+          end
+        else
+          _domain = Domain.new(:name             => name,
+                               :view             => view,
+                               :authority_type   => Domain::const_get(type.upcase),
+                               :master           => master,
+                               :import_file_name => chroot_file_path)
         end
+
+        _domain
+      end
     end
 
     def find_chroot_dir_in_parents
-        p = parent
-        while p
-            return p.chroot_dir if p.respond_to?(:chroot_dir)
-            p = p.parent
-        end
-        raise Exception.new('[ERROR] unable to find "chroot_dir" attribute on parent nodes')
+      p = parent
+      while p
+        return p.chroot_dir if p.respond_to?(:chroot_dir)
+        p = p.parent
+      end
+      raise Exception.new('[ERROR] unable to find "chroot_dir" attribute on parent nodes')
     end
 
     def find_directory_in_parents
-        @directory_option ||= begin
-            dir = nil
-            p   = parent
-            while p
-                if p.respond_to?(:directory_option)
-                    dir = p.directory_option
-                    break
-                end
-                p = p.parent
-            end
-            dir
+      @directory_option ||= begin
+        dir = nil
+        p   = parent
+        while p
+          if p.respond_to?(:directory_option)
+            dir = p.directory_option
+            break
+          end
+          p = p.parent
         end
+        dir
+      end
     end
   end
 
@@ -2253,11 +2253,11 @@ module NamedConf
 
   module MastersStatements3
     def to_s
-        # hack: there may be multiple masters, but we only select the first
-        # one as the DB currently expects a single IP addr value
-        ipaddr = elements.select{|el| el.respond_to?(:ipaddr)}.collect{|el| el.ipaddr.text_value}.first
-        port   = elements.select{|el| el.respond_to?(:port)  }.collect{|el| el.port.text_value}.first
-        (port ? "#{ipaddr}/#{port}" : ipaddr)
+      # hack: there may be multiple masters, but we only select the first
+      # one as the DB currently expects a single IP addr value
+      ipaddr = elements.select{|el| el.respond_to?(:ipaddr)}.collect{|el| el.ipaddr.text_value}.first
+      port   = elements.select{|el| el.respond_to?(:port)  }.collect{|el| el.port.text_value}.first
+      (port ? "#{ipaddr}/#{port}" : ipaddr)
     end
   end
 
@@ -2448,7 +2448,7 @@ module NamedConf
 
   module DirectoryStatement1
     def directory_option
-        filename.text_value.strip_quotes
+      filename.text_value.strip_quotes
     end
   end
 
@@ -2670,7 +2670,7 @@ module NamedConf
 
   module DnsClass0
     def to_s
-        text_value
+      text_value
     end
   end
 
@@ -2890,7 +2890,7 @@ module NamedConf
 
   module MatchClients2
     def to_s
-        elements[4].elements.collect{|e| e.address_match.to_s}.join('; ')
+      elements[4].elements.collect{|e| e.address_match.to_s}.join('; ')
     end
   end
 
@@ -3038,7 +3038,7 @@ module NamedConf
 
   module MatchDestinations2
     def to_s
-        elements[4].elements.collect{|e| e.address_match.to_s}.join('; ')
+      elements[4].elements.collect{|e| e.address_match.to_s}.join('; ')
     end
   end
 
@@ -3267,7 +3267,7 @@ module NamedConf
 
   module ZoneStatements0
     def zone_str
-        elements.collect(&:to_s).join(":")
+      elements.collect(&:to_s).join(":")
     end
   end
 
@@ -3342,11 +3342,11 @@ module NamedConf
 
   module ZoneTypeStatement1
     def to_s
-        "type #{zone_type_value}"
+      "type #{zone_type_value}"
     end
 
     def zone_type
-        zone_type_value.text_value.strip_quotes
+      zone_type_value.text_value.strip_quotes
     end
   end
 
@@ -3412,7 +3412,7 @@ module NamedConf
 
   module ZoneTypeValue0
     def to_s
-        text_value
+      text_value
     end
   end
 
@@ -3517,11 +3517,11 @@ module NamedConf
 
   module ZoneFileStatement1
     def to_s
-        "file #{filename}"
+      "file #{filename}"
     end
 
     def zone_file
-        filename.text_value.strip_quotes
+      filename.text_value.strip_quotes
     end
   end
 
@@ -3614,11 +3614,11 @@ module NamedConf
 
   module ZoneMastersStatement1
     def to_s
-        "masters { #{masters_statements} }"
+      "masters { #{masters_statements} }"
     end
 
     def zone_masters
-        masters_statements.to_s.strip_quotes
+      masters_statements.to_s.strip_quotes
     end
   end
 
@@ -3739,7 +3739,7 @@ module NamedConf
 
   module ZoneAllowUpdateStatement1
     def to_s
-        "allow-update { #{allow_update_values} }"
+      "allow-update { #{allow_update_values} }"
     end
   end
 
@@ -3847,7 +3847,7 @@ module NamedConf
 
   module AllowUpdateValues1
     def to_s
-        elements.collect{|el| el.allow_update_value}.join(' ')
+      elements.collect{|el| el.allow_update_value}.join(' ')
     end
   end
 
@@ -3915,7 +3915,7 @@ module NamedConf
 
   module AllowUpdateValue1
     def to_s
-        text_value
+      text_value
     end
   end
 
@@ -4000,11 +4000,11 @@ module NamedConf
 
   module Space0
     def inspect(indent = '')
-        ''
+      ''
     end
 
     def to_s
-        ''
+      ''
     end
   end
 
@@ -4140,7 +4140,7 @@ module NamedConf
 
   module Filename1
     def to_s
-        text_value
+      text_value
     end
   end
 
@@ -4491,7 +4491,7 @@ module NamedConf
 
   module Name2
     def to_s
-        text_value
+      text_value
     end
   end
 
@@ -4572,7 +4572,7 @@ module NamedConf
 
   module Id0
     def to_s
-        text_value
+      text_value
     end
   end
 
@@ -4619,7 +4619,7 @@ module NamedConf
 
   module String1
     def to_s
-        text_value
+      text_value
     end
   end
 
@@ -4687,7 +4687,7 @@ module NamedConf
 
   module Ipaddr0
     def to_s
-        text_value
+      text_value
     end
   end
 
@@ -4727,7 +4727,7 @@ module NamedConf
 
   module Ipv41
     def to_s
-        text_value
+      text_value
     end
   end
 
@@ -4891,7 +4891,7 @@ module NamedConf
 
   module Ipv60
     def to_s
-        text_value
+      text_value
     end
   end
 
@@ -4935,7 +4935,7 @@ module NamedConf
 
   module IpaddrPrefixLength0
     def to_s
-        text_value
+      text_value
     end
   end
 
@@ -4979,7 +4979,7 @@ module NamedConf
 
   module Port0
     def to_s
-        text_value
+      text_value
     end
   end
 
@@ -5026,7 +5026,7 @@ module NamedConf
 
   module KeyName1
     def to_s
-        text_value.strip_quotes
+      text_value.strip_quotes
     end
   end
 
@@ -5171,7 +5171,7 @@ module NamedConf
 
   module AddressMatch5
     def to_s
-        text_value
+      text_value
     end
   end
 
@@ -5375,4 +5375,3 @@ end
 class NamedConfParser < Treetop::Runtime::CompiledParser
   include NamedConf
 end
-

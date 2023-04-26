@@ -1,0 +1,31 @@
+<% if defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW %>
+	<% if @domain.view and @domain.view.name == 'default' %>
+		<% View.all.where.not(name: 'default').each do |view| %>
+			<% unless view.domains.where(name: @domain.name).empty? %>
+				<% domain = view.domains.where(name: @domain.name).first %>
+				<% unless domain.records.without_soa.empty? %>
+					<h1> Records <%= link_to domain.view_id ? "- #{domain.name} (#{domain.view.name})" : domain.name, domain_path(domain), {:style => "color: #0f2f98; padding-left: 0em"} %> </h1>
+					<% if params[:records_query].present? %>
+						<%= render :partial => 'records/list', locals: {:records => domain.records.without_soa.matching(params[:records_query])} %>
+					<% else %>
+						<%= render :partial => 'records/list', locals: {:records => domain.records.without_soa} %>
+					<% end %>
+				<% end %>
+			<% end %>
+		<% end %>
+	<% else %>
+		<% view = View.default%>
+		<% unless view.domains.where(name: @domain.name).empty? %>
+			<% domain = view.domains.where(name: @domain.name).first %>
+			<% unless domain.records.without_soa.empty? %>
+				<h1> Records <%= link_to domain.view_id ? "- #{domain.name} (#{domain.view.name})" : domain.name, domain_path(domain), {:style => "color: #0f2f98; padding-left: 0em"} %> </h1>
+				<% if params[:records_query].present? %>
+					<%= render :partial => 'records/list', locals: {:records => domain.records.without_soa.matching(params[:records_query])} %>
+				<% else %>
+					<%= render :partial => 'records/list', locals: {:records => domain.records.without_soa} %>
+				<% end %>
+			<% end %>
+		<% end %>
+	<% end %>
+<% end %>
+

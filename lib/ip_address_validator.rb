@@ -14,13 +14,23 @@
 # limitations under the License.
 
 class IpAddressValidator < ActiveModel::EachValidator
-    include RecordPatterns
+  include RecordPatterns
 
-    def validate_each( record, attribute, value )
-        record.errors[ attribute ] << I18n.t(:message_attribute_must_be_ip) unless valid?( value )
-    end
+  def validate_each( record, attribute, value )
+    return if record.generate?
+    record.errors[ attribute ] << I18n.t(:message_attribute_must_be_ip) unless valid?( value )
+  end
 
-    def valid?( ip )
-        ( options[:ipv6] && ipv6?( ip ) ) || ipv4?( ip )
+  def valid?( ip )
+    begin
+      ip = IPAddr.new ip
+      if options[:ipv6]
+        return ip.ipv6?
+      else
+        return ip.ipv4?
+      end
+    rescue Exception => e
+      false
     end
+  end
 end

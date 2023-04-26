@@ -7,14 +7,20 @@
 %tr[ record, :show ]{:class => "#{even_odd} show-record"}
   %td.name=    record.name
   %td.ttl=     record.ttl
+  %td.range=     record.range
   %td.type=    record.type
+  %td.tag=     record.supports_tag? ? record.tag : '&nbsp;'.html_safe
   %td.prio=    record.supports_prio? ? record.prio : '&nbsp;'.html_safe
+  %td.weight=  record.supports_weight? ? record.weight : '&nbsp;'.html_safe
+  %td.port=    record.supports_port? ? record.port : '&nbsp;'.html_safe
   %td.content{'title' => record.content}
     %span= record.content
   %td.actions
     - if current_user.admin? || current_user.operator?
+      - if GloboDns::Config::DOMAINS_OWNERSHIP
+        = link_to('', verify_owner_record_path(record), :remote => true, :class => 'owner-info-record-button ui-icon-key', :title => "Check Owner")
       = link_to '', '#', :class => 'edit-record-button ui-icon-edit', :title => t(:generic_edit)
-      = link_to '', record_path(record), :remote => true, :method => :delete, :confirm => t(:confirm_domain_delete_record), :class => 'delete-record-button ui-icon-trash', :title => t(:generic_delete)
+      = link_to '', record_path(record), :remote => true, :method => :delete, :data => {:confirm => t(:confirm_domain_delete_record)}, :class => 'delete-record-button ui-icon-trash', :title => t(:generic_delete)
       = link_to '', resolve_record_path(record), :remote => true, :class => 'resolve-record-button ui-icon-cogs', :title => t(:label_dns_query)
 
 - if current_user.admin? || current_user.operator?
@@ -22,8 +28,12 @@
     = form_for(record, :as => 'record', :url => record_path(record)) do |f|
       %td.name=    f.text_field :name
       %td.ttl=     f.text_field :ttl
+      %td.range=     f.text_field :range
       %td.type=    record.type
+      %td.tag=     record.tag #record.supports_tag? ? f.select(:tag) : '&nbsp;'.html_safe
       %td.prio=    record.supports_prio? ? f.text_field(:prio) : '&nbsp;'.html_safe
+      %td.weight=  record.supports_weight? ? f.text_field(:weight) : '&nbsp;'.html_safe
+      %td.port=    record.supports_port? ? f.text_field(:port) : '&nbsp;'.html_safe
       %td.content= f.text_field :content
       %td.actions
         = link_to('', '#', :class => 'update-record-button      ui-icon-download-alt', :title => t(:generic_update))

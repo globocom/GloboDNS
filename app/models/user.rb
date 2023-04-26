@@ -12,63 +12,114 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+require 'bcrypt'
 require 'digest/sha1'
 
 class User < ActiveRecord::Base
 
-    devise :database_authenticatable,
-           :token_authenticatable,
-           :rememberable,
-           :validatable,
-           :encryptable,
-           # :recoverable,
-           # :registerable,
-           :encryptor => :restful_authentication_sha1
-           # :confirmable,
-
-    ROLES = define_enum(:role, [:ADMIN, :OPERATOR, :VIEWER])
-
-    # before_save :check_auth_tokens
+  if GloboDns::Application.config.omniauth
+    validates :email, presence: true, uniqueness: true
+    devise :omniauthable, :omniauth_providers => [:oauth_provider]
+  else
     before_save   :ensure_authentication_token
-    # after_destroy :persist_audits
+    devise :database_authenticatable, :rememberable, :validatable, :encryptable, :encryptor => :restful_authentication_sha1
+  end
 
-    # has_many :audits, :as => :user
+  attr_accessible :login, :email, :role, :active, :password, :password_confirmation, :oauth_token, :oauth_expires_at, :uid, :password_salt, :provider
 
-    # ROLES = [:ADMIN, :OPERATOR, :VIEWER].inject(Hash.new) do |hash, role|
-    #     role_str = role.to_s[0]
-    #     const_set(('ROLE_' + role.to_s).to_sym, role_str)
-    #     hash[role_str] = role
-    #     hash
-    # end
+  ROLES = define_enum(:role, [:ADMIN, :OPERATOR, :VIEWER])
 
-    # prevents a user from submitting a crafted form that bypasses activation
-    # anything else you want your user to change should be added here.
-    attr_accessible :login, :email, :password, :password_confirmation, :role, :authentication_token
-
-    # def admin?
-    #     role == ROLE_ADMIN
-    # end
-
-    # def operator?
-    #     role == ROLE_OPERATOR
-    # end
-
-    # def viewer?
-    #     role == ROLE_VIEWER
-    # end
-
-    def auth_json
-        self.to_json(:root => false, :only => [:id, :authentication_token])
+  def self.from_api(auth)
+    user = User.where(uid: auth['id']).first
+    if user.nil?
+      user = User.new({
+                        active: false,
+                        uid: auth['id'],
+                        email: 'api@example.com',
+                        login: auth['name'],
+                        password: Devise.friendly_token[0,20],
+                        provider: :oauth_provider,
+                        oauth_token: auth['token'],
+                        oauth_expires_at: Time.now + 5.minutes,
+                        role: "O"
+      })
+      user.save!
+    else
+      user.update_attributes({
+                               login: auth['name'],
+                               password: Devise.friendly_token[0,20],
+                               oauth_token: auth['token'],
+                               oauth_expires_at: Time.now + 5.minutes
+      })
     end
+    user
+  end
 
-    protected
-
-    def persist_audits
-        quoted_login = ActiveRecord::Base.connection.quote(self.login)
-        Audit.update_all(
-            "username = #{quoted_login}",
-            [ 'user_type = ? AND user_id = ?', self.class.name, self.id ]
-        )
+  def self.from_omniauth(auth)
+    user = User.where(email: auth.info.email).first
+    if user.nil? # Doesnt exist yet. Lets create it
+      user = User.new({
+                        active: false,
+                        uid: auth.uid,
+                        email: auth.info.email,
+                        login: auth.info.name,
+                        password: Devise.friendly_token[0,20],
+                        provider: :oauth_provider,
+                        oauth_token: auth.credentials.token,
+                        oauth_expires_at: Time.at(auth.credentials.expires_at),
+                        role: "O"
+      })
+      user.save!
+    else # Already created. lets update it
+      user.update_attributes({
+                               uid: auth.uid,
+                               email: auth.info.email,
+                               login: auth.info.name,
+                               password: Devise.friendly_token[0,20],
+                               oauth_token: auth.credentials.token,
+                               oauth_expires_at: Time.at(auth.credentials.expires_at)
+      })
     end
+    user
+  end
+
+  def ensure_authentication_token
+    if authentication_token.blank?
+      self.authentication_token = generate_authentication_token
+    end
+  end
+
+  def auth_json
+    self.to_json(:root => false, :only => [:id, :authentication_token])
+  end
+
+  def valid_password?(password, pepper = Devise.pepper, salt = self.password_salt)
+    digest = pepper
+    valid = false
+
+    for i in 0..Devise.stretches-1
+      digest = Digest::SHA1.hexdigest([digest, salt, password, pepper].flatten.join('--'))
+      valid =  true if digest == self.encrypted_password
+      # puts digest
+    end
+    return valid
+  end
+
+
+  protected
+  def persist_audits
+    quoted_login = ActiveRecord::Base.connection.quote(self.login)
+    Audit.update_all(
+      "username = #{quoted_login}",
+      [ 'user_type = ? AND user_id = ?', self.class.name, self.id ]
+    )
+  end
+
+  private
+  def generate_authentication_token
+    loop do
+      token = Devise.friendly_token
+      break token unless User.where(authentication_token: token).first
+    end
+  end
 end

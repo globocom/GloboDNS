@@ -7,19 +7,25 @@
   %td.name=    record_template.name
   %td.ttl=     record_template.ttl
   %td.type=    record_template.type
+  %td.tag=     record_template.tag
   %td.prio=    record_template.prio
+  %td.prio=    record_template.weight
+  %td.prio=    record_template.port
   %td.content= record_template.content
   %td.actions
-    = link_to '', '#', :class => 'edit-record-template-button ui-icon-edit', :title => t(:generic_edit)
-    = link_to '', record_template_path(record_template), :remote => true, :method => :delete, :confirm => t(:confirm_delete_record_template), :class => 'delete-record-template-button ui-icon-trash', :title => t(:generic_delete)
+    = link_to_if(current_user.admin?, '', '#', :class => 'edit-record-template-button ui-icon-edit', :title => t(:generic_edit))
+    = link_to_if(current_user.admin?, '', record_template_path(record_template), :remote => true, :method => :delete, :data => {:confirm => t(:confirm_delete_record_template)}, :class => 'delete-record-template-button ui-icon-trash', :title => t(:generic_delete))
 
 %tr[ record_template, :edit ]{:class => "#{even_odd} edit-record-template hidden"}
   = form_for(record_template, :as => 'record_template', :url => record_template_path(record_template)) do |f|
     %td.name=    f.text_field :name
     %td.ttl=     f.text_field :ttl
     %td.type=    record_template.type
+    %td.tag=     record_template.tag
     %td.prio=    f.text_field :prio
+    %td.prio=    f.text_field :weight
+    %td.prio=    f.text_field :port
     %td.content= f.text_field :content
     %td.actions
-      = link_to('', '#', :class => 'update-record-template-button ui-icon-download-alt',    :title => t(:generic_update))
-      = link_to('', '#', :class => 'cancel-edit-record-template-button ui-icon-ban-circle', :title => t(:generic_cancel))
+      = link_to_if(current_user.admin?,'', '#', :class => 'update-record-template-button ui-icon-download-alt',    :title => t(:generic_update))
+      = link_to_if(current_user.admin?,'', '#', :class => 'cancel-edit-record-template-button ui-icon-ban-circle', :title => t(:generic_cancel))

@@ -9,7 +9,7 @@
   %td.actions
     - unless record.domain.slave?
       = link_to '', '#', :class => 'edit-record-button ui-icon-edit', :title => t(:generic_edit)
-      = link_to '', record_path(record), :remote => true, :method => :delete, :confirm => t(:confirm_domain_delte_record), :class => 'delete-record-button ui-icon-trash', :title => t(:generic_delete)
+      = link_to '', record_path(record), :remote => true, :method => :delete, :data => {:confirm => t(:confirm_domain_delte_record)}, :class => 'delete-record-button ui-icon-trash', :title => t(:generic_delete)
 
 - unless record.domain.slave?
   %tr[ record, :edit ]{:style => 'display: none;', :class => "#{even_odd} edit-record"}

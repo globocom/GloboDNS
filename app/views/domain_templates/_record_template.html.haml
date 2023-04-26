@@ -7,7 +7,7 @@
   %td{ :width => 250 }= record_template.content unless record_template.soa?
   %td{ :width => 36 }
     = link_to_function info_icon('table_edit.png', 'edit-record-template'), "editRecordTemplate(#{record_template.id})"
-    = link_to info_icon('table_delete.png', 'delete-record-template'), record_template_path( record_template ), :method => :delete, :confirm => t(:confirm_template_record_delete)
+    = link_to info_icon('table_delete.png', 'delete-record-template'), record_template_path( record_template ), :method => :delete, :data => {:confirm => t(:confirm_template_record_delete)}
 - if record_template.soa?
   %tr[ record_template, 'show-soa' ]
     %td{ :colspan => 2 } &nbsp;
@@ -81,6 +81,10 @@
           %td{ :width => 30 }
             - if record_template.type == 'MX'
               = f.text_field :prio, :size => 1
+            - if record_template.type == ('SRV')
+              = f.text_field :prio, :size => 1
+              = f.text_field :weight, :size => 1
+              = f.text_field :port, :size => 1
           %td{ :width => 250 }= f.text_field :content, :size => 15
 
         %td.top{ :width => 39 }

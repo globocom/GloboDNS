@@ -21,23 +21,33 @@
 # support from clients.
 #
 # Obtained from http://en.wikipedia.org/wiki/SRV_record
-# 
+#
 # See also http://www.zytrax.com/books/dns/ch8/srv.html
 
 class SRV < Record
-    # validates_numericality_of :prio, :greater_than_or_equal_to => 0
+  # validates_numericality_of :prio, :greater_than_or_equal_to => 0
+  validates_presence_of :prio, :weight, :port
+  validates :prio, :weight, :port, numericality: { only_integer: true }
 
-    # We support priorities
-    # def supports_prio?
-    #   true
-    # end
+  # We support priorities, weight and port
+  def supports_prio?
+    true
+  end
 
-    def resolv_resource_class
-        Resolv::DNS::Resource::IN::SRV
-    end
+  def supports_weight?
+    true
+  end
 
-    def match_resolv_resource(resource)
-        # TODO: break down SRV records into multiple attributes?
-        "#{resource.priority} #{resource.weight} #{resources.port} #{resource.target}" == self.content.chomp('.')
-    end
+  def supports_port?
+    true
+  end
+
+  def resolv_resource_class
+    Resolv::DNS::Resource::IN::SRV
+  end
+
+  def match_resolv_resource(resource)
+    # TODO: break down SRV records into multiple attributes?
+    "#{resource.priority} #{resource.weight} #{resources.port} #{resource.target}" == self.content.chomp('.')
+  end
 end

@@ -4,9 +4,9 @@
   %td.user= audit.user && audit.user.login
   %td.from= audit.remote_address
   %td.action= audit.action
-  %td.auditable= "#{audit.auditable_type.try(:downcase)}:#{audit.auditable_id}"
-  %td.association= audit.associated_type ? "#{audit.associated_type.try(:downcase)}:#{audit.associated_id}" : ''
-  %td.changes{'title' => audit.audited_changes}
-    %span= audit.audited_changes
+  %td.auditable= "#{audit.audited_changes['name']}"
+  %td.association= audit.associated_type ? ( (au = Audited::Adapters::ActiveRecord::Audit.where(auditable_type:"Domain",auditable_id:audit.associated_id).first).nil? ? "" : "#{au.audited_changes['name']}") : ''
+  %td.changes{:title => updated_changes(audit).to_s}
+    %span= updated_changes(audit)
 
   / %th= audit.comment

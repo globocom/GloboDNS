@@ -1,0 +1,33 @@
+<h1> <%= raw "#{t(:label_record)}: #{@record.name} (#{t(:label_type)}: #{@record.type}, #{t(:label_content)}: #{truncate(@record.content, :length => 50)})" %></h1>
+
+<% if Record::testable_types.include? @record.type %>
+  <table id='resolv-table'>
+    <% @response[:success].each do |res| %>
+      <tr class=<%= cycle("odd", "even") %>>
+        <% if @record.match_content res[:content] %>
+        <td><span class="ui-icon-ok" style="color: #189e08;"></span></td>
+      <% else %>
+        <td><span class="ui-icon-warning-sign" style="color: #ead721;"></span></td>
+      <% end %>
+      <% case @record.type %>
+      <% when "MX"%> 
+        <td>responding to '<span><b><%= res[:server] %></b></span>'' with content '<span><b><%= res[:content] %></b></span>' and priority '<span><b><%= res[:prio] %></b></span>'<span></span><td>
+      <% when "SRV"%> 
+        <td>responding to '<span><b><%= res[:server] %></b></span>'' with content '<span><b><%= res[:content] %></b></span>', priority '<span><b><%= res[:prio] %></b></span>', port '<span><b><%= res[:port] %></b></span>' and weight '<span><b><%= res[:weight] %></b></span>'<span></span><td>
+      <% else %>
+        <td>responding to '<span><b><%= res[:server] %></b></span>'' with content '<span><b><%= res[:content] %></b></span>'<span></span><td>
+      <% end %>
+      </tr>
+    <% end %>
+
+    <% @response[:failed].each do |res| %>
+      <tr class=<%= cycle("odd", "even") %>>
+        <td><span class="ui-icon-ban-circle" style="color: #ff0000;"></span></td>
+      <td>not responding to '<span><b><%= res[:server] %></b></span>'<td>
+      </tr>
+    <% end %>
+
+  </table>
+<% else %>
+  <%= "Records of type #{@record.type} can't be tested" %>
+<% end %>

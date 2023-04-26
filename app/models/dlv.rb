@@ -20,11 +20,11 @@
 # records.
 
 class DLV < Record
-    def resolv_resource_class
-        Resolv::DNS::Resource::IN::DLV
-    end
+  def resolv_resource_class
+    Resolv::DNS::Resource::IN::DLV
+  end
 
-    def match_resolv_resource(resource)
-        resource.strings.join(' ') == self.content.chomp('.')
-    end
+  def match_resolv_resource(resource)
+    resource.strings.join(' ') == self.content.chomp('.')
+  end
 end

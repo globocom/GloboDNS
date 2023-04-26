@@ -6,6 +6,7 @@
     </title>
     <%= stylesheet_link_tag    'application' %>
     <%= javascript_include_tag 'application' %>
+
     <%= csrf_meta_tag %>
   </head>
   <body>
@@ -16,9 +17,11 @@
             <span>
               <%= t(:logged_user, :user => current_user.login) %>
             </span>
-            <span>
-              <%= link_to((t :change_passord), update_password_user_path) %>
-            </span>
+            <% unless GloboDns::Application.config.omniauth %>
+              <span>
+                <%= link_to((t :change_passord), update_password_user_path) %>
+              </span>
+            <% end %>
             <br/>
             <span>
               <%= t(:last_export, :timestamp => last_export_timestamp.to_formatted_s(:short)) %>
@@ -31,6 +34,7 @@
         <h1>
           <!--t :layout_main_title
           -->
+          <div id="ajaxBusy"><img src="<%= image_path('loading.gif') %>"/></div>
           <img src="<%= image_path('logo_small.png') %>"/>
         </h1>
       </div>
@@ -43,7 +47,7 @@
               </div>
             </div>
             <%= form_tag(domains_path, { :method => :get }) do %>
-              <%= text_field_tag :query, params[:query] || '', :class => 'search-field', 'data-help' => 'help-search' %>
+              <%= text_field_tag :query, params[:query] || '', :class => 'search-field', :data => {'help' => 'help-search'} %>
               <span class="search-icon"></span>
             <% end %>
           </div>
@@ -59,6 +63,9 @@
             <% if current_user.admin? || current_user.operator? %>
               <li>
                 <%= link_to((t :layout_menu_templates), domain_templates_path) %>
+              </li>
+              <li>
+                <%= link_to((t :layout_menu_views), views_path) %>
               </li>
               <li>
                 <%= link_to((t :layout_menu_logs), audits_path) %>
@@ -79,9 +86,11 @@
                 <%= link_to((t :layout_menu_export), bind9_schedule_export_path(:format => :json), :remote => true, :method => :post, :class => 'export-menu-item') %>
               </li>
             <% end %>
-            <li>
-              <%= link_to((t :layout_menu_logout), destroy_user_session_path, :method => :delete) %>
-            </li>
+              <% if GloboDns::Application.config.omniauth %>
+                <li><%= link_to(:Logout, destroy_user_session_path) if current_user %></li>
+              <% else %>
+                <%= link_to((t :layout_menu_logout), destroy_user_session_path, :method => :delete) %>
+              <% end %>
           <% end %>
         </ul>
       </div>
@@ -92,12 +101,13 @@
       </div>
       <hr/>
       <div class="footer">
-        &copy; 2011 - Kenneth Kalmer ; 2014 - Globo.com S/A
+        &copy; 2011 - Kenneth Kalmer ; 2016 - Globo.com S/A
         <br/>
         Released under the Apache License.
         <br/>
         version <%= app_version %>
       </div>
     </div>
+    <%= render :partial => "shared/group_label" %>
   </body>
 </html>

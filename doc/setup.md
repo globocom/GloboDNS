@@ -180,6 +180,103 @@ Use the 'public' directory as your DocumentRoot path on httpd server.
 for your test, you can run:
 
      $ bundle exec unicorn_rails
-     
+
 TIP: Problems ? SELinux and/or iptables are running ? 
 
+**12. Using OAuth login**
+
+1) First you have to enable the use of OmniAuth at file [config/application.rb](./config/application.rb).
+
+         config.omniauth = true
+
+
+
+2) Add the provider settings at file [config/initializers/omniauth.rb](./config/initializers/omniauth.rb).
+
+3) At [app/controllers/application_controller.rb](./app/controllers/application_controller.rb)
+
+    3.1) Set the logout path 
+
+        def logout
+            sign_out current_user
+            path = new_user_session_url
+            client_id = Rails.application.secrets.oauth_provider_client_id
+            redirect_to "https://oauthprovider.com/logout"+ "?client_id=#{client_id}&redirect_uri=#{path}" # set providers logout uri
+        end
+
+    3.2) Also, change "YourProvider" to your provider 
+    
+                  resource = RestClient::Resource.new(OmniAuth::YourProvider::Client.client_options(Rails.env)[:site]) # set the OAut hProvider
+
+
+4) Add the provider configured in step 2 at the [User model](./app/models/user.rb).
+    
+        ...
+        devise :omniauthable, :omniauth_providers => [:oauth_provider] # change ':oauth_provider'
+        ...
+        def self.from_api(auth)
+            ...
+            if user.nil?
+                ...
+                provider: :oauth_provider, # also change 
+                ...    
+            else
+                ...
+                provider: :oauth_provider, # also change 
+            ...
+
+
+5) Change the [routes](config/routes.rb) settings. Uncomment the following line and change 'oauthprovider' to the name of the OAuth provider.
+
+        # get 'auth/sign_in' => redirect('users/auth/oauthprovider'), :as => :new_user_session
+
+6) Finally, you need to change the [OmniauthCallbacksController](https://github.com/globocom/GloboDNS/blob/production/app/controllers/omniauth_callbacks_controller.rb).
+
+    Uncomment the whole function and do the necessary changes, such ass:
+    
+        def <YOUR_PROVIDER> 
+    
+    Also change 
+    
+        set_flash_message(:notice, :success, :kind => "<YOUR PROVIDER HERE>") if is_navigational_format?
+
+    Lastly
+
+        session["devise.<YOUR_PROVIDER>_data"] = request.env["omniauth.auth"]
+
+
+
+**NOTE**: You probably will need to add the OAuth provider gem at Gemfile.
+
+
+**13. Enabling TTL actions**
+
+At GloboDNS tags 1.7.9 or higher, there will be the feature of increasing TTL. There are two actions made:
+
+1. Increase TTL if the record updated date is 7 days ago. The TTL value will be multiplied by 3. This will occurs until it reaches the zone's default TTL.
+2. After *create* or *edit* a record, its TTL is set to 60 seeking to help rollback cases. (*Note*: if you need your TTL short and do not wont it to be increased after one week, you should set the TTL to 59 or less).
+
+***Enabling/disabling* TTL actions**
+**1)** To enable the actions, you should set the variable *'increase_ttl'* to **'true'**, at file *'config/globodns.yml'* .
+
+    increase_ttl: true
+
+*Note:* *increase_ttl* variable value is *'false'* by default.
+
+**2)** To enable cron to run *'increase_ttl'* task, at the file *config/schedule.rb*, you should add the following snippet:
+
+    every 1.day do
+      rake "record:increase_ttl"
+    end
+
+***14. Enabling/disabling* Domain Ownership**
+
+Domain ownership consists in a validation that verify if the user can manage the domain/record. The domain is associate to a Componente/Subcomponente ID (projetcs) and GloboDNS will verify if the user is associate to those IDs.
+
+**1)** The domain ownership info is validate at the 'lib/domain_ownership.rb' file. if you want to use this feature, you must fill the methods that exists in the lib file with the appropritate code.
+
+**2)** To enable the verification, you should set the variable *'increase_ttl'* to **'true'**, at file *'config/globodns.yml'* .
+
+    increase_ttl: true
+
+*Note:* *increase_ttl* variable value is *'false'* by default.

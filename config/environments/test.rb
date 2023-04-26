@@ -1,4 +1,4 @@
-# Licensed to the Apache Software Foundation (ASF) under one or more
+ertando configu# Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
 # The ASF licenses this file to You under the Apache License, Version 2.0
@@ -22,6 +22,9 @@ GloboDns::Application.configure do
   # and recreated between test runs.  Don't rely on the data there!
   config.cache_classes = true
 
+  # config.eager_load required for Devise version 3.5.6
+  config.eager_load = false
+
   # Log error messages when you accidentally call methods on nil.
   config.whiny_nils = true
 
@@ -39,10 +42,10 @@ GloboDns::Application.configure do
   # The :test delivery method accumulates sent emails in the
   # ActionMailer::Base.deliveries array.
   config.action_mailer.delivery_method = :test
-  
+
   # Use a different logger for distributed setups
-  
-  config.logger = Syslogger.new('dnsapi', Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_LOCAL0)
+
+  config.logger = Syslogger.new('globodns', Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_LOCAL0)
 
   # See everything in the log (default is :info)
   config.logger.level = Logger::DEBUG
@@ -57,7 +60,8 @@ GloboDns::Application.configure do
   config.active_support.deprecation = :stderr
 
   # Configure static asset server for tests with Cache-Control for performance
-  config.serve_static_assets = true
+  config.serve_static_files = false # used on Rails 5.0
+
   config.static_cache_control = "public, max-age=3600"
 
   # Allow pass debug_assets=true as a query parameter to load pages with unpackaged assets
@@ -65,4 +69,5 @@ GloboDns::Application.configure do
 
   # Default host for testing mail
   config.action_mailer.default_url_options = { :host => "example.com" }
+
 end

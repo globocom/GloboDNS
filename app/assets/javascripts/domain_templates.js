@@ -142,6 +142,35 @@ $(document).ready(function() {
 	});
 
 
+	// ------------------- View -------------------
+	$('.edit-domain-template-view-button').click(function () {
+		$('#show-domain-template-view').hide();
+		$('#select-domain-template-view').show();
+		$(this).hide();
+		return false;
+	});
+
+	$('.cancel-select-domain-template-view-button').live('click', function () {
+		$('#show-domain-template-view').show();
+		$('#select-domain-template-view').hide();
+		$('.edit-domain-template-view-button').show();
+		return false;
+	});
+
+	$('.select-domain-template-view-button').live('click', function () {
+		$('.select-domain-template-view-form').submit();
+		return false;
+	});
+
+	$('.select-domain-template-view-form').live('ajax:success', function (evt, data, statusStr, xhr) {
+          $('#show-domain-template-view').html($('#domain_template_view_id option:selected').text()).show();
+          $('#select-domain-template-view').hide();
+          $('.edit-domain-template-view-button').show();
+          return false;
+        }).live('ajax:error', function (evt, xhr, statusStr, error) {
+          alert("[ERROR] unable to update View");
+	});
+
 	// ------------------- Record Templates table -------------------
 
 	$('#record-templates-table-pagination a').live('ajax:success', function (evt, data, statusStr, xhr) {
@@ -247,8 +276,21 @@ $(document).ready(function() {
 	});
 
 	$('#new-record-template-form select#record_template_type').live('change', function () {
+		$('input#record_template_prio').val(null);
+		$('input#record_template_weight').val(null);
+		$('input#record_template_port').val(null);
+		$('input#record_tag').val(null);
+
 		var val = $(this).val();
-		$('#new-record-template-form input#record_template_prio').closest('tr').toggle((val == 'MX' || val == 'SRV'));
+		$('#new-record-template-form input#record_template_prio').closest('tr').toggle((val == 'MX' || val == 'SRV' || val == 'CAA'));
+		$('#new-record-template-form input#record_template_weight').closest('tr').toggle(val == 'SRV');
+		$('#new-record-template-form input#record_template_port').closest('tr').toggle(val == 'SRV');
+		if (val == 'CAA') {
+			$('#new-record-template-form select#record_tag').closest('tr').toggle();
+		}
+		else{
+			$('#new-record-template-form select#record_tag').closest('tr').hide();
+		}
 		$(this).blur();
 	});
 	$('#new-record-template-form select#record_template_type').change();

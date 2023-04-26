@@ -15,6 +15,28 @@
 
 module AuditsHelper
 
+  def updated_changes (audit)
+    if audit.action == "update"
+      begin
+        changes = audit.audited_changes
+        record = Record.find(audit.auditable_id).attributes.except('created_at', 'updated_at')
+        changes.keys.each do |key|
+          record.delete(key)
+        end
+        changes.merge(record)
+      rescue
+        changes = audit.audited_changes
+        audit_record = Audited::Adapters::ActiveRecord::Audit.where(auditable_id: audit.auditable_id, action: "create") || Audited::Adapters::ActiveRecord::Audit.where(auditable_id: audit.auditable_id, action: "destroy")
+        unless audit_record.empty?
+          record = audit_record.first['audited_changes']
+          audit.audited_changes.merge(record)
+        end
+      end
+    else
+      audit.audited_changes
+    end
+  end
+
   def parenthesize( text )
     "(#{text})"
   end
@@ -58,7 +80,7 @@ module AuditsHelper
 
   def audit_user( audit )
     if audit.user.is_a?( User )
-      audit.user.login
+      audit.user.name
     else
       audit.username || 'UNKNOWN'
     end
